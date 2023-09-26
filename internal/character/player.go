@@ -1,13 +1,13 @@
 package character
 
 import (
-	"godev/internal/camera"
-	"godev/pkg/app"
-	"godev/pkg/input"
-	"godev/pkg/object"
+	"karalis/internal/camera"
+	"karalis/pkg/app"
+	"karalis/pkg/input"
+	"karalis/pkg/object"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
-	lmath "godev/pkg/lmath"
+	lmath "karalis/pkg/lmath"
 )
 
 var ()

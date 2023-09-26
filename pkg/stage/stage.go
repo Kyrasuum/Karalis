@@ -1,8 +1,8 @@
 package stage
 
 import (
-	"godev/internal/cell"
-	"godev/pkg/object"
+	"karalis/internal/cell"
+	"karalis/pkg/object"
 )
 
 var ()

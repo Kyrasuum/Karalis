@@ -1,10 +1,10 @@
 package camera
 
 import (
-	"godev/pkg/object"
+	"karalis/pkg/object"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
-	lmath "godev/pkg/lmath"
+	lmath "karalis/pkg/lmath"
 )
 
 var ()

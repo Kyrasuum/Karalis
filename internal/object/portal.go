@@ -1,10 +1,10 @@
 package object
 
 import (
-	"godev/internal/camera"
-	"godev/internal/cell"
-	"godev/pkg/app"
-	pub_object "godev/pkg/object"
+	"karalis/internal/camera"
+	"karalis/internal/cell"
+	"karalis/pkg/app"
+	pub_object "karalis/pkg/object"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )

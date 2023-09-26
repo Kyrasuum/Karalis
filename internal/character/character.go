@@ -1,7 +1,7 @@
 package character
 
 import (
-	"godev/pkg/object"
+	"karalis/pkg/object"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )

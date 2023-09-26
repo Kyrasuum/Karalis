@@ -3,7 +3,7 @@ PRI_DIR = ./internal/
 PUB_DIR = ./pkg/
 BIN_DIR = ./bin/
 RELEASE_DIR = ./release/
-EXEC = godev
+EXEC = karalis
 
 .PHONY: run
 #: Starts the project

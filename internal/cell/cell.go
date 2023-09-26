@@ -1,8 +1,8 @@
 package cell
 
 import (
-	"godev/internal/camera"
-	"godev/pkg/object"
+	"karalis/internal/camera"
+	"karalis/pkg/object"
 )
 
 var ()

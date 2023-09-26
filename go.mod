@@ -1,4 +1,4 @@
-module godev
+module karalis
 
 go 1.20
 

@@ -1,11 +1,11 @@
 package stage
 
 import (
-	"godev/internal/cell"
-	"godev/internal/character"
-	"godev/internal/object"
-	"godev/internal/object/prim"
-	pub_object "godev/pkg/object"
+	"karalis/internal/cell"
+	"karalis/internal/character"
+	"karalis/internal/object"
+	"karalis/internal/object/prim"
+	pub_object "karalis/pkg/object"
 )
 
 var ()

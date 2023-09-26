@@ -1,8 +1,8 @@
 package main
 
 import (
-	"godev/internal/app"
-	"godev/pkg/embed"
+	"karalis/internal/app"
+	"karalis/pkg/embed"
 )
 
 func main() {

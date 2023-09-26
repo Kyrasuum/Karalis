@@ -3,7 +3,7 @@ package prim
 import (
 	"image/color"
 
-	pub_object "godev/pkg/object"
+	pub_object "karalis/pkg/object"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )

@@ -4,11 +4,11 @@ import (
 	"image/color"
 	"time"
 
-	"godev/internal/stage"
-	App "godev/pkg/app"
-	"godev/pkg/config"
-	"godev/pkg/input"
-	pub_stage "godev/pkg/stage"
+	"karalis/internal/stage"
+	App "karalis/pkg/app"
+	"karalis/pkg/config"
+	"karalis/pkg/input"
+	pub_stage "karalis/pkg/stage"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )

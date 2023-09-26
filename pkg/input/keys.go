@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"godev/pkg/config"
+	"karalis/pkg/config"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
 	json5 "github.com/zyedidia/json5"

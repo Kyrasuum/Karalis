@@ -1,7 +1,7 @@
 package app
 
 import (
-	"godev/pkg/stage"
+	"karalis/pkg/stage"
 )
 
 var (
