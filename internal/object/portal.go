@@ -128,6 +128,10 @@ func (p *Portal) Prerender() []func() {
 	if p.target != nil {
 		if !p.rendering && p.visible {
 			p.rendering = true
+			if p.exit != nil {
+				p.exit.visible = false
+			}
+
 			raylib.BeginTextureMode(*p.target)
 			raylib.ClearBackground(raylib.RayWhite)
 
@@ -147,7 +151,11 @@ func (p *Portal) Prerender() []func() {
 			}
 
 			raylib.EndTextureMode()
+
 			p.rendering = false
+			if p.exit != nil {
+				p.exit.visible = false
+			}
 		}
 	}
 

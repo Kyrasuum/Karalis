@@ -26,7 +26,8 @@ type app struct {
 	height int32
 }
 
-func (a *app) defaults() {
+// initialize app
+func (a *app) init() {
 	a.curStage = nil
 	a.console = nil
 
@@ -35,19 +36,18 @@ func (a *app) defaults() {
 
 	a.logicInterval = 16
 	a.drawInterval = 16
-}
 
-func (a *app) init() {
-	a.defaults()
 	App.CurApp = a
 }
 
+// handle input
 func (a *app) handleInput(dt float32) {
 	if a.curStage != nil {
 		a.curStage.OnInput(dt)
 	}
 }
 
+// render cycle
 func (a *app) render() {
 	if a.curStage != nil {
 		cmds := a.curStage.Prerender()
@@ -74,6 +74,7 @@ func (a *app) render() {
 	raylib.EndDrawing()
 }
 
+// handle resizing
 func (a *app) onResize() {
 	w := int32(raylib.GetScreenWidth())
 	h := int32(raylib.GetScreenHeight())
@@ -88,24 +89,29 @@ func (a *app) onResize() {
 	}
 }
 
+// update cycle
 func (a *app) update(dt float32) {
 	if a.curStage != nil {
 		a.curStage.Update(dt)
 	}
 }
 
+// get window width
 func (a *app) GetWidth() int32 {
 	return a.width
 }
 
+// get window height
 func (a *app) GetHeight() int32 {
 	return a.height
 }
 
+// detect if app should continue running
 func (a *app) Running() bool {
 	return !raylib.WindowShouldClose()
 }
 
+// main run loop for the app while running
 func (a *app) run() {
 	raylib.SetConfigFlags(raylib.FlagWindowResizable)
 	raylib.InitWindow(a.width, a.height, config.AppName)
@@ -141,6 +147,7 @@ func (a *app) run() {
 	}
 }
 
+// set  the currently active stage
 func (a *app) SetStage(nextStage pub_stage.Stage) {
 	if a.curStage != nil {
 		a.curStage.OnRemove()
@@ -151,10 +158,12 @@ func (a *app) SetStage(nextStage pub_stage.Stage) {
 	}
 }
 
+// get the currently active stage in the app
 func (a *app) GetStage() pub_stage.Stage {
 	return a.curStage
 }
 
+// Exit the application
 func (a *app) Exit() {
 	if a.curStage != nil {
 		a.curStage.OnRemove()
@@ -162,10 +171,12 @@ func (a *app) Exit() {
 	raylib.CloseWindow()
 }
 
+// start the application
 func (a *app) Start() {
 	a.run()
 }
 
+// create new application object
 func NewApp() app {
 	a := app{}
 	a.init()
