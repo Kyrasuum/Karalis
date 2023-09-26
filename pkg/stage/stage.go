@@ -1,6 +1,9 @@
 package stage
 
-import ()
+import (
+	"godev/internal/cell"
+	"godev/pkg/object"
+)
 
 var ()
 
@@ -14,4 +17,6 @@ type Stage interface {
 	OnInput(dt float32)
 	OnAdd()
 	OnRemove()
+	GetPlayer() object.Object
+	GetCurrentCell() *cell.Cell
 }

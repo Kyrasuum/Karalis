@@ -1,6 +1,9 @@
 package stage
 
-import ()
+import (
+	"godev/internal/cell"
+	"godev/pkg/object"
+)
 
 var ()
 
@@ -34,4 +37,11 @@ func (s *MainMenu) OnAdd() {
 }
 
 func (s *MainMenu) OnRemove() {
+}
+
+func (s *MainMenu) GetPlayer() object.Object {
+	return nil
+}
+func (s *MainMenu) GetCurrentCell() *cell.Cell {
+	return nil
 }

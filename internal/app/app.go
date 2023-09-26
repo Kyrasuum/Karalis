@@ -151,6 +151,10 @@ func (a *app) SetStage(nextStage pub_stage.Stage) {
 	}
 }
 
+func (a *app) GetStage() pub_stage.Stage {
+	return a.curStage
+}
+
 func (a *app) Exit() {
 	if a.curStage != nil {
 		a.curStage.OnRemove()

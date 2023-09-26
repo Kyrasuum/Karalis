@@ -15,4 +15,5 @@ type App interface {
 	Start()
 	Exit()
 	SetStage(nextStage stage.Stage)
+	GetStage() stage.Stage
 }

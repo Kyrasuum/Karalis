@@ -149,6 +149,7 @@ func GetModsPressed() map[string]bool {
 }
 
 // get pressed key combos
+// TODO: make more efficent
 func GetKeyCombos(key string, mods map[string]bool) map[string][]string {
 	combos := map[string][]string{
 		key: []string{key},
