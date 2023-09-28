@@ -1,8 +1,6 @@
 package camera
 
 import (
-	"karalis/pkg/object"
-
 	raylib "github.com/gen2brain/raylib-go/raylib"
 	lmath "karalis/pkg/lmath"
 )
@@ -50,6 +48,34 @@ func (s *Cam) Postrender() []func() {
 }
 
 func (s *Cam) Update(dt float32) {
+}
+
+func (s *Cam) GetPos() raylib.Vector3 {
+	return s.camera.Position
+}
+
+func (s *Cam) SetPos(pos raylib.Vector3) {
+	s.camera.Position = pos
+}
+
+func (s *Cam) GetTar() raylib.Vector3 {
+	return s.camera.Target
+}
+
+func (s *Cam) SetTar(tar raylib.Vector3) {
+	s.camera.Target = tar
+}
+
+func (s *Cam) GetModelMatrix() raylib.Matrix {
+	camQuat := lmath.Quat{}
+	camQuat = *camQuat.FromEuler(float64(s.GetPitch()), float64(s.GetYaw()), float64(s.GetRoll()))
+	camMat := raylib.QuaternionToMatrix(raylib.NewQuaternion(float32(camQuat.X), float32(camQuat.Y), float32(camQuat.Z), float32(camQuat.W)))
+	camMat = raylib.MatrixMultiply(camMat, raylib.MatrixTranslate(s.camera.Position.X, s.camera.Position.Y, s.camera.Position.Z))
+	return camMat
+}
+
+func (s *Cam) GetWorldToScreen(pos raylib.Vector3) raylib.Vector2 {
+	return raylib.GetWorldToScreen(pos, s.camera)
 }
 
 func (s *Cam) GetDist() float32 {
@@ -114,10 +140,4 @@ func (s *Cam) OnAdd() {
 }
 
 func (s *Cam) OnRemove() {
-}
-
-func (s *Cam) AddChild(obj object.Object) {
-}
-
-func (s *Cam) RemChild(obj object.Object) {
 }

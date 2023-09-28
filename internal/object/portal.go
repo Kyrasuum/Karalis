@@ -44,7 +44,6 @@ func (p *Portal) Init(scene *cell.Cell, exit *Portal, cam *camera.Cam, obj pub_o
 	} else {
 		p.cam = &camera.Cam{}
 		p.cam.Init()
-		p.scene.AddCam(p.cam)
 	}
 
 	if obj != nil {
@@ -75,6 +74,40 @@ func (p *Portal) Pair(e *Portal) {
 	}
 	e.exit = p
 	p.exit = e
+}
+
+// retrieve the portal display objects vertices
+func (p *Portal) GetVertices() []raylib.Vector3 {
+	if p.obj != nil {
+		return p.obj.GetVertices()
+	} else {
+		return []raylib.Vector3{}
+	}
+}
+
+// retrieve the portal texture uvs for the display object
+func (p *Portal) GetUVs() []raylib.Vector2 {
+	if p.obj != nil {
+		return p.obj.GetUVs()
+	} else {
+		return []raylib.Vector2{}
+	}
+}
+
+// set the texture uvs for the portal display object
+func (p *Portal) SetUVs(uvs []raylib.Vector2) {
+	if p.obj != nil {
+		p.obj.SetUVs(uvs)
+	}
+}
+
+// get the portal render objects model matrix
+func (p *Portal) GetModelMatrix() raylib.Matrix {
+	if p.obj != nil {
+		return p.obj.GetModelMatrix()
+	} else {
+		return raylib.MatrixTranslate(0, 0, 0)
+	}
 }
 
 // get portal render material
@@ -109,10 +142,6 @@ func (p *Portal) GetPortal() pub_object.Object {
 
 // set camera for portal
 func (p *Portal) SetCam(obj *camera.Cam) {
-	if p.cam != nil {
-		p.scene.RemCam(p.cam)
-	}
-	p.scene.AddCam(obj)
 	p.cam = obj
 }
 
@@ -122,40 +151,74 @@ func (p *Portal) GetCam() *camera.Cam {
 }
 
 // prerender hook
-func (p *Portal) Prerender() []func() {
+func (p *Portal) Prerender(cam *camera.Cam) []func() {
 	cmds := []func(){}
 
-	if p.target != nil {
-		if !p.rendering && p.visible {
-			p.rendering = true
-			if p.exit != nil {
-				p.exit.visible = false
+	//guards to ensure we only render when we should be
+	if p.target != nil && !p.rendering && p.visible {
+		//prevent rerendering a portal a second time
+		p.rendering = true
+		if p.exit != nil {
+			p.exit.visible = false
+		}
+
+		//calculate portal camera position based on calling render camera
+		camMdl := cam.GetModelMatrix()
+		portalmdl := p.GetModelMatrix()
+		wldToLcl := raylib.MatrixInvert(portalmdl)
+		lclToWld := raylib.MatrixTranslate(0, 0, 0)
+		if p.exit != nil {
+			lclToWld = p.exit.GetModelMatrix()
+		}
+		transform := raylib.MatrixMultiply(lclToWld, raylib.MatrixMultiply(wldToLcl, camMdl))
+		p.cam.SetPos(raylib.Vector3Transform(raylib.NewVector3(0, 0, 0.01), transform))
+		tarPos := raylib.Vector3Transform(raylib.NewVector3(0, 0, 0), lclToWld)
+		p.cam.SetTar(tarPos)
+
+		//calculate portal render texture uv coords
+		if p.obj != nil {
+			portalUVs := p.obj.GetUVs()
+			portalVerts := p.obj.GetVertices()
+			width := app.CurApp.GetWidth()
+			height := app.CurApp.GetHeight()
+
+			for i, vert := range portalVerts {
+				vert := raylib.Vector3Transform(vert, portalmdl)
+				uv := cam.GetWorldToScreen(vert)
+				uv.X /= float32(width)
+				uv.Y /= float32(height)
+				portalUVs[i] = uv
 			}
+			p.obj.SetUVs(portalUVs)
+		}
 
-			raylib.BeginTextureMode(*p.target)
-			raylib.ClearBackground(raylib.RayWhite)
+		//render from portals perspective
+		raylib.BeginTextureMode(*p.target)
+		raylib.ClearBackground(raylib.RayWhite)
 
-			cmds = p.scene.Prerender()
-			for _, cmd := range cmds {
-				cmd()
-			}
+		cmds = p.cam.Prerender()
+		cmds = append(cmds, p.scene.Prerender(p.cam)...)
+		for _, cmd := range cmds {
+			cmd()
+		}
 
-			cmds = p.scene.Render()
-			for _, cmd := range cmds {
-				cmd()
-			}
+		cmds = p.cam.Render()
+		cmds = append(cmds, p.scene.Render(p.cam)...)
+		for _, cmd := range cmds {
+			cmd()
+		}
 
-			cmds = p.scene.Postrender()
-			for _, cmd := range cmds {
-				cmd()
-			}
+		cmds = p.cam.Postrender()
+		cmds = append(cmds, p.scene.Postrender(p.cam)...)
+		for _, cmd := range cmds {
+			cmd()
+		}
 
-			raylib.EndTextureMode()
+		raylib.EndTextureMode()
 
-			p.rendering = false
-			if p.exit != nil {
-				p.exit.visible = false
-			}
+		p.rendering = false
+		if p.exit != nil {
+			p.exit.visible = false
 		}
 	}
 
@@ -163,12 +226,12 @@ func (p *Portal) Prerender() []func() {
 }
 
 // render hook
-func (p *Portal) Render() []func() {
+func (p *Portal) Render(cam *camera.Cam) []func() {
 	cmds := []func(){}
 
 	if p.visible {
 		if p.target != nil && p.obj != nil {
-			cmds = p.obj.Render()
+			cmds = p.obj.Render(cam)
 		}
 	}
 
@@ -176,7 +239,7 @@ func (p *Portal) Render() []func() {
 }
 
 // postrender hook
-func (p *Portal) Postrender() []func() {
+func (p *Portal) Postrender(cam *camera.Cam) []func() {
 	cmds := []func(){}
 
 	if p.visible {
@@ -214,7 +277,7 @@ func (p *Portal) OnRemove() {
 
 // handle resize event
 func (p *Portal) OnResize(w int32, h int32) {
-	p.scene.OnResize(w, h)
+	p.cam.OnResize(w, h)
 }
 
 // add child to object

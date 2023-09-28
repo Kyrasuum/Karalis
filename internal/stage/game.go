@@ -24,8 +24,6 @@ func (g *Game) Init() {
 
 	g.player = &character.Player{}
 	g.player.Init()
-	pcam := g.player.GetCam()
-	g.curcell.AddCam(pcam)
 	g.curcell.AddChild(g.player)
 
 	grid2 := prim.Grid{}
@@ -51,26 +49,32 @@ func (g *Game) Init() {
 
 // handle resize event
 func (g *Game) OnResize(w int32, h int32) {
-	g.curcell.OnResize(w, h)
+	g.player.GetCam().OnResize(w, h)
 	g.portal1.OnResize(w, h)
 	g.portal2.OnResize(w, h)
 }
 
 // prerender hook
 func (g *Game) Prerender() []func() {
-	cmds := g.curcell.Prerender()
+	cam := g.player.GetCam()
+	cmds := cam.Prerender()
+	cmds = append(cmds, g.curcell.Prerender(cam)...)
 	return cmds
 }
 
 // render hook
 func (g *Game) Render() []func() {
-	cmds := g.curcell.Render()
+	cam := g.player.GetCam()
+	cmds := cam.Render()
+	cmds = append(cmds, g.curcell.Render(cam)...)
 	return cmds
 }
 
 // postrender hook
 func (g *Game) Postrender() []func() {
-	cmds := g.curcell.Postrender()
+	cam := g.player.GetCam()
+	cmds := cam.Postrender()
+	cmds = append(cmds, g.curcell.Postrender(cam)...)
 	return cmds
 }
 

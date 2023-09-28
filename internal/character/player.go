@@ -38,18 +38,18 @@ func (p *Player) Init() {
 	p.capture = false
 }
 
-func (p *Player) Prerender() []func() {
-	cmds := p.char.Prerender()
+func (p *Player) Prerender(cam *camera.Cam) []func() {
+	cmds := p.char.Prerender(cam)
 	return cmds
 }
 
-func (p *Player) Render() []func() {
-	cmds := p.char.Render()
+func (p *Player) Render(cam *camera.Cam) []func() {
+	cmds := p.char.Render(cam)
 	return cmds
 }
 
-func (p *Player) Postrender() []func() {
-	cmds := p.char.Postrender()
+func (p *Player) Postrender(cam *camera.Cam) []func() {
+	cmds := p.char.Postrender(cam)
 	return cmds
 }
 
@@ -71,6 +71,25 @@ func (p *Player) AddChild(obj object.Object) {
 
 func (p *Player) RemChild(obj object.Object) {
 	p.char.AddChild(obj)
+}
+
+// retrieve the portal display objects vertices
+func (p *Player) GetVertices() []raylib.Vector3 {
+	return p.char.GetVertices()
+}
+
+// retrieve the portal texture uvs for the display object
+func (p *Player) GetUVs() []raylib.Vector2 {
+	return p.char.GetUVs()
+}
+
+// set the texture uvs for the portal display object
+func (p *Player) SetUVs(uvs []raylib.Vector2) {
+	p.char.SetUVs(uvs)
+}
+
+func (p *Player) GetModelMatrix() raylib.Matrix {
+	return p.char.GetModelMatrix()
 }
 
 func (p *Player) GetMaterials() *raylib.Material {

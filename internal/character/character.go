@@ -1,6 +1,7 @@
 package character
 
 import (
+	"karalis/internal/camera"
 	"karalis/pkg/object"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
@@ -14,15 +15,15 @@ type Character struct {
 func (c *Character) Init() {
 }
 
-func (c *Character) Prerender() []func() {
+func (c *Character) Prerender(cam *camera.Cam) []func() {
 	return []func(){}
 }
 
-func (c *Character) Render() []func() {
+func (c *Character) Render(cam *camera.Cam) []func() {
 	return []func(){}
 }
 
-func (c *Character) Postrender() []func() {
+func (c *Character) Postrender(cam *camera.Cam) []func() {
 	return []func(){}
 }
 
@@ -39,6 +40,23 @@ func (c *Character) AddChild(obj object.Object) {
 }
 
 func (c *Character) RemChild(obj object.Object) {
+}
+
+func (c *Character) GetVertices() []raylib.Vector3 {
+	verts := []raylib.Vector3{}
+	return verts
+}
+
+func (c *Character) GetUVs() []raylib.Vector2 {
+	uvs := []raylib.Vector2{}
+	return uvs
+}
+
+func (c *Character) SetUVs(uvs []raylib.Vector2) {
+}
+
+func (c *Character) GetModelMatrix() raylib.Matrix {
+	return raylib.MatrixTranslate(0, 0, 0)
 }
 
 func (c *Character) GetMaterials() *raylib.Material {

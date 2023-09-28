@@ -149,13 +149,11 @@ func GetModsPressed() map[string]bool {
 }
 
 // get pressed key combos
-// TODO: make more efficent
-func GetKeyCombos(key string, mods map[string]bool) map[string][]string {
-	combos := map[string][]string{
-		key: []string{key},
-	}
-
+func GetKeyCombos(key string, mods map[string]bool) [][]string {
+	combos := [][]string{}
 	modlist := []string{}
+
+	//combos specific to left/right
 	if _, ok := mods["LeftShift"]; ok {
 		modlist = append(modlist, "LeftShift")
 	}
@@ -184,21 +182,7 @@ func GetKeyCombos(key string, mods map[string]bool) map[string][]string {
 		modlist = append(modlist, "RightSuper")
 	}
 
-	//combos specific to left/right
-	for i, mod := range modlist {
-		if key == mod {
-			continue
-		}
-		combo := []string{key, mod}
-		for _, mod := range modlist[i+1:] {
-			if key == mod {
-				continue
-			}
-			combo = append(combo, mod)
-			combos[strings.Join(combo, " ")] = append(combo)
-		}
-	}
-
+	//combos unspecific to left/right
 	if _, ok := mods["Shift"]; ok {
 		modlist = append(modlist, "Shift")
 	}
@@ -212,22 +196,41 @@ func GetKeyCombos(key string, mods map[string]bool) map[string][]string {
 		modlist = append(modlist, "Super")
 	}
 
-	//combos unspecific to left/right
-	//do this last to prefer left/right over unsided
 	for i, mod := range modlist {
-		if strings.HasPrefix(mod, "Left") || strings.HasPrefix(mod, "Right") {
-			break
-		}
 		combo := []string{key, mod}
-		for _, mod := range modlist[i+1:] {
-			if key == mod {
-				continue
-			}
+		sublist := modlist[i+1:]
+		for j, mod := range sublist {
+			pos := i * (len(sublist) - j)
 			combo = append(combo, mod)
-			combos[strings.Join(combo, " ")] = append(combo)
+			combos = append(combos[0:pos], append([][]string{append([]string{strings.Join(combo, " ")}, combo...)}, combos[pos:]...)...)
 		}
 	}
+	combos = append(combos, []string{key, key})
 	return combos
+}
+
+// search a keys combos for a valid action and key
+func SearchCombos(scope string, key string, mods *map[string]bool, nextControls *map[string]bool) {
+	//search all key combos for possible controls
+	combos := GetKeyCombos(key, *mods)
+	for _, keys := range combos {
+		combo := keys[0]
+		keys = keys[1:]
+		if action, ok := Bindings[scope][combo]; ok {
+			//handle action being pressed
+			if err := handleBindingPress(action); err != nil {
+				fmt.Printf("%+v\n", err)
+			}
+			//store that this action is pressed for tracking
+			(*nextControls)[action] = true
+			delete(prevControls[scope], action)
+			//remove keys from possible combo pool
+			for _, key := range keys {
+				delete(*mods, key)
+			}
+			break
+		}
+	}
 }
 
 // handle input keys
@@ -238,46 +241,12 @@ func HandleInput(scope string) {
 
 	//handle each key pressed
 	for key, _ := range keys {
-		//search all key combos for possible controls
-		combos := GetKeyCombos(key, mods)
-		for combo, keys := range combos {
-			if action, ok := Bindings[scope][combo]; ok {
-				//handle action being pressed
-				if err := handleBindingPress(action); err != nil {
-					fmt.Printf("%+v\n", err)
-				}
-				//store that this action is pressed for tracking
-				nextControls[action] = true
-				delete(prevControls[scope], action)
-				//remove keys from possible combo pool
-				for _, key := range keys {
-					delete(mods, key)
-				}
-				break
-			}
-		}
+		SearchCombos(scope, key, &mods, &nextControls)
 	}
 	//search modifiers for actions as well
 	//do this last to prefer key+mod rather than just mod
 	for key, _ := range mods {
-		//search all key combos for possible controls
-		combos := GetKeyCombos(key, mods)
-		for combo, keys := range combos {
-			if action, ok := Bindings[scope][combo]; ok {
-				//handle action being pressed
-				if err := handleBindingPress(action); err != nil {
-					fmt.Printf("%+v\n", err)
-				}
-				//store that this action is pressed for tracking
-				nextControls[action] = true
-				delete(prevControls[scope], action)
-				//remove keys from possible combo pool
-				for _, key := range keys {
-					delete(mods, key)
-				}
-				break
-			}
-		}
+		SearchCombos(scope, key, &mods, &nextControls)
 	}
 
 	//handle button releases

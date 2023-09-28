@@ -1,6 +1,7 @@
 package object
 
 import (
+	"karalis/internal/camera"
 	pub_object "karalis/pkg/object"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
@@ -14,15 +15,15 @@ type Skybox struct {
 func (s *Skybox) Init() {
 }
 
-func (s *Skybox) Prerender() []func() {
+func (s *Skybox) Prerender(cam *camera.Cam) []func() {
 	return []func(){}
 }
 
-func (s *Skybox) Render() []func() {
+func (s *Skybox) Render(cam *camera.Cam) []func() {
 	return []func(){}
 }
 
-func (s *Skybox) Postrender() []func() {
+func (s *Skybox) Postrender(cam *camera.Cam) []func() {
 	return []func(){}
 }
 
@@ -39,6 +40,10 @@ func (s *Skybox) AddChild(obj pub_object.Object) {
 }
 
 func (s *Skybox) RemChild(obj pub_object.Object) {
+}
+
+func (s *Skybox) GetModelMatrix() raylib.Matrix {
+	return raylib.MatrixTranslate(0, 0, 0)
 }
 
 func (s *Skybox) GetMaterials() *raylib.Material {
