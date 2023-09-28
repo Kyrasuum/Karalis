@@ -6,6 +6,8 @@ import (
 	"karalis/internal/object"
 	"karalis/internal/object/prim"
 	pub_object "karalis/pkg/object"
+
+	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
 var ()
@@ -40,6 +42,7 @@ func (g *Game) Init() {
 
 	box1 := prim.Cube{}
 	box1.Init()
+	box1.SetPos(raylib.NewVector3(0, 0, -3))
 	g.portal1.AddChild(&box1)
 
 	plane1 := prim.Square{}

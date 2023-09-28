@@ -1,5 +1,13 @@
 package prim
 
+/*
+#include "raylib.h"
+
+void UpdateModelUVs(Model* mdl) {
+	UpdateMeshBuffer(mdl->meshes[0], 1, &mdl->meshes->texcoords[0], mdl->meshes->vertexCount*2*sizeof(float), 0);
+}
+*/
+import "C"
 import (
 	"image/color"
 	"reflect"
@@ -72,10 +80,9 @@ func (c *Square) SetUVs(uvs []raylib.Vector2) {
 
 	for i := 0; i < len(uvs); i++ {
 		mdluvs[i*2] = uvs[i].X
-		mdluvs[i*2+1] = uvs[i].X
+		mdluvs[i*2+1] = uvs[i].Y
 	}
-	raylib.UnloadMesh(c.mdl.Meshes)
-	raylib.UploadMesh(c.mdl.Meshes, false)
+	C.UpdateModelUVs((*C.Model)(unsafe.Pointer(&c.mdl)))
 }
 
 func (c *Square) GetModelMatrix() raylib.Matrix {

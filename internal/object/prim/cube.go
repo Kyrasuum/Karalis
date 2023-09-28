@@ -114,3 +114,7 @@ func (c *Cube) AddChild(obj pub_object.Object) {
 
 func (c *Cube) RemChild(obj pub_object.Object) {
 }
+
+func (c *Cube) SetPos(pos raylib.Vector3) {
+	c.mdl.Transform = raylib.MatrixMultiply(c.mdl.Transform, raylib.MatrixTranslate(pos.X, pos.Y, pos.Z))
+}

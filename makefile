@@ -50,7 +50,6 @@ dev-deps: .deps
 	@sudo apt install libgl1-mesa-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev
 	@touch .dev-deps
 
-
 .PHONY: help
 #: Lists available commands
 help:

@@ -1,12 +1,16 @@
 package object
 
 import (
+	"fmt"
+	"image/color"
+
 	"karalis/internal/camera"
 	"karalis/internal/cell"
 	"karalis/pkg/app"
 	pub_object "karalis/pkg/object"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
+	lmath "karalis/pkg/lmath"
 )
 
 var ()
@@ -166,14 +170,16 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 		camMdl := cam.GetModelMatrix()
 		portalmdl := p.GetModelMatrix()
 		wldToLcl := raylib.MatrixInvert(portalmdl)
-		lclToWld := raylib.MatrixTranslate(0, 0, 0)
+		lclToWld := raylib.MatrixRotateX(180)
 		if p.exit != nil {
 			lclToWld = p.exit.GetModelMatrix()
 		}
 		transform := raylib.MatrixMultiply(lclToWld, raylib.MatrixMultiply(wldToLcl, camMdl))
 		p.cam.SetPos(raylib.Vector3Transform(raylib.NewVector3(0, 0, 0.01), transform))
-		tarPos := raylib.Vector3Transform(raylib.NewVector3(0, 0, 0), lclToWld)
-		p.cam.SetTar(tarPos)
+		rq := raylib.QuaternionFromMatrix(transform)
+		lq := lmath.Quat{float64(rq.X), float64(rq.Y), float64(rq.Z), float64(rq.W)}
+		tar := lq.RotateVec3(lmath.Vec3{0, 0, 0.01})
+		p.cam.SetTar(raylib.NewVector3(float32(tar.X), float32(tar.Y), float32(tar.Z)))
 
 		//calculate portal render texture uv coords
 		if p.obj != nil {
@@ -187,6 +193,7 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 				uv := cam.GetWorldToScreen(vert)
 				uv.X /= float32(width)
 				uv.Y /= float32(height)
+				uv.Y = 1 - uv.Y
 				portalUVs[i] = uv
 			}
 			p.obj.SetUVs(portalUVs)
@@ -194,7 +201,7 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 
 		//render from portals perspective
 		raylib.BeginTextureMode(*p.target)
-		raylib.ClearBackground(raylib.RayWhite)
+		raylib.ClearBackground(color.RGBA{0, 0, 0, 1})
 
 		cmds = p.cam.Prerender()
 		cmds = append(cmds, p.scene.Prerender(p.cam)...)
@@ -218,7 +225,7 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 
 		p.rendering = false
 		if p.exit != nil {
-			p.exit.visible = false
+			p.exit.visible = true
 		}
 	}
 
@@ -278,6 +285,7 @@ func (p *Portal) OnRemove() {
 // handle resize event
 func (p *Portal) OnResize(w int32, h int32) {
 	p.cam.OnResize(w, h)
+	fmt.Printf("\n")
 }
 
 // add child to object
