@@ -2,15 +2,12 @@ package object
 
 import (
 	"fmt"
-	"image/color"
 
 	"karalis/internal/camera"
 	"karalis/internal/cell"
-	"karalis/pkg/app"
 	pub_object "karalis/pkg/object"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
-	lmath "karalis/pkg/lmath"
 )
 
 var ()
@@ -20,12 +17,12 @@ type Portal struct {
 
 	exit *Portal
 
-	target *raylib.RenderTexture2D
-	obj    pub_object.Object
-	cam    *camera.Cam
+	obj pub_object.Object
+	cam *camera.Cam
 
 	rendering bool
 	visible   bool
+	showexit  bool
 }
 
 // initialize portal object
@@ -55,9 +52,6 @@ func (p *Portal) Init(scene *cell.Cell, exit *Portal, cam *camera.Cam, obj pub_o
 	} else {
 		p.obj = nil
 	}
-
-	text := raylib.LoadRenderTexture(app.CurApp.GetWidth(), app.CurApp.GetHeight())
-	p.target = &text
 
 	p.rendering = false
 	p.visible = true
@@ -121,12 +115,11 @@ func (p *Portal) GetMaterials() *raylib.Material {
 
 // set portal render texture
 func (p *Portal) SetTexture(mat *raylib.Material, tex raylib.Texture2D) {
-	p.target.Texture = tex
 }
 
 // get portal render texture
 func (p *Portal) GetTexture(mat *raylib.Material) raylib.Texture2D {
-	return p.target.Texture
+	return raylib.Texture2D{}
 }
 
 // set portal render object
@@ -158,8 +151,15 @@ func (p *Portal) GetCam() *camera.Cam {
 func (p *Portal) Prerender(cam *camera.Cam) []func() {
 	cmds := []func(){}
 
+	return cmds
+}
+
+// render hook
+func (p *Portal) Render(cam *camera.Cam) []func() {
+	cmds := []func(){}
+
 	//guards to ensure we only render when we should be
-	if p.target != nil && !p.rendering && p.visible {
+	if !p.rendering && p.visible && p.obj != nil {
 		//prevent rerendering a portal a second time
 		p.rendering = true
 		if p.exit != nil {
@@ -175,34 +175,15 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 			lclToWld = p.exit.GetModelMatrix()
 		}
 		transform := raylib.MatrixMultiply(lclToWld, raylib.MatrixMultiply(wldToLcl, camMdl))
-		p.cam.SetPos(raylib.Vector3Transform(raylib.NewVector3(0, 0, 0.01), transform))
-		rq := raylib.QuaternionFromMatrix(transform)
-		lq := lmath.Quat{float64(rq.X), float64(rq.Y), float64(rq.Z), float64(rq.W)}
-		tar := lq.RotateVec3(lmath.Vec3{0, 0, 0.01})
-		p.cam.SetTar(raylib.NewVector3(float32(tar.X), float32(tar.Y), float32(tar.Z)))
+		tar := cam.GetTar()
+		p.cam.SetPos(raylib.Vector3Transform(raylib.NewVector3(0, 0, 0), transform))
+		p.cam.SetTar(raylib.NewVector3(float32(tar.X), 0-float32(tar.Y), float32(tar.Z)))
 
-		//calculate portal render texture uv coords
-		if p.obj != nil {
-			portalUVs := p.obj.GetUVs()
-			portalVerts := p.obj.GetVertices()
-			width := app.CurApp.GetWidth()
-			height := app.CurApp.GetHeight()
-
-			for i, vert := range portalVerts {
-				vert := raylib.Vector3Transform(vert, portalmdl)
-				uv := cam.GetWorldToScreen(vert)
-				uv.X /= float32(width)
-				uv.Y /= float32(height)
-				uv.Y = 1 - uv.Y
-				portalUVs[i] = uv
-			}
-			p.obj.SetUVs(portalUVs)
-		}
+		//render portal object for stencil
+		raylib.DisableDepthMask()
+		cmds = p.obj.Render(cam)
 
 		//render from portals perspective
-		raylib.BeginTextureMode(*p.target)
-		raylib.ClearBackground(color.RGBA{0, 0, 0, 1})
-
 		cmds = p.cam.Prerender()
 		cmds = append(cmds, p.scene.Prerender(p.cam)...)
 		for _, cmd := range cmds {
@@ -221,25 +202,14 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 			cmd()
 		}
 
-		raylib.EndTextureMode()
-
 		p.rendering = false
 		if p.exit != nil {
 			p.exit.visible = true
 		}
-	}
 
-	return cmds
-}
-
-// render hook
-func (p *Portal) Render(cam *camera.Cam) []func() {
-	cmds := []func(){}
-
-	if p.visible {
-		if p.target != nil && p.obj != nil {
-			cmds = p.obj.Render(cam)
-		}
+		//render portal object for depth
+		raylib.EnableDepthMask()
+		cmds = p.obj.Render(cam)
 	}
 
 	return cmds
@@ -248,14 +218,6 @@ func (p *Portal) Render(cam *camera.Cam) []func() {
 // postrender hook
 func (p *Portal) Postrender(cam *camera.Cam) []func() {
 	cmds := []func(){}
-
-	if p.visible {
-		if p.target != nil {
-			if p.obj == nil {
-				raylib.DrawTexture(p.target.Texture, 0, 0, raylib.White)
-			}
-		}
-	}
 
 	return cmds
 }
@@ -275,10 +237,6 @@ func (p *Portal) OnAdd() {
 
 // handle remove event
 func (p *Portal) OnRemove() {
-	if p.target != nil {
-		raylib.UnloadRenderTexture(*p.target)
-		p.target = nil
-	}
 	p.scene.OnRemove()
 }
 

@@ -1,12 +1,5 @@
 package prim
 
-/*
-#include "raylib.h"
-
-void UpdateModelUVs(Model* mdl) {
-	UpdateMeshBuffer(mdl->meshes[0], 1, &mdl->meshes->texcoords[0], mdl->meshes->vertexCount*2*sizeof(float), 0);
-}
-*/
 import "C"
 import (
 	"image/color"
@@ -14,6 +7,7 @@ import (
 	"unsafe"
 
 	"karalis/internal/camera"
+	"karalis/pkg/goray"
 	pub_object "karalis/pkg/object"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
@@ -82,7 +76,7 @@ func (c *Square) SetUVs(uvs []raylib.Vector2) {
 		mdluvs[i*2] = uvs[i].X
 		mdluvs[i*2+1] = uvs[i].Y
 	}
-	C.UpdateModelUVs((*C.Model)(unsafe.Pointer(&c.mdl)))
+	goray.UpdateModelUVs(&c.mdl)
 }
 
 func (c *Square) GetModelMatrix() raylib.Matrix {

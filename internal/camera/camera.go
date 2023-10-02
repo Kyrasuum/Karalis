@@ -67,11 +67,22 @@ func (s *Cam) SetTar(tar raylib.Vector3) {
 }
 
 func (s *Cam) GetModelMatrix() raylib.Matrix {
-	camQuat := lmath.Quat{}
-	camQuat = *camQuat.FromEuler(float64(s.GetPitch()), float64(s.GetYaw()), float64(s.GetRoll()))
-	camMat := raylib.QuaternionToMatrix(raylib.NewQuaternion(float32(camQuat.X), float32(camQuat.Y), float32(camQuat.Z), float32(camQuat.W)))
-	camMat = raylib.MatrixMultiply(camMat, raylib.MatrixTranslate(s.camera.Position.X, s.camera.Position.Y, s.camera.Position.Z))
+	ql := lmath.Quat{}
+	ql = *ql.FromEuler(0-float64(s.pitch), float64(s.yaw), float64(s.roll))
+
+	view := ql.RotateVec3(lmath.Vec3{0, 0, float64(s.dist)})
+	view.X += float64(s.camera.Target.X)
+	view.Y -= float64(s.camera.Target.Y)
+	view.Z += float64(s.camera.Target.Z)
+
+	camMat := raylib.QuaternionToMatrix(raylib.NewQuaternion(float32(ql.X), float32(ql.Y), float32(ql.Z), float32(ql.W)))
+	camMat = raylib.MatrixMultiply(camMat, raylib.MatrixTranslate(float32(view.X), float32(view.Y), float32(view.Z)))
+
 	return camMat
+}
+
+func (s *Cam) GetCameraMatrix() raylib.Matrix {
+	return raylib.GetCameraMatrix(s.camera)
 }
 
 func (s *Cam) GetWorldToScreen(pos raylib.Vector3) raylib.Vector2 {
