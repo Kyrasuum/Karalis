@@ -1,10 +1,9 @@
 package object
 
 import (
-	"fmt"
-
 	"karalis/internal/camera"
 	"karalis/internal/cell"
+	"karalis/pkg/goray"
 	pub_object "karalis/pkg/object"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
@@ -40,17 +39,17 @@ func (p *Portal) Init(scene *cell.Cell, exit *Portal, cam *camera.Cam, obj pub_o
 		p.exit = nil
 	}
 
+	if obj != nil {
+		p.obj = obj
+	} else {
+		p.obj = nil
+	}
+
 	if cam != nil {
 		p.cam = cam
 	} else {
 		p.cam = &camera.Cam{}
 		p.cam.Init()
-	}
-
-	if obj != nil {
-		p.obj = obj
-	} else {
-		p.obj = nil
 	}
 
 	p.rendering = false
@@ -108,6 +107,16 @@ func (p *Portal) GetModelMatrix() raylib.Matrix {
 	}
 }
 
+// set camera for portal
+func (p *Portal) SetCam(obj *camera.Cam) {
+	p.cam = obj
+}
+
+// return camera for portal
+func (p *Portal) GetCam() *camera.Cam {
+	return p.cam
+}
+
 // get portal render material
 func (p *Portal) GetMaterials() *raylib.Material {
 	return &raylib.Material{}
@@ -137,16 +146,6 @@ func (p *Portal) GetPortal() pub_object.Object {
 	return p.obj
 }
 
-// set camera for portal
-func (p *Portal) SetCam(obj *camera.Cam) {
-	p.cam = obj
-}
-
-// return camera for portal
-func (p *Portal) GetCam() *camera.Cam {
-	return p.cam
-}
-
 // prerender hook
 func (p *Portal) Prerender(cam *camera.Cam) []func() {
 	cmds := []func(){}
@@ -154,8 +153,8 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 	return cmds
 }
 
-// render hook
-func (p *Portal) Render(cam *camera.Cam) []func() {
+// portal render cycle
+func (p *Portal) PortalRender(cam *camera.Cam) []func() {
 	cmds := []func(){}
 
 	//guards to ensure we only render when we should be
@@ -166,51 +165,86 @@ func (p *Portal) Render(cam *camera.Cam) []func() {
 			p.exit.visible = false
 		}
 
-		//calculate portal camera position based on calling render camera
-		camMdl := cam.GetModelMatrix()
-		portalmdl := p.GetModelMatrix()
-		wldToLcl := raylib.MatrixInvert(portalmdl)
-		lclToWld := raylib.MatrixRotateX(180)
-		if p.exit != nil {
-			lclToWld = p.exit.GetModelMatrix()
-		}
-		transform := raylib.MatrixMultiply(lclToWld, raylib.MatrixMultiply(wldToLcl, camMdl))
-		tar := cam.GetTar()
-		p.cam.SetPos(raylib.Vector3Transform(raylib.NewVector3(0, 0, 0), transform))
-		p.cam.SetTar(raylib.NewVector3(float32(tar.X), 0-float32(tar.Y), float32(tar.Z)))
-
-		//render portal object for stencil
+		//Disable drawing to the color buffer and the depth buffer, but enable writing to the stencil buffer.
 		raylib.DisableDepthMask()
+		goray.SetColorMask(false, false, false, false)
+		goray.EnableStencilTest(true)
+		goray.SetStencilMask(0xff)
+		goray.ClearStencilBuffer()
+
+		//Set the stencil operation to GL_INCR on sfail, meaning that the stencil value will be incremented when the stencil test fails.
+		goray.SetStencilOp(goray.KEEP, goray.INCR, goray.KEEP)
+
+		//Set the stencil function to GL_NEVER, which makes sure that the stencil test always fails on every pixel drawn.
+		goray.SetStencilFunc(goray.NEVER, 1, 0xFF)
+
+		//Draw the portal’s frame (in the case of a rectangle: just two triangles). At this point the stencil buffer is filled with zero’s on the outside of the portal’s frame and one’s on the inside.
 		cmds = p.obj.Render(cam)
 
-		//render from portals perspective
-		cmds = p.cam.Prerender()
-		cmds = append(cmds, p.scene.Prerender(p.cam)...)
+		//Generate the virtual camera’s view matrix using the view frustum clipping method.
+		// camMdl := cam.GetModelMatrix()
+		// portalmdl := p.GetModelMatrix()
+		// wldToLcl := raylib.MatrixInvert(portalmdl)
+		// lclToWld := raylib.MatrixRotateX(180)
+		// if p.exit != nil {
+		// lclToWld = p.exit.GetModelMatrix()
+		// }
+		// transform := raylib.MatrixMultiply(lclToWld, raylib.MatrixMultiply(wldToLcl, camMdl))
+		// tar := cam.GetTar()
+		// p.cam.SetPos(raylib.Vector3Transform(raylib.NewVector3(0, 0, 0), transform))
+		// p.cam.SetTar(raylib.NewVector3(float32(tar.X), 0-float32(tar.Y), float32(tar.Z)))
+
+		//Disable writing to the stencil buffer, but enable drawing to the color buffer and the depth buffer.
+		raylib.EnableDepthMask()
+		goray.SetColorMask(true, true, true, true)
+		goray.SetStencilMask(0x00)
+
+		//Set the stencil function to GL_LEQUAL with reference value 1. This will only draw where the stencil value is greater than or equal to 1, which is inside the portal frame.
+		goray.SetStencilFunc(goray.LEQUAL, 1, 0xFF)
+
+		//Draw the scene using the virtual camera from step 5. This will only draw inside of the portal’s frame because of the stencil test.
+		cmds = append(cmds, p.scene.Prerender(cam)...)
 		for _, cmd := range cmds {
 			cmd()
 		}
 
-		cmds = p.cam.Render()
-		cmds = append(cmds, p.scene.Render(p.cam)...)
+		cmds = append(cmds, p.scene.Render(cam)...)
 		for _, cmd := range cmds {
 			cmd()
 		}
 
-		cmds = p.cam.Postrender()
-		cmds = append(cmds, p.scene.Postrender(p.cam)...)
+		cmds = append(cmds, p.scene.Postrender(cam)...)
 		for _, cmd := range cmds {
 			cmd()
 		}
+
+		//Disable the stencil test, disable drawing to the color buffer, and enable drawing to the depth buffer.
+		goray.EnableStencilTest(false)
+		goray.SetColorMask(false, false, false, false)
+		raylib.EnableDepthMask()
 
 		p.rendering = false
 		if p.exit != nil {
 			p.exit.visible = true
 		}
 
-		//render portal object for depth
-		raylib.EnableDepthMask()
+		//Clear the depth buffer.
+		goray.ClearDepthBuffer()
+
+		//Draw the portal frame once again, this time to the depth buffer which was just cleared.
 		cmds = p.obj.Render(cam)
+
+		//Enable the color buffer again.
+		goray.SetColorMask(true, true, true, true)
 	}
+	return cmds
+}
+
+// render hook
+func (p *Portal) Render(cam *camera.Cam) []func() {
+	cmds := []func(){}
+
+	cmds = p.PortalRender(cam)
 
 	return cmds
 }
@@ -243,7 +277,6 @@ func (p *Portal) OnRemove() {
 // handle resize event
 func (p *Portal) OnResize(w int32, h int32) {
 	p.cam.OnResize(w, h)
-	fmt.Printf("\n")
 }
 
 // add child to object
