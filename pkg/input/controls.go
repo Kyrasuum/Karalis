@@ -7,10 +7,10 @@ import (
 var (
 	controllers map[string]int32 = map[string]int32{
 		// Gamepad Number
-		"Controller1": raylib.GamepadPlayer1,
-		"Controller2": raylib.GamepadPlayer2,
-		"Controller3": raylib.GamepadPlayer3,
-		"Controller4": raylib.GamepadPlayer4,
+		"Controller1": 1,
+		"Controller2": 2,
+		"Controller3": 3,
+		"Controller4": 4,
 	}
 
 	modifiers map[string]int32 = map[string]int32{
@@ -138,88 +138,40 @@ var (
 
 	mouse map[string]int32 = map[string]int32{
 		// Mouse Buttons
-		"LeftButton":    raylib.MouseLeftButton,
-		"RightButton":   raylib.MouseRightButton,
-		"MiddleButton":  raylib.MouseMiddleButton,
-		"SideButton":    raylib.MouseSideButton,
-		"ExtraButton":   raylib.MouseExtraButton,
-		"ForwardButton": raylib.MouseForwardButton,
-		"BackButton":    raylib.MouseBackButton,
+		"LeftButton":    raylib.MouseButtonLeft,
+		"RightButton":   raylib.MouseButtonRight,
+		"MiddleButton":  raylib.MouseButtonMiddle,
+		"SideButton":    raylib.MouseButtonSide,
+		"ExtraButton":   raylib.MouseButtonExtra,
+		"ForwardButton": raylib.MouseButtonForward,
+		"BackButton":    raylib.MouseButtonBack,
 	}
 
 	gamepad map[string]int32 = map[string]int32{
-		// PS3 USB Controller Buttons
-		"Ps3Triangle": raylib.GamepadPs3ButtonTriangle,
-		"Ps3Circle":   raylib.GamepadPs3ButtonCircle,
-		"Ps3Cross":    raylib.GamepadPs3ButtonCross,
-		"Ps3Square":   raylib.GamepadPs3ButtonSquare,
-		"Ps3L1":       raylib.GamepadPs3ButtonL1,
-		"Ps3R1":       raylib.GamepadPs3ButtonR1,
-		"Ps3L2":       raylib.GamepadPs3ButtonL2,
-		"Ps3R2":       raylib.GamepadPs3ButtonR2,
-		"Ps3Start":    raylib.GamepadPs3ButtonStart,
-		"Ps3Select":   raylib.GamepadPs3ButtonSelect,
-		"Ps3Up":       raylib.GamepadPs3ButtonUp,
-		"Ps3Right":    raylib.GamepadPs3ButtonRight,
-		"Ps3Down":     raylib.GamepadPs3ButtonDown,
-		"Ps3Left":     raylib.GamepadPs3ButtonLeft,
-		"Ps3Ps":       raylib.GamepadPs3ButtonPs,
+		"Unknown":        raylib.GamepadButtonUnknown,
+		"LeftFaceUp":     raylib.GamepadButtonLeftFaceUp,
+		"LeftFaceRight":  raylib.GamepadButtonLeftFaceRight,
+		"LeftFaceDown":   raylib.GamepadButtonLeftFaceDown,
+		"LeftFaceLeft":   raylib.GamepadButtonLeftFaceLeft,
+		"RightFaceUp":    raylib.GamepadButtonRightFaceUp,
+		"RightFaceRight": raylib.GamepadButtonRightFaceRight,
+		"RightFaceDown":  raylib.GamepadButtonRightFaceDown,
+		"RightFaceLeft":  raylib.GamepadButtonRightFaceLeft,
+		"LeftTrigger1":   raylib.GamepadButtonLeftTrigger1,
+		"LeftTrigger2":   raylib.GamepadButtonLeftTrigger2,
+		"RightTrigger1":  raylib.GamepadButtonRightTrigger1,
+		"RightTrigger2":  raylib.GamepadButtonRightTrigger2,
+		"MiddleLeft":     raylib.GamepadButtonMiddleLeft,
+		"Middle":         raylib.GamepadButtonMiddle,
+		"MiddleRight":    raylib.GamepadButtonMiddleRight,
+		"LeftThumb":      raylib.GamepadButtonLeftThumb,
+		"RightThumb":     raylib.GamepadButtonRightThumb,
 
-		// PS3 USB Controller Axis
-		"Ps3AxisLeftX":  raylib.GamepadPs3AxisLeftX,
-		"Ps3AxisLeftY":  raylib.GamepadPs3AxisLeftY,
-		"Ps3AxisRightX": raylib.GamepadPs3AxisRightX,
-		"Ps3AxisRightY": raylib.GamepadPs3AxisRightY,
-		// [1..-1] (pressure-level)
-		"Ps3AxisL2": raylib.GamepadPs3AxisL2,
-		// [1..-1] (pressure-level)
-		"Ps3AxisR2": raylib.GamepadPs3AxisR2,
-
-		// Xbox360 USB Controller Buttons
-		"XboxA":      raylib.GamepadXboxButtonA,
-		"XboxB":      raylib.GamepadXboxButtonB,
-		"XboxX":      raylib.GamepadXboxButtonX,
-		"XboxY":      raylib.GamepadXboxButtonY,
-		"XboxLb":     raylib.GamepadXboxButtonLb,
-		"XboxRb":     raylib.GamepadXboxButtonRb,
-		"XboxSelect": raylib.GamepadXboxButtonSelect,
-		"XboxStart":  raylib.GamepadXboxButtonStart,
-		"XboxUp":     raylib.GamepadXboxButtonUp,
-		"XboxRight":  raylib.GamepadXboxButtonRight,
-		"XboxDown":   raylib.GamepadXboxButtonDown,
-		"XboxLeft":   raylib.GamepadXboxButtonLeft,
-		"XboxHome":   raylib.GamepadXboxButtonHome,
-
-		// Xbox360 USB Controller Axis
-		// [-1..1] (left->right)
-		"XboxAxisLeftX": raylib.GamepadXboxAxisLeftX,
-		// [1..-1] (up->down)
-		"XboxAxisLeftY": raylib.GamepadXboxAxisLeftY,
-		// [-1..1] (left->right)
-		"XboxAxisRightX": raylib.GamepadXboxAxisRightX,
-		// [1..-1] (up->down)
-		"XboxAxisRightY": raylib.GamepadXboxAxisRightY,
-		// [-1..1] (pressure-level)
-		"XboxAxisLt": raylib.GamepadXboxAxisLt,
-		// [-1..1] (pressure-level)
-		"XboxAxisRt": raylib.GamepadXboxAxisRt,
-
-		// Android Gamepad Controller (SNES CLASSIC)
-		"AndroidDpadUp":     raylib.GamepadAndroidDpadUp,
-		"AndroidDpadDown":   raylib.GamepadAndroidDpadDown,
-		"AndroidDpadLeft":   raylib.GamepadAndroidDpadLeft,
-		"AndroidDpadRight":  raylib.GamepadAndroidDpadRight,
-		"AndroidDpadCenter": raylib.GamepadAndroidDpadCenter,
-
-		"AndroidButtonA":  raylib.GamepadAndroidButtonA,
-		"AndroidButtonB":  raylib.GamepadAndroidButtonB,
-		"AndroidButtonC":  raylib.GamepadAndroidButtonC,
-		"AndroidButtonX":  raylib.GamepadAndroidButtonX,
-		"AndroidButtonY":  raylib.GamepadAndroidButtonY,
-		"AndroidButtonZ":  raylib.GamepadAndroidButtonZ,
-		"AndroidButtonL1": raylib.GamepadAndroidButtonL1,
-		"AndroidButtonR1": raylib.GamepadAndroidButtonR1,
-		"AndroidButtonL2": raylib.GamepadAndroidButtonL2,
-		"AndroidButtonR2": raylib.GamepadAndroidButtonR2,
+		"AxisLeftX":        raylib.GamepadAxisLeftX,
+		"AxisLeftY":        raylib.GamepadAxisLeftY,
+		"AxisRightX":       raylib.GamepadAxisRightX,
+		"AxisRightY":       raylib.GamepadAxisRightY,
+		"AxisLeftTrigger":  raylib.GamepadAxisLeftTrigger,
+		"AxisRightTrigger": raylib.GamepadAxisRightTrigger,
 	}
 )

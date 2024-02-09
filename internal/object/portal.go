@@ -10,7 +10,6 @@ import (
 	pub_object "karalis/pkg/object"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
-	lmath "karalis/pkg/lmath"
 )
 
 var ()
@@ -167,19 +166,16 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 		}
 
 		//calculate portal camera position based on calling render camera
-		camMdl := cam.GetModelMatrix()
 		portalmdl := p.GetModelMatrix()
 		wldToLcl := raylib.MatrixInvert(portalmdl)
-		lclToWld := raylib.MatrixRotateX(180)
+		lclToWld := raylib.MatrixIdentity()
 		if p.exit != nil {
 			lclToWld = p.exit.GetModelMatrix()
 		}
-		transform := raylib.MatrixMultiply(lclToWld, raylib.MatrixMultiply(wldToLcl, camMdl))
-		p.cam.SetPos(raylib.Vector3Transform(raylib.NewVector3(0, 0, 0.01), transform))
-		rq := raylib.QuaternionFromMatrix(transform)
-		lq := lmath.Quat{float64(rq.X), float64(rq.Y), float64(rq.Z), float64(rq.W)}
-		tar := lq.RotateVec3(lmath.Vec3{0, 0, 0.01})
-		p.cam.SetTar(raylib.NewVector3(float32(tar.X), float32(tar.Y), float32(tar.Z)))
+		transform := raylib.MatrixMultiply(lclToWld, wldToLcl)
+
+		p.cam.SetPos(raylib.Vector3Transform(cam.GetPos(), transform))
+		p.cam.SetTar(raylib.Vector3Transform(cam.GetTar(), transform))
 
 		//calculate portal render texture uv coords
 		if p.obj != nil {
@@ -190,10 +186,9 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 
 			for i, vert := range portalVerts {
 				vert := raylib.Vector3Transform(vert, portalmdl)
-				uv := cam.GetWorldToScreen(vert)
+				uv := cam.GetWorldToScreen(vert, float32(width)/float32(height))
 				uv.X /= float32(width)
 				uv.Y /= float32(height)
-				uv.Y = 1 - uv.Y
 				portalUVs[i] = uv
 			}
 			p.obj.SetUVs(portalUVs)
