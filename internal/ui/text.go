@@ -32,9 +32,9 @@ func (t *Text) defaults() {
 	t.textCol = color.RGBA{255, 255, 255, 255}
 }
 
-func (t *Text) Init() {
+func (t *Text) Init() error {
 	t.defaults()
-
+	return nil
 }
 
 func (t *Text) SetPosition(p raylib.Vector2) {

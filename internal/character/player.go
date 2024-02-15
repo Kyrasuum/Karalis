@@ -23,7 +23,7 @@ type Player struct {
 	capture bool
 }
 
-func (p *Player) Init() {
+func (p *Player) Init() error {
 	p.char.Init()
 
 	p.cam = camera.Cam{}
@@ -36,6 +36,8 @@ func (p *Player) Init() {
 
 	p.mode = 1
 	p.capture = false
+
+	return nil
 }
 
 func (p *Player) Prerender(cam *camera.Cam) []func() {

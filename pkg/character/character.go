@@ -7,7 +7,7 @@ import (
 var ()
 
 type Object interface {
-	Init()
+	Init() error
 	GetMaterials() *raylib.Material
 	SetTexture(mat *raylib.Material, tex raylib.Texture2D)
 	GetTexture(mat *raylib.Material) raylib.Texture2D

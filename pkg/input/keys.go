@@ -19,6 +19,7 @@ var (
 	Bindings map[string]map[string]string = make(map[string]map[string]string)
 
 	prevControls map[string]map[string]bool = make(map[string]map[string]bool)
+	lastGesture  raylib.Gestures            = raylib.GestureNone
 )
 
 type Binding struct {
@@ -34,6 +35,7 @@ func InitBindings() error {
 	for scope, _ := range Bindings {
 		Bindings[scope] = DefaultBindings(scope)
 	}
+	DetectControllers()
 	raylib.SetExitKey(raylib.KeyF4)
 
 	return LoadConfigBindings()
@@ -78,6 +80,15 @@ func createBindingsIfNotExist(filename string) {
 	}
 }
 
+// get currently available controllers
+func DetectControllers() {
+	for i := int32(0); i < maxcontrollers; i++ {
+		if raylib.IsGamepadAvailable(i) {
+			controllers[raylib.GetGamepadName(i)] = i
+		}
+	}
+}
+
 // get currently pressed keys
 func GetKeysPressed() map[string]bool {
 	keys := map[string]bool{}
@@ -106,6 +117,17 @@ func GetKeysPressed() map[string]bool {
 			}
 		}
 	}
+
+	//check gestures
+	currentGesture := raylib.GetGestureDetected()
+	if currentGesture != lastGesture && currentGesture != raylib.GestureNone {
+		for key, enum := range gesture {
+			if currentGesture == enum {
+				keys[key] = true
+			}
+		}
+	}
+	//touchPosition := raylib.GetTouchPosition(0)
 
 	return keys
 }

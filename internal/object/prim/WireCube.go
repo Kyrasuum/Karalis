@@ -7,6 +7,7 @@ import (
 
 	"karalis/internal/camera"
 	pub_object "karalis/pkg/object"
+	"karalis/res"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
@@ -20,11 +21,18 @@ type WireCube struct {
 	color color.RGBA
 }
 
-func (c *WireCube) Init() {
+func (c *WireCube) Init() error {
 	c.pos = raylib.NewVector3(0, 0, 0)
 	c.size = 1
 	c.color = raylib.Red
-	c.mdl = raylib.LoadModel("res/prim/cube.obj")
+
+	mdl, err := res.GetRes("mdl/cube.obj")
+	if err != nil {
+		return err
+	}
+	c.mdl = mdl.(raylib.Model)
+
+	return nil
 }
 
 func (c *WireCube) GetVertices() []raylib.Vector3 {

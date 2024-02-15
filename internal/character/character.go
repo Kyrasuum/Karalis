@@ -12,7 +12,8 @@ var ()
 type Character struct {
 }
 
-func (c *Character) Init() {
+func (c *Character) Init() error {
+	return nil
 }
 
 func (c *Character) Prerender(cam *camera.Cam) []func() {

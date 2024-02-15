@@ -5,13 +5,11 @@ import (
 )
 
 var (
-	controllers map[string]int32 = map[string]int32{
-		// Gamepad Number
-		"Controller1": 1,
-		"Controller2": 2,
-		"Controller3": 3,
-		"Controller4": 4,
-	}
+	// literal max
+	//maxcontrollers                  = int32(math.MaxInt32 - 1)
+	// realistic max
+	maxcontrollers                  = int32(16)
+	controllers    map[string]int32 = map[string]int32{}
 
 	modifiers map[string]int32 = map[string]int32{
 		// Keyboard Function Keys
@@ -173,5 +171,18 @@ var (
 		"AxisRightY":       raylib.GamepadAxisRightY,
 		"AxisLeftTrigger":  raylib.GamepadAxisLeftTrigger,
 		"AxisRightTrigger": raylib.GamepadAxisRightTrigger,
+	}
+
+	gesture map[string]raylib.Gestures = map[string]raylib.Gestures{
+		"GestureTap":        raylib.GestureTap,
+		"GestureDoubletap":  raylib.GestureDoubletap,
+		"GestureHold":       raylib.GestureHold,
+		"GestureDrag":       raylib.GestureDrag,
+		"GestureSwipeRight": raylib.GestureSwipeRight,
+		"GestureSwipeLeft":  raylib.GestureSwipeLeft,
+		"GestureSwipeUp":    raylib.GestureSwipeUp,
+		"GestureSwipeDown":  raylib.GestureSwipeDown,
+		"GesturePinchIn":    raylib.GesturePinchIn,
+		"GesturePinchOut":   raylib.GesturePinchOut,
 	}
 )

@@ -4,7 +4,7 @@ package prim
 #include "raylib.h"
 
 void UpdateModelUVs(Model* mdl) {
-	UpdateMeshBuffer(mdl->meshes[0], 1, &mdl->meshes->texcoords[0], mdl->meshes->vertexCount*2*sizeof(float), 0);
+	UpdateMeshBuffer(mdl->meshes[0], 1, &(mdl->meshes->texcoords[0]), mdl->meshes->vertexCount*2*sizeof(float), 0);
 }
 */
 import "C"
@@ -15,6 +15,7 @@ import (
 
 	"karalis/internal/camera"
 	pub_object "karalis/pkg/object"
+	"karalis/res"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
@@ -28,12 +29,18 @@ type Square struct {
 	color color.RGBA
 }
 
-func (c *Square) Init() {
+func (c *Square) Init() error {
 	c.pos = raylib.NewVector3(0, 0, 0)
 	c.size = 1
 	c.color = raylib.White
 
-	c.mdl = raylib.LoadModel("res/prim/square.obj")
+	mdl, err := res.GetRes("mdl/square.obj")
+	if err != nil {
+		return err
+	}
+	c.mdl = mdl.(raylib.Model)
+
+	return nil
 }
 
 func (c *Square) GetVertices() []raylib.Vector3 {

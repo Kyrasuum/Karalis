@@ -11,8 +11,10 @@ type Cell struct {
 	childs []object.Object
 }
 
-func (c *Cell) Init() {
+func (c *Cell) Init() error {
 	c.childs = []object.Object{}
+
+	return nil
 }
 
 func (c *Cell) Prerender(cam *camera.Cam) []func() {

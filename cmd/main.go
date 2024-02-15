@@ -1,12 +1,17 @@
 package main
 
 import (
+	"fmt"
+
 	"karalis/internal/app"
-	"karalis/pkg/embed"
 )
 
 func main() {
 	a := app.NewApp()
-	embed.InitEmbed()
-	a.Start()
+	if a != nil {
+		err := a.Start()
+		if err != nil {
+			fmt.Printf("ERR: %+v\n", err)
+		}
+	}
 }

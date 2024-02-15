@@ -26,8 +26,10 @@ func (b *Box) defaults() {
 	b.bordCol = color.RGBA{255, 255, 255, 255}
 }
 
-func (b *Box) Init() {
+func (b *Box) Init() error {
 	b.defaults()
+
+	return nil
 }
 
 func (b *Box) SetPosition(p raylib.Rectangle) {

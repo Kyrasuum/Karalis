@@ -7,6 +7,7 @@ import (
 
 	"karalis/internal/camera"
 	pub_object "karalis/pkg/object"
+	"karalis/res"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
@@ -20,12 +21,18 @@ type Cube struct {
 	color color.RGBA
 }
 
-func (c *Cube) Init() {
+func (c *Cube) Init() error {
 	c.pos = raylib.NewVector3(0, 0, 0)
 	c.size = 1
 	c.color = raylib.White
 
-	c.mdl = raylib.LoadModel("res/prim/cube.obj")
+	mdl, err := res.GetRes("mdl/cube.obj")
+	if err != nil {
+		return err
+	}
+	c.mdl = mdl.(raylib.Model)
+
+	return nil
 }
 
 func (c *Cube) GetVertices() []raylib.Vector3 {
@@ -91,6 +98,7 @@ func (c *Cube) Prerender(cam *camera.Cam) []func() {
 
 func (c *Cube) Render(cam *camera.Cam) []func() {
 	raylib.SetTexture(c.mdl.Materials.Maps.Texture.ID)
+
 	raylib.DrawModel(c.mdl, c.pos, c.size, c.color)
 	raylib.SetTexture(0)
 	return []func(){}

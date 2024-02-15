@@ -9,7 +9,8 @@ var ()
 
 type MainMenu struct{}
 
-func (s *MainMenu) Init() {
+func (s *MainMenu) Init() error {
+	return nil
 }
 
 func (s *MainMenu) OnResize(w int32, h int32) {

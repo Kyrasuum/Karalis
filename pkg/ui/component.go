@@ -5,7 +5,7 @@ import ()
 var ()
 
 type Component interface {
-	Init()
+	Init() error
 	Render()
 	Update(dt float64)
 	OnInput()

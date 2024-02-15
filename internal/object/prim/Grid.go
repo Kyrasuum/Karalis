@@ -14,9 +14,11 @@ type Grid struct {
 	size    int32
 }
 
-func (g *Grid) Init() {
+func (g *Grid) Init() error {
 	g.spacing = 1
 	g.size = 10
+
+	return nil
 }
 
 func (g *Grid) GetVertices() []raylib.Vector3 {

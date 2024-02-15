@@ -12,7 +12,8 @@ var ()
 type Skybox struct {
 }
 
-func (s *Skybox) Init() {
+func (s *Skybox) Init() error {
+	return nil
 }
 
 func (s *Skybox) Prerender(cam *camera.Cam) []func() {

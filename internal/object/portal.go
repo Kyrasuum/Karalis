@@ -28,12 +28,15 @@ type Portal struct {
 }
 
 // initialize portal object
-func (p *Portal) Init(scene *cell.Cell, exit *Portal, cam *camera.Cam, obj pub_object.Object) {
+func (p *Portal) Init(scene *cell.Cell, exit *Portal, cam *camera.Cam, obj pub_object.Object) error {
 	if scene != nil {
 		p.scene = scene
 	} else {
 		p.scene = &cell.Cell{}
-		p.scene.Init()
+		err := p.scene.Init()
+		if err != nil {
+			return err
+		}
 	}
 
 	if exit != nil {
@@ -46,7 +49,10 @@ func (p *Portal) Init(scene *cell.Cell, exit *Portal, cam *camera.Cam, obj pub_o
 		p.cam = cam
 	} else {
 		p.cam = &camera.Cam{}
-		p.cam.Init()
+		err := p.cam.Init()
+		if err != nil {
+			return err
+		}
 	}
 
 	if obj != nil {
@@ -60,6 +66,8 @@ func (p *Portal) Init(scene *cell.Cell, exit *Portal, cam *camera.Cam, obj pub_o
 
 	p.rendering = false
 	p.visible = true
+
+	return nil
 }
 
 // get exit portal pair

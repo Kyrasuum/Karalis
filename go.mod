@@ -2,8 +2,6 @@ module karalis
 
 go 1.21
 
-toolchain go1.21.7
-
 require (
 	github.com/gen2brain/raylib-go/raylib v0.0.0-20240125111008-83d871a38f28
 	github.com/mitchellh/go-homedir v1.1.0

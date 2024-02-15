@@ -1,0 +1,123 @@
+package res
+
+import (
+	"embed"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
+	raylib "github.com/gen2brain/raylib-go/raylib"
+)
+
+type resource struct {
+	data interface{}
+	err  error
+}
+
+var (
+	resources map[string]resource = map[string]resource{}
+)
+
+const tmp = ".tmp/"
+
+//go:embed */**
+var resfs embed.FS
+
+func Init() error {
+	err := LoadDir(".")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func Load() error {
+	err := WriteFs()
+	defer func() {
+		CleanFs()
+	}()
+	if err != nil {
+		return err
+	}
+
+	err = ProcFs()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func WriteFs() error {
+	for path, res := range resources {
+		if res.err == nil {
+			err := os.MkdirAll(filepath.Dir(tmp+path), os.ModePerm)
+			if err != nil {
+				return err
+			}
+
+			err = os.WriteFile(tmp+path, res.data.([]byte), 0644)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func CleanFs() {
+	os.RemoveAll(tmp)
+}
+
+func LoadDir(cwd string) error {
+	dir, err := resfs.ReadDir(cwd)
+	if err != nil {
+		return err
+	}
+	for _, file := range dir {
+		path := file.Name()
+		if cwd != "." {
+			path = cwd + "/" + path
+		}
+		if file.IsDir() {
+			LoadDir(path)
+		} else {
+			data, err := resfs.ReadFile(path)
+			resources[path] = resource{data, err}
+		}
+	}
+	return nil
+}
+
+func ProcFs() error {
+	for path, res := range resources {
+		if res.err == nil && strings.Contains(path, ".obj") {
+			data, err := LoadObjFS(path)
+			resources[path] = resource{data, err}
+		}
+	}
+
+	return nil
+}
+
+func GetRes(path string) (interface{}, error) {
+	if res, ok := resources[path]; ok {
+		return res.data, res.err
+	} else {
+		return nil, fmt.Errorf("Resource not found\n")
+	}
+}
+
+func LoadObjFS(path string) (interface{}, error) {
+	res, ok := resources[path]
+	if !ok {
+		return nil, fmt.Errorf("Resource not found\n")
+	}
+	if res.err != nil {
+		return nil, res.err
+	}
+
+	mdl := raylib.LoadModel(tmp + path)
+	return mdl, nil
+}
