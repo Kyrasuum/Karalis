@@ -76,11 +76,13 @@ func (s *Cam) GetModelMatrix() raylib.Matrix {
 	return camMat
 }
 
-func (s *Cam) GetWorldToScreen(pos raylib.Vector3, aspect float32) raylib.Vector2 {
-	view := raylib.GetCameraViewMatrix(&s.camera)
-	proj := raylib.GetCameraProjectionMatrix(&s.camera, aspect)
-	pos = raylib.Vector3Transform(raylib.Vector3Transform(pos, view), proj)
-	return raylib.NewVector2(pos.X/pos.Z, pos.Y/pos.Z)
+func (s *Cam) GetViewMatrix() raylib.Matrix {
+	return raylib.GetCameraMatrix(s.camera)
+
+}
+
+func (s *Cam) GetProjMatrix(width int32, height int32) raylib.Matrix {
+	return raylib.GetCameraProjectionMatrix(&s.camera, float32(width)/float32(height))
 }
 
 func (s *Cam) GetDist() float32 {

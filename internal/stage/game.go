@@ -16,7 +16,6 @@ type Game struct {
 	curcell *cell.Cell
 	player  *character.Player
 	portal1 object.Portal
-	portal2 object.Portal
 }
 
 // initialize game object
@@ -63,13 +62,6 @@ func (g *Game) Init() error {
 	box1.SetPos(raylib.NewVector3(0, 0, -3))
 	g.portal1.AddChild(&box1)
 
-	plane1 := prim.Square{}
-	err = plane1.Init()
-	if err != nil {
-		return err
-	}
-	g.portal1.SetPortal(&plane1)
-
 	return nil
 }
 
@@ -77,7 +69,6 @@ func (g *Game) Init() error {
 func (g *Game) OnResize(w int32, h int32) {
 	g.player.GetCam().OnResize(w, h)
 	g.portal1.OnResize(w, h)
-	g.portal2.OnResize(w, h)
 }
 
 // prerender hook
