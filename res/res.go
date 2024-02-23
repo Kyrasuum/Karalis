@@ -6,9 +6,16 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"unsafe"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
+
+/*
+#include "res.h"
+#include "stdlib.h"
+*/
+import "C"
 
 type resource struct {
 	data interface{}
@@ -34,15 +41,15 @@ func Init() error {
 }
 
 func Load() error {
-	err := WriteFs()
-	defer func() {
-		CleanFs()
-	}()
-	if err != nil {
-		return err
-	}
+	// err := WriteFs()
+	// defer func() {
+	// CleanFs()
+	// }()
+	// if err != nil {
+	// return err
+	// }
 
-	err = ProcFs()
+	err := ProcFs()
 	if err != nil {
 		return err
 	}
@@ -109,6 +116,25 @@ func GetRes(path string) (interface{}, error) {
 	}
 }
 
+//export GetData
+func GetData(cfile *C.char, cdir *C.char) *C.char {
+	file := C.GoString(cfile)
+	dir := C.GoString(cdir)
+	path := dir + "/" + file
+
+	pos := strings.Index(path, "./")
+	if pos == 0 {
+		path = path[2:]
+	}
+
+	data, err := GetRes(path)
+	if err == nil {
+		return C.CString(string(data.([]byte)))
+	}
+
+	return nil
+}
+
 func LoadObjFS(path string) (interface{}, error) {
 	res, ok := resources[path]
 	if !ok {
@@ -118,6 +144,12 @@ func LoadObjFS(path string) (interface{}, error) {
 		return nil, res.err
 	}
 
-	mdl := raylib.LoadModel(tmp + path)
+	cpath := C.CString(path)
+	cdata := C.CString(string(res.data.([]byte)))
+	obj := C.LoadOBJ(cpath, cdata)
+	C.free(unsafe.Pointer(cpath))
+	C.free(unsafe.Pointer(cdata))
+
+	mdl := *(*raylib.Model)(unsafe.Pointer(obj))
 	return mdl, nil
 }
