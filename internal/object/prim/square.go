@@ -54,6 +54,7 @@ func (c *Square) GetModelMatrix() raylib.Matrix {
 	matRotation := raylib.QuaternionToMatrix(raylib.NewQuaternion(float32(Quat.X), float32(Quat.Y), float32(Quat.Z), float32(Quat.W)))
 	matTranslation := raylib.MatrixTranslate(c.pos.X, c.pos.Y, c.pos.Z)
 	matTransform := raylib.MatrixMultiply(raylib.MatrixMultiply(matScale, matRotation), matTranslation)
+	matTransform = raylib.MatrixMultiply(c.mdl.Transform, matTransform)
 	return matTransform
 }
 

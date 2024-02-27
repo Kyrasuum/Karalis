@@ -46,6 +46,7 @@ func (c *Cube) GetModelMatrix() raylib.Matrix {
 	matRotation := raylib.QuaternionToMatrix(raylib.NewQuaternion(float32(Quat.X), float32(Quat.Y), float32(Quat.Z), float32(Quat.W)))
 	matTranslation := raylib.MatrixTranslate(c.pos.X, c.pos.Y, c.pos.Z)
 	matTransform := raylib.MatrixMultiply(raylib.MatrixMultiply(matScale, matRotation), matTranslation)
+	matTransform = raylib.MatrixMultiply(c.mdl.Transform, matTransform)
 	return matTransform
 }
 
@@ -139,6 +140,7 @@ func (c *Cube) Render(cam *camera.Cam) []func() {
 	sh := app.CurApp.GetShader()
 	c.mdl.Materials.Shader = *sh.GetShader()
 	raylib.DrawMesh(*c.mdl.Meshes, *c.mdl.Materials, matTransform)
+
 	return []func(){}
 }
 
