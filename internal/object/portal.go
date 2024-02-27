@@ -230,7 +230,7 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 		raylib.BeginTextureMode(*p.target)
 		raylib.ClearBackground(color.RGBA{255, 255, 255, 255})
 		sh := app.CurApp.GetShader()
-		err := sh.SetUniform("portalScn", 1.0)
+		err := sh.SetDefine("PORTAL_SCN", true)
 		if err != nil {
 			fmt.Printf("%+v\n", err)
 			p.visible = false
@@ -254,7 +254,7 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 			cmd()
 		}
 
-		err = sh.SetUniform("portalScn", 0.0)
+		err = sh.SetDefine("PORTAL_SCN", false)
 		if err != nil {
 			fmt.Printf("%+v\n", err)
 			p.visible = false
@@ -277,13 +277,13 @@ func (p *Portal) Render(cam *camera.Cam) []func() {
 	if p.visible {
 		if p.target != nil && p.obj != nil {
 			sh := app.CurApp.GetShader()
-			err := sh.SetUniform("portalObj", 1.0)
+			err := sh.SetDefine("PORTAL_OBJ", true)
 			if err != nil {
 				fmt.Printf("%+v\n", err)
 				p.visible = false
 			}
 			cmds = p.obj.Render(cam)
-			err = sh.SetUniform("portalObj", 0.0)
+			err = sh.SetDefine("PORTAL_OBJ", false)
 			if err != nil {
 				fmt.Printf("%+v\n", err)
 				p.visible = false

@@ -2,6 +2,7 @@ package prim
 
 import (
 	"karalis/internal/camera"
+	"karalis/pkg/app"
 	pub_object "karalis/pkg/object"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
@@ -76,7 +77,10 @@ func (g *Grid) Prerender(cam *camera.Cam) []func() {
 }
 
 func (g *Grid) Render(cam *camera.Cam) []func() {
+	sh := app.CurApp.GetShader()
+	sh.Begin()
 	raylib.DrawGrid(g.size, g.spacing)
+	sh.End()
 	return []func(){}
 }
 

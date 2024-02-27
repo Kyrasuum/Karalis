@@ -6,6 +6,7 @@ import (
 	"unsafe"
 
 	"karalis/internal/camera"
+	"karalis/pkg/app"
 	pub_object "karalis/pkg/object"
 	"karalis/res"
 
@@ -135,6 +136,8 @@ func (c *WireCube) Prerender(cam *camera.Cam) []func() {
 
 func (c *WireCube) Render(cam *camera.Cam) []func() {
 	matTransform := c.GetModelMatrix()
+	sh := app.CurApp.GetShader()
+	c.mdl.Materials.Shader = *sh.GetShader()
 	raylib.DrawMesh(*c.mdl.Meshes, *c.mdl.Materials, matTransform)
 	return []func(){}
 }

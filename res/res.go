@@ -8,8 +8,6 @@ import (
 	"strings"
 	"unsafe"
 
-	"karalis/pkg/app"
-
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -145,9 +143,5 @@ func LoadObjFS(path string) (interface{}, error) {
 	C.free(unsafe.Pointer(cdata))
 
 	mdl := *(*raylib.Model)(unsafe.Pointer(obj))
-
-	sh := app.CurApp.GetShader()
-	mdl.Materials.Shader = *sh.GetShader()
-
 	return mdl, nil
 }
