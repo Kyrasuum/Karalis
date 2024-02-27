@@ -67,12 +67,11 @@ func (p *Portal) Init(scene *cell.Cell, exit *Portal, cam *camera.Cam, obj pub_o
 	if obj != nil {
 		p.SetPortal(obj)
 	} else {
-		sqr := prim.Square{}
-		err := sqr.Init()
+		sqr, err := prim.NewSquare()
 		if err != nil {
 			return err
 		}
-		p.SetPortal(&sqr)
+		p.SetPortal(sqr)
 	}
 
 	return nil

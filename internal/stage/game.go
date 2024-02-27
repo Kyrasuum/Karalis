@@ -54,13 +54,19 @@ func (g *Game) Init() error {
 	}
 	g.portal1.AddChild(&grid1)
 
-	box1 := prim.Cube{}
-	err = box1.Init()
+	box1, err := prim.NewCube()
 	if err != nil {
 		return err
 	}
 	box1.SetPos(raylib.NewVector3(0, 0, -3))
-	g.portal1.AddChild(&box1)
+	g.portal1.AddChild(box1)
+
+	sky := object.Skybox{}
+	err = sky.Init()
+	if err != nil {
+		return err
+	}
+	g.curcell.AddChild(&sky)
 
 	return nil
 }
