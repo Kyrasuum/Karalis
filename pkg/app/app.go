@@ -1,6 +1,7 @@
 package app
 
 import (
+	"karalis/pkg/shader"
 	"karalis/pkg/stage"
 )
 
@@ -16,4 +17,5 @@ type App interface {
 	Exit()
 	SetStage(nextStage stage.Stage)
 	GetStage() stage.Stage
+	GetShader() shader.Shader
 }

@@ -21,6 +21,32 @@ func (g *Grid) Init() error {
 	return nil
 }
 
+func (c *Grid) GetModelMatrix() raylib.Matrix {
+	return raylib.MatrixIdentity()
+}
+
+func (g *Grid) GetPos() raylib.Vector3 {
+	return raylib.NewVector3(0, 0, 0)
+}
+
+func (c *Grid) GetPitch() float32 {
+	return 0
+}
+
+func (c *Grid) SetPitch(p float32) {}
+
+func (c *Grid) GetYaw() float32 {
+	return 0
+}
+
+func (c *Grid) SetYaw(y float32) {}
+
+func (c *Grid) GetRoll() float32 {
+	return 0
+}
+
+func (c *Grid) SetRoll(r float32) {}
+
 func (g *Grid) GetVertices() []raylib.Vector3 {
 	verts := []raylib.Vector3{}
 	return verts
@@ -32,10 +58,6 @@ func (g *Grid) GetUVs() []raylib.Vector2 {
 }
 
 func (g *Grid) SetUVs(uvs []raylib.Vector2) {
-}
-
-func (c *Grid) GetModelMatrix() raylib.Matrix {
-	return raylib.MatrixTranslate(0, 0, 0)
 }
 
 func (c *Grid) GetMaterials() *raylib.Material {

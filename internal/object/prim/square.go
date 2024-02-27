@@ -18,6 +18,7 @@ import (
 	"karalis/res"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
+	lmath "karalis/pkg/lmath"
 )
 
 var ()
@@ -25,13 +26,15 @@ var ()
 type Square struct {
 	mdl   raylib.Model
 	pos   raylib.Vector3
-	size  float32
+	rot   raylib.Vector3
+	scale raylib.Vector3
 	color color.RGBA
 }
 
 func (c *Square) Init() error {
 	c.pos = raylib.NewVector3(0, 0, 0)
-	c.size = 1
+	c.rot = raylib.NewVector3(0, 0, 0)
+	c.scale = raylib.NewVector3(1, 1, 1)
 	c.color = raylib.White
 
 	mdl, err := res.GetRes("mdl/square.obj")
@@ -41,6 +44,44 @@ func (c *Square) Init() error {
 	c.mdl = mdl.(raylib.Model)
 
 	return nil
+}
+
+func (c *Square) GetModelMatrix() raylib.Matrix {
+	matScale := raylib.MatrixScale(c.scale.X, c.scale.Y, c.scale.Z)
+	Quat := lmath.Quat{}
+	Quat = *Quat.FromEuler(float64(c.GetPitch()), float64(c.GetYaw()), float64(c.GetRoll()))
+	matRotation := raylib.QuaternionToMatrix(raylib.NewQuaternion(float32(Quat.X), float32(Quat.Y), float32(Quat.Z), float32(Quat.W)))
+	matTranslation := raylib.MatrixTranslate(c.pos.X, c.pos.Y, c.pos.Z)
+	matTransform := raylib.MatrixMultiply(raylib.MatrixMultiply(matScale, matRotation), matTranslation)
+	return matTransform
+}
+
+func (c *Square) GetPos() raylib.Vector3 {
+	return c.pos
+}
+
+func (c *Square) GetPitch() float32 {
+	return c.rot.X
+}
+
+func (c *Square) SetPitch(p float32) {
+	c.rot.X = p
+}
+
+func (c *Square) GetYaw() float32 {
+	return c.rot.Y
+}
+
+func (c *Square) SetYaw(y float32) {
+	c.rot.Y = y
+}
+
+func (c *Square) GetRoll() float32 {
+	return c.rot.Z
+}
+
+func (c *Square) SetRoll(r float32) {
+	c.rot.Z = r
 }
 
 func (c *Square) GetVertices() []raylib.Vector3 {
@@ -92,10 +133,6 @@ func (c *Square) SetUVs(uvs []raylib.Vector2) {
 	C.UpdateModelUVs((*C.Model)(unsafe.Pointer(&c.mdl)))
 }
 
-func (c *Square) GetModelMatrix() raylib.Matrix {
-	return c.mdl.Transform
-}
-
 func (c *Square) GetMaterials() *raylib.Material {
 	return c.mdl.Materials
 }
@@ -113,9 +150,8 @@ func (c *Square) Prerender(cam *camera.Cam) []func() {
 }
 
 func (c *Square) Render(cam *camera.Cam) []func() {
-	raylib.SetTexture(c.mdl.Materials.Maps.Texture.ID)
-	raylib.DrawModel(c.mdl, c.pos, c.size, c.color)
-	raylib.SetTexture(0)
+	matTransform := c.GetModelMatrix()
+	raylib.DrawMesh(*c.mdl.Meshes, *c.mdl.Materials, matTransform)
 	return []func(){}
 }
 

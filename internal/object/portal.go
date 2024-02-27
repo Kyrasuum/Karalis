@@ -9,7 +9,6 @@ import (
 	"karalis/internal/object/prim"
 	"karalis/pkg/app"
 	pub_object "karalis/pkg/object"
-	"karalis/res"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
@@ -24,7 +23,6 @@ type Portal struct {
 	target *raylib.RenderTexture2D
 	obj    pub_object.Object
 	cam    *camera.Cam
-	shader *raylib.Shader
 
 	rendering bool
 	visible   bool
@@ -63,17 +61,6 @@ func (p *Portal) Init(scene *cell.Cell, exit *Portal, cam *camera.Cam, obj pub_o
 	raylib.SetTextureWrap(text.Texture, raylib.WrapRepeat)
 	p.target = &text
 
-	fs, err := res.GetRes("shader/portal.frag")
-	if err != nil {
-		return err
-	}
-	vx, err := res.GetRes("shader/portal.vert")
-	if err != nil {
-		return err
-	}
-	shader := raylib.LoadShaderFromMemory(string(vx.([]byte)), string(fs.([]byte)))
-	p.shader = &shader
-
 	p.rendering = false
 	p.visible = true
 
@@ -81,7 +68,7 @@ func (p *Portal) Init(scene *cell.Cell, exit *Portal, cam *camera.Cam, obj pub_o
 		p.SetPortal(obj)
 	} else {
 		sqr := prim.Square{}
-		err = sqr.Init()
+		err := sqr.Init()
 		if err != nil {
 			return err
 		}
@@ -117,6 +104,10 @@ func (p *Portal) GetVertices() []raylib.Vector3 {
 	}
 }
 
+func (p *Portal) GetPos() raylib.Vector3 {
+	return p.obj.GetPos()
+}
+
 // retrieve the portal texture uvs for the display object
 func (p *Portal) GetUVs() []raylib.Vector2 {
 	if p.obj != nil {
@@ -142,8 +133,35 @@ func (p *Portal) GetModelMatrix() raylib.Matrix {
 	}
 }
 
+func (p *Portal) GetPitch() float32 {
+	return p.obj.GetPitch()
+}
+
+func (p *Portal) SetPitch(pi float32) {
+	p.obj.SetPitch(pi)
+}
+
+func (p *Portal) GetYaw() float32 {
+	return p.obj.GetYaw()
+}
+
+func (p *Portal) SetYaw(y float32) {
+	p.obj.SetYaw(y)
+}
+
+func (p *Portal) GetRoll() float32 {
+	return p.obj.GetRoll()
+}
+
+func (p *Portal) SetRoll(r float32) {
+	p.obj.SetRoll(r)
+}
+
 // get portal render material
 func (p *Portal) GetMaterials() *raylib.Material {
+	if p.obj != nil {
+		return p.obj.GetMaterials()
+	}
 	return &raylib.Material{}
 }
 
@@ -167,8 +185,6 @@ func (p *Portal) SetPortal(obj pub_object.Object) {
 	p.obj.SetTexture(p.obj.GetMaterials(), p.GetTexture(nil))
 	raylib.SetTextureFilter(p.target.Texture, raylib.FilterBilinear)
 	raylib.SetTextureWrap(p.target.Texture, raylib.WrapRepeat)
-	mat := p.obj.GetMaterials()
-	mat.Shader = *p.shader
 }
 
 // get portal render object
@@ -213,6 +229,12 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 		//render from portals perspective
 		raylib.BeginTextureMode(*p.target)
 		raylib.ClearBackground(color.RGBA{255, 255, 255, 255})
+		sh := app.CurApp.GetShader()
+		err := sh.SetUniform("portalScn", 1.0)
+		if err != nil {
+			fmt.Printf("%+v\n", err)
+			p.visible = false
+		}
 
 		cmds = p.cam.Prerender()
 		cmds = append(cmds, p.scene.Prerender(p.cam)...)
@@ -232,6 +254,11 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 			cmd()
 		}
 
+		err = sh.SetUniform("portalScn", 0.0)
+		if err != nil {
+			fmt.Printf("%+v\n", err)
+			p.visible = false
+		}
 		raylib.EndTextureMode()
 
 		p.rendering = false
@@ -249,9 +276,18 @@ func (p *Portal) Render(cam *camera.Cam) []func() {
 
 	if p.visible {
 		if p.target != nil && p.obj != nil {
-			raylib.BeginShaderMode(*p.shader)
+			sh := app.CurApp.GetShader()
+			err := sh.SetUniform("portalObj", 1.0)
+			if err != nil {
+				fmt.Printf("%+v\n", err)
+				p.visible = false
+			}
 			cmds = p.obj.Render(cam)
-			raylib.EndShaderMode()
+			err = sh.SetUniform("portalObj", 0.0)
+			if err != nil {
+				fmt.Printf("%+v\n", err)
+				p.visible = false
+			}
 		}
 	}
 
@@ -284,10 +320,6 @@ func (p *Portal) OnRemove() {
 		raylib.UnloadRenderTexture(*p.target)
 		p.target = nil
 	}
-	if p.shader != nil {
-		raylib.UnloadShader(*p.shader)
-		p.shader = nil
-	}
 
 	p.scene.OnRemove()
 }
@@ -295,7 +327,6 @@ func (p *Portal) OnRemove() {
 // handle resize event
 func (p *Portal) OnResize(w int32, h int32) {
 	p.cam.OnResize(w, h)
-	fmt.Printf("\n")
 }
 
 // add child to object

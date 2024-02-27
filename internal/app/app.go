@@ -5,10 +5,12 @@ import (
 	"image/color"
 	"time"
 
+	"karalis/internal/shader"
 	"karalis/internal/stage"
 	App "karalis/pkg/app"
 	"karalis/pkg/config"
 	"karalis/pkg/input"
+	pub_shader "karalis/pkg/shader"
 	pub_stage "karalis/pkg/stage"
 	"karalis/res"
 
@@ -18,8 +20,9 @@ import (
 var ()
 
 type app struct {
-	curStage pub_stage.Stage
-	console  interface{}
+	curStage  pub_stage.Stage
+	curShader pub_shader.Shader
+	console   interface{}
 
 	logicInterval int64
 	drawInterval  int64
@@ -45,6 +48,8 @@ func (a *app) init() error {
 	if err != nil {
 		return err
 	}
+
+	a.curShader = &shader.Shader{}
 
 	return nil
 }
@@ -132,6 +137,11 @@ func (a *app) run() error {
 		return err
 	}
 
+	err = a.curShader.Init()
+	if err != nil {
+		return err
+	}
+
 	err = res.Load()
 	if err != nil {
 		return err
@@ -182,10 +192,18 @@ func (a *app) GetStage() pub_stage.Stage {
 	return a.curStage
 }
 
+// get the currently active shader in the app
+func (a *app) GetShader() pub_shader.Shader {
+	return a.curShader
+}
+
 // Exit the application
 func (a *app) Exit() {
 	if a.curStage != nil {
 		a.curStage.OnRemove()
+	}
+	if a.curShader != nil {
+		a.curShader.OnRemove()
 	}
 	raylib.CloseWindow()
 }

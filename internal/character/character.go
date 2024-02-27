@@ -56,10 +56,6 @@ func (c *Character) GetUVs() []raylib.Vector2 {
 func (c *Character) SetUVs(uvs []raylib.Vector2) {
 }
 
-func (c *Character) GetModelMatrix() raylib.Matrix {
-	return raylib.MatrixTranslate(0, 0, 0)
-}
-
 func (c *Character) GetMaterials() *raylib.Material {
 	return &raylib.Material{}
 }

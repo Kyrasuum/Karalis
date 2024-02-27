@@ -10,6 +10,7 @@ import (
 	"karalis/res"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
+	lmath "karalis/pkg/lmath"
 )
 
 var ()
@@ -17,13 +18,15 @@ var ()
 type WireCube struct {
 	mdl   raylib.Model
 	pos   raylib.Vector3
-	size  float32
+	rot   raylib.Vector3
+	scale raylib.Vector3
 	color color.RGBA
 }
 
 func (c *WireCube) Init() error {
 	c.pos = raylib.NewVector3(0, 0, 0)
-	c.size = 1
+	c.rot = raylib.NewVector3(0, 0, 0)
+	c.scale = raylib.NewVector3(1, 1, 1)
 	c.color = raylib.Red
 
 	mdl, err := res.GetRes("mdl/cube.obj")
@@ -33,6 +36,44 @@ func (c *WireCube) Init() error {
 	c.mdl = mdl.(raylib.Model)
 
 	return nil
+}
+
+func (c *WireCube) GetModelMatrix() raylib.Matrix {
+	matScale := raylib.MatrixScale(c.scale.X, c.scale.Y, c.scale.Z)
+	Quat := lmath.Quat{}
+	Quat = *Quat.FromEuler(float64(c.GetPitch()), float64(c.GetYaw()), float64(c.GetRoll()))
+	matRotation := raylib.QuaternionToMatrix(raylib.NewQuaternion(float32(Quat.X), float32(Quat.Y), float32(Quat.Z), float32(Quat.W)))
+	matTranslation := raylib.MatrixTranslate(c.pos.X, c.pos.Y, c.pos.Z)
+	matTransform := raylib.MatrixMultiply(raylib.MatrixMultiply(matScale, matRotation), matTranslation)
+	return matTransform
+}
+
+func (c *WireCube) GetPos() raylib.Vector3 {
+	return c.pos
+}
+
+func (c *WireCube) GetPitch() float32 {
+	return c.rot.X
+}
+
+func (c *WireCube) SetPitch(p float32) {
+	c.rot.X = p
+}
+
+func (c *WireCube) GetYaw() float32 {
+	return c.rot.Y
+}
+
+func (c *WireCube) SetYaw(y float32) {
+	c.rot.Y = y
+}
+
+func (c *WireCube) GetRoll() float32 {
+	return c.rot.Z
+}
+
+func (c *WireCube) SetRoll(r float32) {
+	c.rot.Z = r
 }
 
 func (c *WireCube) GetVertices() []raylib.Vector3 {
@@ -93,9 +134,8 @@ func (c *WireCube) Prerender(cam *camera.Cam) []func() {
 }
 
 func (c *WireCube) Render(cam *camera.Cam) []func() {
-	raylib.SetTexture(c.mdl.Materials.Maps.Texture.ID)
-	raylib.DrawModel(c.mdl, c.pos, c.size, c.color)
-	raylib.SetTexture(0)
+	matTransform := c.GetModelMatrix()
+	raylib.DrawMesh(*c.mdl.Meshes, *c.mdl.Materials, matTransform)
 	return []func(){}
 }
 

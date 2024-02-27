@@ -43,6 +43,10 @@ func (s *Skybox) AddChild(obj pub_object.Object) {
 func (s *Skybox) RemChild(obj pub_object.Object) {
 }
 
+func (s *Skybox) GetPos() raylib.Vector3 {
+	return raylib.NewVector3(0, 0, 0)
+}
+
 func (s *Skybox) GetModelMatrix() raylib.Matrix {
 	return raylib.MatrixTranslate(0, 0, 0)
 }
