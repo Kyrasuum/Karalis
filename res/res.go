@@ -104,7 +104,7 @@ func GetRes(path string) (interface{}, error) {
 	if res, ok := resources[path]; ok {
 		return res.data, res.err
 	} else {
-		return nil, fmt.Errorf("Resource not found\n")
+		return nil, fmt.Errorf("Resource not found: %s\n", path)
 	}
 }
 
