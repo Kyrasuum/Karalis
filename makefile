@@ -13,6 +13,7 @@ run: build .deps
 .PHONY: build
 #: Performs a clean run of the project
 build: .dev-deps $(PRI_DIR)** $(PUB_DIR)**
+	@go mod tidy -compat=1.21
 	@go build -o $(BIN_DIR)$(EXEC) cmd/main.go
 
 .PHONY: release
@@ -47,7 +48,6 @@ deps:
 #: Install dependencies for compiling targets in this makefile
 dev-deps: .deps
 	@sudo apt-get install -y libgl-dev libgl1-mesa-dev libx11-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev xorg-dev libxxf86vm-dev
-	@go mod tidy -compat=1.21
 	@touch .dev-deps
 
 .PHONY: help
