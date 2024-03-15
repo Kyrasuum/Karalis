@@ -48,7 +48,7 @@ deps:
 dev-deps: .deps
 	@sudo apt-get install -y libgl1-mesa-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev libwayland-dev libxkbcommon-dev
 	@sudo apt-get install -y libgl-dev libx11-dev xorg-dev libxxf86vm-dev
-	@sudo go mod tidy
+	@go mod tidy
 	@touch .dev-deps
 
 .PHONY: help
