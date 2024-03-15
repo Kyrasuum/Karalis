@@ -46,7 +46,7 @@ deps:
 
 #: Install dependencies for compiling targets in this makefile
 dev-deps: .deps
-	@sudo apt install libgl1-mesa-dev libx11-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev xorg-dev
+	@sudo apt install libgl1-mesa-dev libx11-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev xorg-dev -y
 	@go mod tidy -compat=1.21
 	@touch .dev-deps
 
