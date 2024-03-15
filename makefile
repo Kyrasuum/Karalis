@@ -49,6 +49,7 @@ dev-deps: .deps
 	@sudo apt-get install -y libgl1-mesa-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev libwayland-dev libxkbcommon-dev
 	@sudo apt-get install -y libgl-dev libx11-dev xorg-dev libxxf86vm-dev
 	@go mod tidy
+	@go get -v -u github.com/gen2brain/raylib-go/raylib
 	@touch .dev-deps
 
 .PHONY: help
