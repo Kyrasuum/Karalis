@@ -23,6 +23,9 @@ jobs:
       with:
         go-version: '1.22'
 
+    - name: Deps
+      run: make dev-deps
+      
     - name: Build
       run: make build
 
