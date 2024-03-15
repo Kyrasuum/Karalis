@@ -13,7 +13,6 @@ run: build .deps
 .PHONY: build
 #: Performs a clean run of the project
 build: .dev-deps $(PRI_DIR)** $(PUB_DIR)**
-	@go mod tidy -compat=1.21
 	@go build -o $(BIN_DIR)$(EXEC) cmd/main.go
 
 .PHONY: release
@@ -49,6 +48,7 @@ deps:
 dev-deps: .deps
 	@sudo apt-get install -y libgl1-mesa-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev libwayland-dev libxkbcommon-dev
 	@sudo apt-get install -y libgl-dev libx11-dev xorg-dev libxxf86vm-dev
+	@sudo go mod tidy -compat=1.21
 	@touch .dev-deps
 
 .PHONY: help
