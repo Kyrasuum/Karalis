@@ -137,7 +137,7 @@ func (a *app) run() error {
 		return err
 	}
 
-	err = a.curShader.Init()
+	err = a.curShader.Init("shader")
 	if err != nil {
 		return err
 	}

@@ -7,7 +7,7 @@ import (
 var ()
 
 type Shader interface {
-	Init() error
+	Init(string) error
 	GetShader() *raylib.Shader
 	GetID() uint32
 	GetLocs() *int32

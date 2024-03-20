@@ -26,6 +26,13 @@ func (g *Game) Init() error {
 		return err
 	}
 
+	sky := object.Skybox{}
+	err = sky.Init()
+	if err != nil {
+		return err
+	}
+	g.curcell.AddChild(&sky)
+
 	g.player = &character.Player{}
 	err = g.player.Init()
 	if err != nil {
@@ -60,13 +67,6 @@ func (g *Game) Init() error {
 	}
 	box1.SetPos(raylib.NewVector3(0, 0, -3))
 	g.portal1.AddChild(box1)
-
-	sky := object.Skybox{}
-	err = sky.Init()
-	if err != nil {
-		return err
-	}
-	g.curcell.AddChild(&sky)
 
 	return nil
 }

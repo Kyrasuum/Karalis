@@ -2,13 +2,16 @@ package object
 
 import (
 	"karalis/internal/camera"
+	"karalis/internal/shader"
 	pub_object "karalis/pkg/object"
+	pub_shader "karalis/pkg/shader"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
 type Skybox struct {
 	tex *raylib.Texture2D
+	shd pub_shader.Shader
 
 	uvs   [][]raylib.Vector2
 	verts [][]raylib.Vector3
@@ -23,6 +26,9 @@ func (s *Skybox) Init() error {
 	img := raylib.GenImageColor(1536, 256, col)
 	tex := raylib.LoadTextureCubemap(img, raylib.CubemapLayoutAutoDetect)
 	s.tex = &tex
+
+	s.shd = &shader.Shader{}
+	s.shd.Init("skybox")
 
 	points := [][]float32{
 		[]float32{-1, -1, -1},
@@ -132,9 +138,14 @@ func (s *Skybox) Prerender(cam *camera.Cam) []func() {
 func (s *Skybox) Render(cam *camera.Cam) []func() {
 	cmds := []func(){}
 
+	raylib.DisableDepthMask()
+	raylib.DisableDepthTest()
 	raylib.PushMatrix()
 	raylib.Begin(raylib.Quads)
 	raylib.EnableTextureCubemap(s.tex.ID)
+	s.shd.Begin()
+	s.shd.SetUniform("matView", raylib.GetMatrixModelview())
+	s.shd.SetUniform("matProjection", raylib.GetMatrixProjection())
 
 	raylib.Color4ub(255, 255, 255, 255)
 	for i, quad := range s.verts {
@@ -144,9 +155,12 @@ func (s *Skybox) Render(cam *camera.Cam) []func() {
 		}
 	}
 
+	s.shd.End()
 	raylib.DisableTextureCubemap()
 	raylib.End()
 	raylib.PopMatrix()
+	raylib.EnableDepthTest()
+	raylib.EnableDepthMask()
 
 	return cmds
 }
