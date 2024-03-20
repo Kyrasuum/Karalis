@@ -52,6 +52,11 @@ dev-deps: .deps
 	@go get -v -u github.com/gen2brain/raylib-go/raylib
 	@touch .dev-deps
 
+.PHONY: test
+#: Perfrom unit tests for application
+test:
+	@true;
+
 .PHONY: help
 #: Lists available commands
 help:

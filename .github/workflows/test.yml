@@ -1,0 +1,65 @@
+name: Run Tests
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Build"]
+    branches: ["master", "main"]
+    types:
+      - completed
+
+jobs:
+  test:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for stackhawk/hawkscan-action to upload code scanning alert info
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+
+    steps:
+      - name: Download artifact
+        uses: dawidd6/action-download-artifact@v2
+        continue-on-error: true
+        id: artifact
+        with:
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          workflow: build.yml
+          workflow_conclusion: success
+          # Optional, uploaded artifact name,
+          # will download all artifacts if not specified
+          # and extract them in respective subdirectories
+          # https://github.com/actions/download-artifact#download-all-artifacts
+          name: build-${{ matrix.os }}
+          # Optional, directory where to extract artifact(s), defaults to current directory
+          path: release
+          # Optional, check the workflow run whether it has an artifact
+          # then will get the last available artifact from previous workflow
+          # default false, just try to download from the last one
+          check_artifacts:  true
+          # Optional, search for the last workflow run whose stored an artifact named as in `name` input
+          # default false
+          search_artifacts: true
+
+    - name: Setup
+      uses: Kyrasuum/RaylibSetup@v1
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.22'
+
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ github.head_ref || github.ref_name }}
+
+    - name: Deps
+      run: make dev-deps
+
+    - name: Test
+      run: make test
