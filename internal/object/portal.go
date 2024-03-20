@@ -1,9 +1,13 @@
 package object
 
 import (
+	"fmt"
+	"image/color"
+
 	"karalis/internal/camera"
 	"karalis/internal/cell"
-	"karalis/pkg/goray"
+	"karalis/internal/object/prim"
+	"karalis/pkg/app"
 	pub_object "karalis/pkg/object"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
@@ -16,21 +20,24 @@ type Portal struct {
 
 	exit *Portal
 
-	obj pub_object.Object
-	cam *camera.Cam
+	target *raylib.RenderTexture2D
+	obj    pub_object.Object
+	cam    *camera.Cam
 
 	rendering bool
 	visible   bool
-	showexit  bool
 }
 
 // initialize portal object
-func (p *Portal) Init(scene *cell.Cell, exit *Portal, cam *camera.Cam, obj pub_object.Object) {
+func (p *Portal) Init(scene *cell.Cell, exit *Portal, cam *camera.Cam, obj pub_object.Object) error {
 	if scene != nil {
 		p.scene = scene
 	} else {
 		p.scene = &cell.Cell{}
-		p.scene.Init()
+		err := p.scene.Init()
+		if err != nil {
+			return err
+		}
 	}
 
 	if exit != nil {
@@ -39,21 +46,35 @@ func (p *Portal) Init(scene *cell.Cell, exit *Portal, cam *camera.Cam, obj pub_o
 		p.exit = nil
 	}
 
-	if obj != nil {
-		p.obj = obj
-	} else {
-		p.obj = nil
-	}
-
 	if cam != nil {
 		p.cam = cam
 	} else {
 		p.cam = &camera.Cam{}
-		p.cam.Init()
+		err := p.cam.Init()
+		if err != nil {
+			return err
+		}
 	}
+
+	text := raylib.LoadRenderTexture(app.CurApp.GetWidth(), app.CurApp.GetHeight())
+	raylib.SetTextureFilter(text.Texture, raylib.FilterBilinear)
+	raylib.SetTextureWrap(text.Texture, raylib.WrapRepeat)
+	p.target = &text
 
 	p.rendering = false
 	p.visible = true
+
+	if obj != nil {
+		p.SetPortal(obj)
+	} else {
+		sqr, err := prim.NewSquare()
+		if err != nil {
+			return err
+		}
+		p.SetPortal(sqr)
+	}
+
+	return nil
 }
 
 // get exit portal pair
@@ -82,6 +103,10 @@ func (p *Portal) GetVertices() []raylib.Vector3 {
 	}
 }
 
+func (p *Portal) GetPos() raylib.Vector3 {
+	return p.obj.GetPos()
+}
+
 // retrieve the portal texture uvs for the display object
 func (p *Portal) GetUVs() []raylib.Vector2 {
 	if p.obj != nil {
@@ -107,28 +132,46 @@ func (p *Portal) GetModelMatrix() raylib.Matrix {
 	}
 }
 
-// set camera for portal
-func (p *Portal) SetCam(obj *camera.Cam) {
-	p.cam = obj
+func (p *Portal) GetPitch() float32 {
+	return p.obj.GetPitch()
 }
 
-// return camera for portal
-func (p *Portal) GetCam() *camera.Cam {
-	return p.cam
+func (p *Portal) SetPitch(pi float32) {
+	p.obj.SetPitch(pi)
+}
+
+func (p *Portal) GetYaw() float32 {
+	return p.obj.GetYaw()
+}
+
+func (p *Portal) SetYaw(y float32) {
+	p.obj.SetYaw(y)
+}
+
+func (p *Portal) GetRoll() float32 {
+	return p.obj.GetRoll()
+}
+
+func (p *Portal) SetRoll(r float32) {
+	p.obj.SetRoll(r)
 }
 
 // get portal render material
 func (p *Portal) GetMaterials() *raylib.Material {
+	if p.obj != nil {
+		return p.obj.GetMaterials()
+	}
 	return &raylib.Material{}
 }
 
 // set portal render texture
 func (p *Portal) SetTexture(mat *raylib.Material, tex raylib.Texture2D) {
+	p.target.Texture = tex
 }
 
 // get portal render texture
 func (p *Portal) GetTexture(mat *raylib.Material) raylib.Texture2D {
-	return raylib.Texture2D{}
+	return p.target.Texture
 }
 
 // set portal render object
@@ -139,6 +182,8 @@ func (p *Portal) SetPortal(obj pub_object.Object) {
 	p.obj = obj
 	p.obj.OnAdd()
 	p.obj.SetTexture(p.obj.GetMaterials(), p.GetTexture(nil))
+	raylib.SetTextureFilter(p.target.Texture, raylib.FilterBilinear)
+	raylib.SetTextureWrap(p.target.Texture, raylib.WrapRepeat)
 }
 
 // get portal render object
@@ -146,97 +191,81 @@ func (p *Portal) GetPortal() pub_object.Object {
 	return p.obj
 }
 
+// set camera for portal
+func (p *Portal) SetCam(obj *camera.Cam) {
+	p.cam = obj
+}
+
+// return camera for portal
+func (p *Portal) GetCam() *camera.Cam {
+	return p.cam
+}
+
 // prerender hook
 func (p *Portal) Prerender(cam *camera.Cam) []func() {
 	cmds := []func(){}
 
-	return cmds
-}
-
-// portal render cycle
-func (p *Portal) PortalRender(cam *camera.Cam) []func() {
-	cmds := []func(){}
-
 	//guards to ensure we only render when we should be
-	if !p.rendering && p.visible && p.obj != nil {
+	if p.target != nil && !p.rendering && p.visible {
 		//prevent rerendering a portal a second time
 		p.rendering = true
 		if p.exit != nil {
 			p.exit.visible = false
 		}
 
-		//Disable drawing to the color buffer and the depth buffer, but enable writing to the stencil buffer.
-		raylib.DisableDepthMask()
-		goray.SetColorMask(false, false, false, false)
-		goray.EnableStencilTest(true)
-		goray.SetStencilMask(0xff)
-		goray.ClearStencilBuffer()
+		//calculate portal camera position based on calling render camera
+		portalmdl := p.GetModelMatrix()
+		wldToLcl := raylib.MatrixInvert(portalmdl)
+		lclToWld := raylib.MatrixIdentity()
+		if p.exit != nil {
+			lclToWld = p.exit.GetModelMatrix()
+		}
+		transform := raylib.MatrixMultiply(lclToWld, wldToLcl)
 
-		//Set the stencil operation to GL_INCR on sfail, meaning that the stencil value will be incremented when the stencil test fails.
-		goray.SetStencilOp(goray.KEEP, goray.INCR, goray.KEEP)
+		p.cam.SetPos(raylib.Vector3Transform(cam.GetPos(), transform))
+		p.cam.SetTar(raylib.Vector3Transform(cam.GetTar(), transform))
 
-		//Set the stencil function to GL_NEVER, which makes sure that the stencil test always fails on every pixel drawn.
-		goray.SetStencilFunc(goray.NEVER, 1, 0xFF)
+		//render from portals perspective
+		raylib.BeginTextureMode(*p.target)
+		raylib.ClearBackground(color.RGBA{255, 255, 255, 255})
+		sh := app.CurApp.GetShader()
+		err := sh.SetDefine("PORTAL_SCN", true)
+		if err != nil {
+			fmt.Printf("%+v\n", err)
+			p.visible = false
+		}
 
-		//Draw the portal’s frame (in the case of a rectangle: just two triangles). At this point the stencil buffer is filled with zero’s on the outside of the portal’s frame and one’s on the inside.
-		cmds = p.obj.Render(cam)
-
-		//Generate the virtual camera’s view matrix using the view frustum clipping method.
-		// camMdl := cam.GetModelMatrix()
-		// portalmdl := p.GetModelMatrix()
-		// wldToLcl := raylib.MatrixInvert(portalmdl)
-		// lclToWld := raylib.MatrixRotateX(180)
-		// if p.exit != nil {
-		// lclToWld = p.exit.GetModelMatrix()
-		// }
-		// transform := raylib.MatrixMultiply(lclToWld, raylib.MatrixMultiply(wldToLcl, camMdl))
-		// tar := cam.GetTar()
-		// p.cam.SetPos(raylib.Vector3Transform(raylib.NewVector3(0, 0, 0), transform))
-		// p.cam.SetTar(raylib.NewVector3(float32(tar.X), 0-float32(tar.Y), float32(tar.Z)))
-
-		//Disable writing to the stencil buffer, but enable drawing to the color buffer and the depth buffer.
-		raylib.EnableDepthMask()
-		goray.SetColorMask(true, true, true, true)
-		goray.SetStencilMask(0x00)
-
-		//Set the stencil function to GL_LEQUAL with reference value 1. This will only draw where the stencil value is greater than or equal to 1, which is inside the portal frame.
-		goray.SetStencilFunc(goray.LEQUAL, 1, 0xFF)
-
-		//Draw the scene using the virtual camera from step 5. This will only draw inside of the portal’s frame because of the stencil test.
-		cmds = append(cmds, p.scene.Prerender(cam)...)
+		cmds = p.cam.Prerender()
+		cmds = append(cmds, p.scene.Prerender(p.cam)...)
 		for _, cmd := range cmds {
 			cmd()
 		}
 
-		cmds = append(cmds, p.scene.Render(cam)...)
+		cmds = p.cam.Render()
+		cmds = append(cmds, p.scene.Render(p.cam)...)
 		for _, cmd := range cmds {
 			cmd()
 		}
 
-		cmds = append(cmds, p.scene.Postrender(cam)...)
+		cmds = p.cam.Postrender()
+		cmds = append(cmds, p.scene.Postrender(p.cam)...)
 		for _, cmd := range cmds {
 			cmd()
 		}
 
-		//Disable the stencil test, disable drawing to the color buffer, and enable drawing to the depth buffer.
-		goray.EnableStencilTest(false)
-		goray.SetColorMask(false, false, false, false)
-		raylib.EnableDepthMask()
+		err = sh.SetDefine("PORTAL_SCN", false)
+		if err != nil {
+			fmt.Printf("%+v\n", err)
+			p.visible = false
+		}
+		raylib.EndTextureMode()
 
 		p.rendering = false
 		if p.exit != nil {
 			p.exit.visible = true
 		}
-
-		//Clear the depth buffer.
-		goray.ClearDepthBuffer()
-
-		//Draw the portal frame once again, this time to the depth buffer which was just cleared.
-		cmds = p.obj.Render(cam)
-
-		//Enable the color buffer again.
-		goray.SetColorMask(true, true, true, true)
 	}
+
 	return cmds
 }
 
@@ -244,7 +273,22 @@ func (p *Portal) PortalRender(cam *camera.Cam) []func() {
 func (p *Portal) Render(cam *camera.Cam) []func() {
 	cmds := []func(){}
 
-	cmds = p.PortalRender(cam)
+	if p.visible {
+		if p.target != nil && p.obj != nil {
+			sh := app.CurApp.GetShader()
+			err := sh.SetDefine("PORTAL_OBJ", true)
+			if err != nil {
+				fmt.Printf("%+v\n", err)
+				p.visible = false
+			}
+			cmds = p.obj.Render(cam)
+			err = sh.SetDefine("PORTAL_OBJ", false)
+			if err != nil {
+				fmt.Printf("%+v\n", err)
+				p.visible = false
+			}
+		}
+	}
 
 	return cmds
 }
@@ -271,6 +315,11 @@ func (p *Portal) OnAdd() {
 
 // handle remove event
 func (p *Portal) OnRemove() {
+	if p.target != nil {
+		raylib.UnloadRenderTexture(*p.target)
+		p.target = nil
+	}
+
 	p.scene.OnRemove()
 }
 

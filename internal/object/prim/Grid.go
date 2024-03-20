@@ -2,6 +2,7 @@ package prim
 
 import (
 	"karalis/internal/camera"
+	"karalis/pkg/app"
 	pub_object "karalis/pkg/object"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
@@ -14,10 +15,38 @@ type Grid struct {
 	size    int32
 }
 
-func (g *Grid) Init() {
+func (g *Grid) Init() error {
 	g.spacing = 1
 	g.size = 10
+
+	return nil
 }
+
+func (c *Grid) GetModelMatrix() raylib.Matrix {
+	return raylib.MatrixIdentity()
+}
+
+func (g *Grid) GetPos() raylib.Vector3 {
+	return raylib.NewVector3(0, 0, 0)
+}
+
+func (c *Grid) GetPitch() float32 {
+	return 0
+}
+
+func (c *Grid) SetPitch(p float32) {}
+
+func (c *Grid) GetYaw() float32 {
+	return 0
+}
+
+func (c *Grid) SetYaw(y float32) {}
+
+func (c *Grid) GetRoll() float32 {
+	return 0
+}
+
+func (c *Grid) SetRoll(r float32) {}
 
 func (g *Grid) GetVertices() []raylib.Vector3 {
 	verts := []raylib.Vector3{}
@@ -30,10 +59,6 @@ func (g *Grid) GetUVs() []raylib.Vector2 {
 }
 
 func (g *Grid) SetUVs(uvs []raylib.Vector2) {
-}
-
-func (c *Grid) GetModelMatrix() raylib.Matrix {
-	return raylib.MatrixTranslate(0, 0, 0)
 }
 
 func (c *Grid) GetMaterials() *raylib.Material {
@@ -52,7 +77,10 @@ func (g *Grid) Prerender(cam *camera.Cam) []func() {
 }
 
 func (g *Grid) Render(cam *camera.Cam) []func() {
+	sh := app.CurApp.GetShader()
+	sh.Begin()
 	raylib.DrawGrid(g.size, g.spacing)
+	sh.End()
 	return []func(){}
 }
 

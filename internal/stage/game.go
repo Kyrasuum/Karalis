@@ -16,45 +16,65 @@ type Game struct {
 	curcell *cell.Cell
 	player  *character.Player
 	portal1 object.Portal
-	portal2 object.Portal
 }
 
 // initialize game object
-func (g *Game) Init() {
+func (g *Game) Init() error {
 	g.curcell = &cell.Cell{}
-	g.curcell.Init()
+	err := g.curcell.Init()
+	if err != nil {
+		return err
+	}
 
 	g.player = &character.Player{}
-	g.player.Init()
+	err = g.player.Init()
+	if err != nil {
+		return err
+	}
 	g.curcell.AddChild(g.player)
 
 	grid2 := prim.Grid{}
-	grid2.Init()
+	err = grid2.Init()
+	if err != nil {
+		return err
+	}
 	g.curcell.AddChild(&grid2)
 
 	g.portal1 = object.Portal{}
-	g.portal1.Init(nil, nil, nil, nil)
+	err = g.portal1.Init(nil, nil, nil, nil)
+	if err != nil {
+		return err
+	}
 	g.curcell.AddChild(&g.portal1)
 
 	grid1 := prim.Grid{}
-	grid1.Init()
+	err = grid1.Init()
+	if err != nil {
+		return err
+	}
 	g.portal1.AddChild(&grid1)
 
-	box1 := prim.Cube{}
-	box1.Init()
+	box1, err := prim.NewCube()
+	if err != nil {
+		return err
+	}
 	box1.SetPos(raylib.NewVector3(0, 0, -3))
-	g.portal1.AddChild(&box1)
+	g.portal1.AddChild(box1)
 
-	plane1 := prim.Square{}
-	plane1.Init()
-	g.portal1.SetPortal(&plane1)
+	sky := object.Skybox{}
+	err = sky.Init()
+	if err != nil {
+		return err
+	}
+	g.curcell.AddChild(&sky)
+
+	return nil
 }
 
 // handle resize event
 func (g *Game) OnResize(w int32, h int32) {
 	g.player.GetCam().OnResize(w, h)
 	g.portal1.OnResize(w, h)
-	g.portal2.OnResize(w, h)
 }
 
 // prerender hook

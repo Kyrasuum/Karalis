@@ -1,7 +1,7 @@
 github.com/ebitengine/purego v0.6.0-alpha.1.0.20231122024802-192c5e846faa h1:Ik7QikRgeH+bFOfAcMpttCbs6XxWXxCLXMm4awxtOXk=
 github.com/ebitengine/purego v0.6.0-alpha.1.0.20231122024802-192c5e846faa/go.mod h1:ah1In8AOtksoNK6yk5z1HTJeUkC1Ez4Wk2idgGslMwQ=
-github.com/gen2brain/raylib-go/raylib v0.0.0-20231123174446-48309e2407b7 h1:qu+EOzSIbZHZdlahUAZRGAjyiSjzSNEnIiucIEHCKYU=
-github.com/gen2brain/raylib-go/raylib v0.0.0-20231123174446-48309e2407b7/go.mod h1:P/hDjVwz/9fhR0ww3+umzDpDA7Bf7Tce4xNChHIEFqE=
+github.com/gen2brain/raylib-go/raylib v0.0.0-20240125111008-83d871a38f28 h1:e0HOaKlvsdC0ZtfWbEaaWAxYTSxUZoCAFS36jLfsVRA=
+github.com/gen2brain/raylib-go/raylib v0.0.0-20240125111008-83d871a38f28/go.mod h1:P/hDjVwz/9fhR0ww3+umzDpDA7Bf7Tce4xNChHIEFqE=
 github.com/go-gl/gl v0.0.0-20231021071112-07e5d0ea2e71 h1:5BVwOaUSBTlVZowGO6VZGw2H/zl9nrd3eCZfYV+NfQA=
 github.com/go-gl/gl v0.0.0-20231021071112-07e5d0ea2e71/go.mod h1:9YTyiznxEY1fVinfM7RvRcjRHbw2xLBJ3AAGIT0I4Nw=
 github.com/mitchellh/go-homedir v1.1.0 h1:lukF9ziXFxDFPkA1vsr5zpc1XuPDn/wFntq5mG+4E0Y=

@@ -8,7 +8,7 @@ import (
 var ()
 
 type Stage interface {
-	Init()
+	Init() error
 	OnResize(w int32, h int32)
 	Prerender() []func()
 	Render() []func()

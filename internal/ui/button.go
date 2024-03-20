@@ -52,8 +52,10 @@ func (b *Button) defaults() {
 	b.onPress = func() {}
 }
 
-func (b *Button) Init() {
+func (b *Button) Init() error {
 	b.defaults()
+
+	return nil
 }
 
 func (b *Button) SetOnPress(f func()) {

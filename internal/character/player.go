@@ -19,11 +19,18 @@ type Player struct {
 	lastmpos raylib.Vector2
 	nextmpos raylib.Vector2
 
+	pos   raylib.Vector3
+	rot   raylib.Vector3
+	scale raylib.Vector3
+
 	mode    int
 	capture bool
 }
 
-func (p *Player) Init() {
+func (p *Player) Init() error {
+	p.pos = raylib.NewVector3(0, 0, 0)
+	p.rot = raylib.NewVector3(0, 0, 0)
+	p.scale = raylib.NewVector3(1, 1, 1)
 	p.char.Init()
 
 	p.cam = camera.Cam{}
@@ -36,6 +43,8 @@ func (p *Player) Init() {
 
 	p.mode = 1
 	p.capture = false
+
+	return nil
 }
 
 func (p *Player) Prerender(cam *camera.Cam) []func() {
@@ -73,6 +82,44 @@ func (p *Player) RemChild(obj object.Object) {
 	p.char.AddChild(obj)
 }
 
+func (p *Player) GetModelMatrix() raylib.Matrix {
+	matScale := raylib.MatrixScale(p.scale.X, p.scale.Y, p.scale.Z)
+	Quat := lmath.Quat{}
+	Quat = *Quat.FromEuler(float64(p.GetPitch()), float64(p.GetYaw()), float64(p.GetRoll()))
+	matRotation := raylib.QuaternionToMatrix(raylib.NewQuaternion(float32(Quat.X), float32(Quat.Y), float32(Quat.Z), float32(Quat.W)))
+	matTranslation := raylib.MatrixTranslate(p.pos.X, p.pos.Y, p.pos.Z)
+	matTransform := raylib.MatrixMultiply(raylib.MatrixMultiply(matScale, matRotation), matTranslation)
+	return matTransform
+}
+
+func (p *Player) GetPos() raylib.Vector3 {
+	return p.pos
+}
+
+func (p *Player) GetPitch() float32 {
+	return p.rot.X
+}
+
+func (p *Player) SetPitch(pi float32) {
+	p.rot.X = pi
+}
+
+func (p *Player) GetYaw() float32 {
+	return p.rot.Y
+}
+
+func (p *Player) SetYaw(y float32) {
+	p.rot.Y = y
+}
+
+func (p *Player) GetRoll() float32 {
+	return p.rot.Z
+}
+
+func (p *Player) SetRoll(r float32) {
+	p.rot.Z = r
+}
+
 // retrieve the portal display objects vertices
 func (p *Player) GetVertices() []raylib.Vector3 {
 	return p.char.GetVertices()
@@ -86,10 +133,6 @@ func (p *Player) GetUVs() []raylib.Vector2 {
 // set the texture uvs for the portal display object
 func (p *Player) SetUVs(uvs []raylib.Vector2) {
 	p.char.SetUVs(uvs)
-}
-
-func (p *Player) GetModelMatrix() raylib.Matrix {
-	return p.char.GetModelMatrix()
 }
 
 func (p *Player) GetMaterials() *raylib.Material {

@@ -9,11 +9,18 @@ import (
 var ()
 
 type Object interface {
+	GetModelMatrix() raylib.Matrix
+	GetPos() raylib.Vector3
+	GetPitch() float32
+	SetPitch(p float32)
+	GetYaw() float32
+	SetYaw(y float32)
+	GetRoll() float32
+	SetRoll(r float32)
 	GetVertices() []raylib.Vector3
 	GetUVs() []raylib.Vector2
 	SetUVs(uvs []raylib.Vector2)
 	GetMaterials() *raylib.Material
-	GetModelMatrix() raylib.Matrix
 	SetTexture(mat *raylib.Material, tex raylib.Texture2D)
 	GetTexture(mat *raylib.Material) raylib.Texture2D
 	Prerender(cam *camera.Cam) []func()

@@ -1,6 +1,7 @@
 package app
 
 import (
+	"karalis/pkg/shader"
 	"karalis/pkg/stage"
 )
 
@@ -12,8 +13,9 @@ type App interface {
 	GetWidth() int32
 	GetHeight() int32
 	Running() bool
-	Start()
+	Start() error
 	Exit()
 	SetStage(nextStage stage.Stage)
 	GetStage() stage.Stage
+	GetShader() shader.Shader
 }

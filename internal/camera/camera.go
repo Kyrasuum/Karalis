@@ -16,7 +16,7 @@ type Cam struct {
 	roll  float32
 }
 
-func (s *Cam) Init() {
+func (s *Cam) Init() error {
 	s.camera = raylib.Camera3D{}
 	s.camera.Position = raylib.NewVector3(0.0, 0.0, 0.0)
 	s.camera.Target = raylib.NewVector3(0.0, 0.0, 0.0)
@@ -29,6 +29,8 @@ func (s *Cam) Init() {
 	s.pitch = raylib.Deg2rad * -30
 	s.yaw = raylib.Deg2rad * 45
 	s.UpdateCam()
+
+	return nil
 }
 
 func (s *Cam) OnResize(w int32, h int32) {
@@ -87,6 +89,15 @@ func (s *Cam) GetCameraMatrix() raylib.Matrix {
 
 func (s *Cam) GetWorldToScreen(pos raylib.Vector3) raylib.Vector2 {
 	return raylib.GetWorldToScreen(pos, s.camera)
+}
+
+func (s *Cam) GetViewMatrix() raylib.Matrix {
+	return raylib.GetCameraMatrix(s.camera)
+
+}
+
+func (s *Cam) GetProjMatrix(width int32, height int32) raylib.Matrix {
+	return raylib.GetCameraProjectionMatrix(&s.camera, float32(width)/float32(height))
 }
 
 func (s *Cam) GetDist() float32 {
