@@ -57,7 +57,8 @@ func Clamp(a, lower, upper float64) float64 {
 	return a
 }
 
-//Linearly interpolates between the start and end values.
+// Linearly interpolates between the start and end values.
+//
 //	inc is specified between the range 0 -1
 //	Lerp(0,2,0) ==> 0
 //	Lerp(0,2,0.5) ==> 1

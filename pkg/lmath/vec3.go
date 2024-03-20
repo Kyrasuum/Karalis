@@ -1,7 +1,7 @@
 package lmath
 
 import (
-	//"fmt"
+	// "fmt"
 	"math"
 )
 
@@ -206,10 +206,9 @@ func (this Vec3) Dumpf32() (float32, float32, float32) {
 	return float32(this.X), float32(this.Y), float32(this.Z)
 }
 
-
 // convert to Vec4. Forth component is set to zero.
-func (this Vec3) Vec4() Vec4{
-	return Vec4{this.X,this.Y,this.Z,0}
+func (this Vec3) Vec4() Vec4 {
+	return Vec4{this.X, this.Y, this.Z, 0}
 }
 
 //==============================================================================

@@ -1,7 +1,7 @@
 package lmath
 
 import (
-	// "fmt"
+	"fmt"
 	"math"
 	"testing"
 )
@@ -21,7 +21,7 @@ func TestEqualVec3(t *testing.T) {
 	for testIndex, test := range cases {
 		get := test.orig.Eq(test.other)
 		if get != test.want {
-			t.Errorf("TestEqualVec3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestEqualVec3 %d", testIndex))
 		}
 	}
 }
@@ -40,12 +40,12 @@ func TestAddVec3(t *testing.T) {
 	for testIndex, test := range cases {
 		get := test.orig.Add(test.other)
 		if get.Eq(test.want) == false {
-			t.Errorf("TestAddVec3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestAddVec3 %d", testIndex))
 		}
 
 		get2 := test.orig.AddIn(test.other)
 		if get2 != &test.orig || get2.Eq(test.want) == false {
-			t.Errorf("TestAddVec3 AddIn %d", testIndex)
+			t.Error(fmt.Sprintf("TestAddVec3 AddIn %d", testIndex))
 		}
 	}
 }
@@ -64,12 +64,12 @@ func TestSubVec3(t *testing.T) {
 	for testIndex, test := range cases {
 		get := test.orig.Sub(test.other)
 		if get.Eq(test.want) == false {
-			t.Errorf("TestSubVec3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestSubVec3 %d", testIndex))
 		}
 
 		get2 := test.orig.SubIn(test.other)
 		if get2 != &test.orig || get2.Eq(test.want) == false {
-			t.Errorf("TestSubVec3 SubIn %d", testIndex)
+			t.Error(fmt.Sprintf("TestSubVec3 SubIn %d", testIndex))
 		}
 	}
 }
@@ -90,12 +90,12 @@ func TestAddScalarVec3(t *testing.T) {
 	for testIndex, test := range cases {
 		get := test.orig.AddScalar(test.scale)
 		if get.Eq(test.want) == false {
-			t.Errorf("TestAddScalarVec3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestAddScalarVec3 %d", testIndex))
 		}
 
 		get2 := test.orig.AddInScalar(test.scale)
 		if get2 != &test.orig || get2.Eq(test.want) == false {
-			t.Errorf("TestAddInScalarVec3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestAddInScalarVec3 %d", testIndex))
 		}
 	}
 }
@@ -116,12 +116,12 @@ func TestSubScalarVec3(t *testing.T) {
 	for testIndex, test := range cases {
 		get := test.orig.SubScalar(test.scale)
 		if get.Eq(test.want) == false {
-			t.Errorf("TestSubScalarVec3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestSubScalarVec3 %d", testIndex))
 		}
 
 		get2 := test.orig.SubInScalar(test.scale)
 		if get2 != &test.orig || get2.Eq(test.want) == false {
-			t.Errorf("TestSubInScalarVec3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestSubInScalarVec3 %d", testIndex))
 		}
 	}
 }
@@ -144,12 +144,12 @@ func TestMultScalarVec3(t *testing.T) {
 	for testIndex, test := range cases {
 		get := test.orig.MultScalar(test.scale)
 		if get.Eq(test.want) == false {
-			t.Errorf("TestMultVec3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestMultVec3 %d", testIndex))
 		}
 
 		get2 := test.orig.MultInScalar(test.scale)
 		if get2 != &test.orig || get2.Eq(test.want) == false {
-			t.Errorf("TestMultVec3 MultIn %d", testIndex)
+			t.Error(fmt.Sprintf("TestMultVec3 MultIn %d", testIndex))
 		}
 	}
 }
@@ -171,12 +171,12 @@ func TestDivScalarVec3(t *testing.T) {
 	for testIndex, test := range cases {
 		get := test.orig.DivScalar(test.scale)
 		if get.Eq(test.want) == false {
-			t.Errorf("TestDivVec3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestDivVec3 %d", testIndex))
 		}
 
 		get2 := test.orig.DivInScalar(test.scale)
 		if get2 != &test.orig || get2.Eq(test.want) == false {
-			t.Errorf("TestDivInVec3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestDivInVec3 %d", testIndex))
 		}
 	}
 }
@@ -195,12 +195,12 @@ func TestOuterVec3(t *testing.T) {
 	for testIndex, test := range cases {
 		get := test.orig.Outer(test.other)
 		if get.Eq(test.want) == false {
-			t.Errorf("TestOuterVec3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestOuterVec3 %d", testIndex))
 		}
 
 		get2 := test.orig.OuterIn(test.other)
 		if get2 != &test.orig || get2.Eq(test.want) == false {
-			t.Errorf("TestOuterInVec3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestOuterInVec3 %d", testIndex))
 		}
 	}
 }
@@ -221,7 +221,7 @@ func TestDotVec3(t *testing.T) {
 	for testIndex, test := range cases {
 		get := test.orig.Dot(test.other)
 		if get != test.want {
-			t.Errorf("TestDotVec3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestDotVec3 %d", testIndex))
 		}
 	}
 }
@@ -241,12 +241,12 @@ func TestCrossVec3(t *testing.T) {
 	for testIndex, test := range cases {
 		get := test.orig.Cross(test.other)
 		if get.Eq(test.want) == false {
-			t.Errorf("TestCrossVec3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestCrossVec3 %d", testIndex))
 		}
 
 		get2 := test.orig.CrossIn(test.other)
 		if get2 != &test.orig || get2.Eq(test.want) == false {
-			t.Errorf("TestCrossVec3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestCrossVec3 %d", testIndex))
 		}
 	}
 }
@@ -265,7 +265,7 @@ func TestLengthVec3(t *testing.T) {
 	for testIndex, test := range cases {
 		get := test.orig.Length()
 		if get != test.want {
-			t.Errorf("TestLengthVec3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestLengthVec3 %d", testIndex))
 		}
 	}
 }
@@ -282,12 +282,12 @@ func TestNormalizeVec3(t *testing.T) {
 	for testIndex, test := range cases {
 		get := test.orig.Normalize()
 		if get.Eq(test.want) == false {
-			t.Errorf("TestNormalizeVec3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestNormalizeVec3 %d", testIndex))
 		}
 
 		get2 := test.orig.NormalizeIn()
 		if get2 != &test.orig || get2.Eq(test.want) == false {
-			t.Errorf("TestNormalizeInVec3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestNormalizeInVec3 %d", testIndex))
 		}
 	}
 }
@@ -306,7 +306,7 @@ func TestSetVec3(t *testing.T) {
 	for testIndex, test := range cases {
 		get := test.orig.Set(test.x, test.y, test.z)
 		if get.Eq(test.want) == false {
-			t.Errorf("TestSetVec3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestSetVec3 %d", testIndex))
 		}
 	}
 }
@@ -325,7 +325,7 @@ func TestProjVec3(t *testing.T) {
 	for testIndex, test := range cases {
 		get := test.from.Proj(test.on)
 		if get.Eq(test.want) == false {
-			t.Errorf("TestProjVec3 %d", testIndex, get)
+			t.Error(fmt.Sprintf("TestProjVec3 %+v %+v", testIndex, get))
 		}
 	}
 }

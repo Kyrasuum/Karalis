@@ -55,7 +55,8 @@ dev-deps: .deps
 .PHONY: test
 #: Perfrom unit tests for application
 test:
-	@go test
+	@gofmt -e -w .
+	@go test ./... -cover
 
 .PHONY: help
 #: Lists available commands

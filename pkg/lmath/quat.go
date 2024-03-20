@@ -256,8 +256,9 @@ func (this Quat) RotateVec3(v Vec3) (out Vec3) {
 
 // Create a quaternion from the specified euler angles.
 // Return this
-// 	Perform the operation in the order.
-// 	pitch(x) => yaw(y) => row(z)
+//
+//	Perform the operation in the order.
+//	pitch(x) => yaw(y) => row(z)
 func (this *Quat) FromEuler(pitch, yaw, roll float64) *Quat {
 	yawQ := Quat{math.Cos(yaw / 2), 0, math.Sin(yaw / 2), 0}
 	pitchQ := Quat{math.Cos(pitch / 2), math.Sin(pitch / 2), 0, 0}
