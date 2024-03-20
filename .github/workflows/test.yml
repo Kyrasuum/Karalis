@@ -44,20 +44,20 @@ jobs:
           # default false
           search_artifacts: true
 
-    - name: Setup
-      uses: Kyrasuum/RaylibSetup@v1
+      - name: Setup
+        uses: Kyrasuum/RaylibSetup@v1
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.22'
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22'
 
-    - uses: actions/checkout@v3
-      with:
-        ref: ${{ github.head_ref || github.ref_name }}
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
 
-    - name: Deps
-      run: make dev-deps
+      - name: Deps
+        run: make dev-deps
 
-    - name: Test
-      run: make test
+      - name: Test
+        run: make test
