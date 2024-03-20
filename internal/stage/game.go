@@ -5,6 +5,7 @@ import (
 	"karalis/internal/character"
 	"karalis/internal/object"
 	"karalis/internal/object/prim"
+	"karalis/internal/portal"
 	pub_object "karalis/pkg/object"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
@@ -15,7 +16,7 @@ var ()
 type Game struct {
 	curcell *cell.Cell
 	player  *character.Player
-	portal1 object.Portal
+	portal1 portal.Portal
 }
 
 // initialize game object
@@ -25,13 +26,6 @@ func (g *Game) Init() error {
 	if err != nil {
 		return err
 	}
-
-	sky := object.Skybox{}
-	err = sky.Init()
-	if err != nil {
-		return err
-	}
-	g.curcell.AddChild(&sky)
 
 	g.player = &character.Player{}
 	err = g.player.Init()
@@ -47,7 +41,7 @@ func (g *Game) Init() error {
 	}
 	g.curcell.AddChild(&grid2)
 
-	g.portal1 = object.Portal{}
+	g.portal1 = portal.Portal{}
 	err = g.portal1.Init(nil, nil, nil, nil)
 	if err != nil {
 		return err
@@ -67,6 +61,13 @@ func (g *Game) Init() error {
 	}
 	box1.SetPos(raylib.NewVector3(0, 0, -3))
 	g.portal1.AddChild(box1)
+
+	ter := object.Terrain{}
+	err = ter.Init()
+	if err != nil {
+		return err
+	}
+	g.curcell.AddChild(&ter)
 
 	return nil
 }

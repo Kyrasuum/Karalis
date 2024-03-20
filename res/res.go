@@ -83,6 +83,7 @@ func LoadDir(cwd string) error {
 			LoadDir(path)
 		} else {
 			data, err := resfs.ReadFile(path)
+			fmt.Printf("%+v: %+v\n", path, len(data))
 			resources[path] = resource{data, err}
 		}
 	}

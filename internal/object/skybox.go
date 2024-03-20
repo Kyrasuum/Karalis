@@ -1,13 +1,18 @@
 package object
 
 import (
+	"bytes"
 	"image"
 	"image/color"
+	"image/jpeg"
+	"image/png"
+	"strings"
 
 	"karalis/internal/camera"
 	"karalis/internal/shader"
 	pub_object "karalis/pkg/object"
 	pub_shader "karalis/pkg/shader"
+	"karalis/res"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
@@ -76,7 +81,41 @@ func (s *Skybox) LoadImage(i interface{}) {
 	var img *raylib.Image
 	switch data := i.(type) {
 	case string:
-		img = raylib.LoadImage(data)
+		tex, err := res.GetRes(data)
+		if err != nil {
+			s.LoadImage(nil)
+			return
+		}
+		var img image.Image
+
+		pos := strings.Index(data, ".") + 1
+		ext := data[pos:]
+		switch ext {
+		case "png":
+			img, err = png.Decode(bytes.NewReader(tex.([]byte)))
+			if err != nil {
+				s.LoadImage(nil)
+				return
+			}
+		case "jpeg":
+			img, err = jpeg.Decode(bytes.NewReader(tex.([]byte)))
+			if err != nil {
+				s.LoadImage(nil)
+				return
+			}
+		default:
+			img, _, err = image.Decode(bytes.NewReader(tex.([]byte)))
+			if err != nil {
+				s.LoadImage(nil)
+				return
+			}
+		}
+		if err != nil {
+			s.LoadImage(nil)
+			return
+		}
+		s.LoadImage(img)
+		return
 	case image.Image:
 		img = raylib.NewImageFromImage(data)
 	case raylib.Color:
