@@ -1,6 +1,9 @@
 package object
 
 import (
+	"image"
+	"image/color"
+
 	"karalis/internal/camera"
 	"karalis/internal/shader"
 	pub_object "karalis/pkg/object"
@@ -18,14 +21,7 @@ type Skybox struct {
 }
 
 func (s *Skybox) Init() error {
-	col := raylib.White
-	col.R = 255
-	col.G = 0
-	col.B = 0
-
-	img := raylib.GenImageColor(1536, 256, col)
-	tex := raylib.LoadTextureCubemap(img, raylib.CubemapLayoutAutoDetect)
-	s.tex = &tex
+	s.LoadImage(nil)
 
 	s.shd = &shader.Shader{}
 	s.shd.Init("skybox")
@@ -74,6 +70,41 @@ func (s *Skybox) Init() error {
 	}
 
 	return nil
+}
+
+func (s *Skybox) LoadImage(i interface{}) {
+	var img *raylib.Image
+	switch data := i.(type) {
+	case string:
+		img = raylib.LoadImage(data)
+	case image.Image:
+		img = raylib.NewImageFromImage(data)
+	case raylib.Color:
+		img = raylib.GenImageColor(1536, 256, data)
+	default:
+		width := 1536
+		height := 256
+		colors := []color.RGBA{
+			color.RGBA{uint8(255), uint8(0), uint8(0), uint8(255)},
+			color.RGBA{uint8(0), uint8(255), uint8(0), uint8(255)},
+			color.RGBA{uint8(0), uint8(0), uint8(255), uint8(255)},
+			color.RGBA{uint8(255), uint8(255), uint8(0), uint8(255)},
+			color.RGBA{uint8(0), uint8(255), uint8(255), uint8(255)},
+			color.RGBA{uint8(255), uint8(0), uint8(255), uint8(255)},
+		}
+		cube := image.NewRGBA(image.Rect(0, 0, width, height))
+		for i := range 6 {
+			for j := range width / 6 {
+				for k := range height {
+					cube.Set(i*width/6+j, k, colors[i])
+				}
+			}
+		}
+		img = raylib.NewImageFromImage(cube)
+	}
+
+	tex := raylib.LoadTextureCubemap(img, raylib.CubemapLayoutAutoDetect)
+	s.tex = &tex
 }
 
 func (s *Skybox) GetModelMatrix() raylib.Matrix {
