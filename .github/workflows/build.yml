@@ -5,13 +5,13 @@ name: 'Build'
 on:
   workflow_call:
   workflow_dispatch:
-  push:
-    branches: [ "main", "dev" ]
-  pull_request:
-    branches: [ "main", "dev" ]
+  workflow_run:
+    workflows: ["Build"]
+    branches: ["master", "main"]
+    types:
+      - completed
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     strategy:

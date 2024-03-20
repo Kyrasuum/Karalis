@@ -1,17 +1,15 @@
-name: Run Tests
+name: "Run Tests"
 
 on:
   workflow_call:
   workflow_dispatch:
-  workflow_run:
-    workflows: ["Build"]
-    branches: ["master", "main"]
-    types:
-      - completed
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main", "dev" ]
 
 jobs:
   test:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read # for actions/checkout to fetch code
