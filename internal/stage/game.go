@@ -3,7 +3,7 @@ package stage
 import (
 	"karalis/internal/cell"
 	"karalis/internal/character"
-	"karalis/internal/object"
+	// "karalis/internal/object"
 	"karalis/internal/object/prim"
 	"karalis/internal/portal"
 	pub_object "karalis/pkg/object"
@@ -57,12 +57,6 @@ func (g *Game) Init() error {
 	}
 	box1.SetPos(raylib.NewVector3(0, 0, -2))
 	g.portal1.AddChild(box1)
-
-	ter, err := object.NewTerrain("tex/map/heightmap.png", "tex/map/heightmap.png")
-	if err != nil {
-		return err
-	}
-	g.curcell.AddChild(ter)
 
 	return nil
 }

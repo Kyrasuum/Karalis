@@ -6,6 +6,51 @@
 #include "string.h"
 #include "errno.h"
 #include "assert.h"
+#include "stdio.h"
+
+char *sgets(char *str, int n, char* src) {
+  int i;
+  for (i = 0; i+1 < n; i++) {
+    if (src[i] == '\0' || src[i] == '\n' || src[i] == EOF) {
+      break;
+    }
+  }
+  memset(str, '\0', n);
+  memcpy(str, src, i+1);
+
+  if (str[0] == '\0' || str[0] == EOF) {
+    return NULL;
+  }
+  return str;
+}
+
+char *dynamic_sgets(char **buf, unsigned int *size, char **src) {
+  char *offset;
+  char *ret;
+  unsigned int old_size;
+
+  if (!(ret = sgets(*buf, (int)*size, *src))) {
+    return ret;
+  }
+
+  if (NULL != strchr(*buf, '\n')) {
+    *src += strnlen(ret, *size);
+    return ret;
+  }
+
+  do {
+    old_size = *size;
+    *size *= 2;
+    *buf = (char*)TINYOBJ_REALLOC(*buf, *size);
+    offset = &((*buf)[old_size - 1]);
+
+    ret = sgets(offset, (int)(old_size + 1), *src);
+  } while(ret && (NULL == strchr(*buf, '\n')));
+  if (ret) {
+    *src += strnlen(ret, *size);
+  }
+  return ret;
+}
 
 int tinyobj_parse_and_index_mtl_file2(tinyobj_material_t **materials_out,
                                             unsigned int *num_materials_out,
@@ -15,7 +60,6 @@ int tinyobj_parse_and_index_mtl_file2(tinyobj_material_t **materials_out,
   tinyobj_material_t material;
   unsigned int buffer_size = 128;
   char *linebuf;
-  FILE *fp;
   unsigned int num_materials = 0;
   tinyobj_material_t *materials = NULL;
   int has_previous_material = 0;
@@ -32,17 +76,14 @@ int tinyobj_parse_and_index_mtl_file2(tinyobj_material_t **materials_out,
   (*materials_out) = NULL;
   (*num_materials_out) = 0;
 
-  fp = ReadData(filename, workingDir);
-  if (!fp) {
-    fprintf(stderr, "TINYOBJ: Error reading file '%s': %s (%d)\n", filename, strerror(errno), errno);
-    return TINYOBJ_ERROR_FILE_OPERATION;
-  }
+  char *content = ReadData(filename, workingDir);
+  char *reader = content;
 
   /* Create a default material */
   initMaterial(&material);
 
   linebuf = (char*)TINYOBJ_MALLOC(buffer_size);
-  while (NULL != dynamic_fgets(&linebuf, &buffer_size, fp)) {
+  while (NULL != dynamic_sgets(&linebuf, &buffer_size, &reader)) {
     const char *token = linebuf;
 
     line_end = token + strlen(token);
@@ -234,8 +275,6 @@ int tinyobj_parse_and_index_mtl_file2(tinyobj_material_t **materials_out,
     /* @todo { unknown parameter } */
   }
 
-  fclose(fp);
-
   if (material.name) {
     /* Flush last material element */
     materials = tinyobj_material_add(materials, num_materials, &material);
@@ -247,6 +286,9 @@ int tinyobj_parse_and_index_mtl_file2(tinyobj_material_t **materials_out,
 
   if (linebuf) {
     TINYOBJ_FREE(linebuf);
+  }
+  if (content) {
+    TINYOBJ_FREE(content);
   }
 
   return TINYOBJ_SUCCESS;

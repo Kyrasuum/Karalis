@@ -2,7 +2,6 @@
 #include "stddef.h"
 #include "string.h"
 #include "stdio.h"
-#include "unistd.h"
 #include "stdlib.h"
 #include "raymath.h"
 
@@ -11,7 +10,7 @@
 #define TINYOBJ_REALLOC RL_REALLOC
 #define TINYOBJ_FREE RL_FREE
 
-FILE* ReadData(const char* file, const char* dir) {
+char* ReadData(const char* file, const char* dir) {
     size_t dir_len = (unsigned int)strlen(dir);
     size_t fnm_len = (unsigned int)strlen(file);
     char* cfile = (char*)RL_CALLOC(fnm_len, sizeof(char));
@@ -26,34 +25,7 @@ FILE* ReadData(const char* file, const char* dir) {
     strncpy(cfile, file, fnm_len);
     strncpy(cdir, dir, dir_len);
 
-    char* data = GetData(cfile, cdir);
-    free(cfile);
-    free(cdir);
-    if (data == NULL) {
-        perror("bad read");
-        return NULL;
-    }
-
-    int pfds[2];
-    if (pipe(pfds) == -1) {
-        perror("pipe");
-        return NULL;
-    }
-    size_t ret = write(pfds[1], data, strlen(data));
-    close(pfds[1]);
-    free(data);
-    if (ret < strlen(data)) {
-        close(pfds[0]);
-        return NULL;
-    }
-
-    FILE* fd = fdopen(pfds[0], "rt");
-    if (fd == NULL) {
-        perror("fdopen");
-        close(pfds[0]);
-        return NULL;
-    }
-    return fd;
+    return GetData(cfile, cdir);
 }
 
 Model* LoadOBJ(char *fileName, char *fileText) {

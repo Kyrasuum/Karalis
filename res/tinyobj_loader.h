@@ -25,7 +25,7 @@
 #define TINOBJ_LOADER_C_H_
 
 #include "stdio.h"
-extern FILE* ReadData(const char* file, const char* dir);
+extern char* ReadData(const char* file, const char* dir);
 
 /* @todo { Remove stddef dependency. unsigned int? } ---> RAY: DONE. */
 //#include <stddef.h>
