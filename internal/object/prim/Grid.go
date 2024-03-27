@@ -1,6 +1,8 @@
 package prim
 
 import (
+	"image/color"
+
 	"karalis/internal/camera"
 	"karalis/pkg/app"
 	pub_object "karalis/pkg/object"
@@ -15,6 +17,13 @@ type Grid struct {
 	size    int32
 }
 
+func NewGrid() (g *Grid, err error) {
+	g = &Grid{}
+	err = g.Init()
+
+	return g, err
+}
+
 func (g *Grid) Init() error {
 	g.spacing = 1
 	g.size = 10
@@ -24,6 +33,23 @@ func (g *Grid) Init() error {
 
 func (c *Grid) GetModelMatrix() raylib.Matrix {
 	return raylib.MatrixIdentity()
+}
+
+func (g *Grid) SetColor(col color.Color) {
+}
+
+func (g *Grid) GetColor() color.Color {
+	return raylib.White
+}
+
+func (g *Grid) SetScale(sc raylib.Vector3) {
+}
+
+func (g *Grid) GetScale() raylib.Vector3 {
+	return raylib.NewVector3(1, 1, 1)
+}
+
+func (g *Grid) SetPos(p raylib.Vector3) {
 }
 
 func (g *Grid) GetPos() raylib.Vector3 {

@@ -16,6 +16,13 @@ type Cam struct {
 	roll  float32
 }
 
+func NewCam() (s *Cam, err error) {
+	s = &Cam{}
+	err = s.Init()
+
+	return s, err
+}
+
 func (s *Cam) Init() error {
 	s.camera = raylib.Camera3D{}
 	s.camera.Position = raylib.NewVector3(0.0, 0.0, 0.0)

@@ -25,6 +25,17 @@ type Skybox struct {
 	verts [][]raylib.Vector3
 }
 
+// constructor for skybox
+func NewSkybox(i interface{}) (s *Skybox, err error) {
+	s = &Skybox{}
+	err = s.Init()
+	if err == nil {
+		s.LoadImage(i)
+	}
+
+	return s, err
+}
+
 func (s *Skybox) Init() error {
 	s.LoadImage(nil)
 
@@ -150,6 +161,23 @@ func (s *Skybox) GetModelMatrix() raylib.Matrix {
 	return raylib.MatrixIdentity()
 }
 
+func (s *Skybox) SetColor(col color.Color) {
+}
+
+func (s *Skybox) GetColor() color.Color {
+	return raylib.White
+}
+
+func (s *Skybox) GetScale() raylib.Vector3 {
+	return raylib.Vector3{1, 1, 1}
+}
+
+func (s *Skybox) SetScale(sc raylib.Vector3) {
+}
+
+func (s *Skybox) SetPos(pos raylib.Vector3) {
+}
+
 func (s *Skybox) GetPos() raylib.Vector3 {
 	return raylib.Vector3{0, 0, 0}
 }
@@ -253,7 +281,4 @@ func (s *Skybox) AddChild(obj pub_object.Object) {
 }
 
 func (s *Skybox) RemChild(obj pub_object.Object) {
-}
-
-func (s *Skybox) SetPos(pos raylib.Vector3) {
 }

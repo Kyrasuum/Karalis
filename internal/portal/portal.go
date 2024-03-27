@@ -28,6 +28,14 @@ type Portal struct {
 	visible   bool
 }
 
+// Constuctor
+func NewPortal(scene *cell.Cell, exit *Portal, cam *camera.Cam, obj pub_object.Object) (p *Portal, err error) {
+	p = &Portal{}
+	err = p.Init(scene, exit, cam, obj)
+
+	return p, err
+}
+
 // initialize portal object
 func (p *Portal) Init(scene *cell.Cell, exit *Portal, cam *camera.Cam, obj pub_object.Object) error {
 	if scene != nil {
@@ -101,6 +109,26 @@ func (p *Portal) GetVertices() []raylib.Vector3 {
 	} else {
 		return []raylib.Vector3{}
 	}
+}
+
+func (p *Portal) SetColor(col color.Color) {
+	p.obj.SetColor(col)
+}
+
+func (p *Portal) GetColor() color.Color {
+	return p.obj.GetColor()
+}
+
+func (p *Portal) SetScale(sc raylib.Vector3) {
+	p.obj.SetScale(sc)
+}
+
+func (p *Portal) GetScale() raylib.Vector3 {
+	return p.obj.GetScale()
+}
+
+func (p *Portal) SetPos(pos raylib.Vector3) {
+	p.obj.SetPos(pos)
 }
 
 func (p *Portal) GetPos() raylib.Vector3 {

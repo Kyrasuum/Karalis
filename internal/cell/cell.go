@@ -15,12 +15,11 @@ type Cell struct {
 func (c *Cell) Init() error {
 	c.childs = []pub_object.Object{}
 
-	sky := object.Skybox{}
-	err := sky.Init()
+	sky, err := object.NewSkybox(nil)
 	if err != nil {
 		return err
 	}
-	c.AddChild(&sky)
+	c.AddChild(sky)
 
 	return nil
 }

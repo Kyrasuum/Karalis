@@ -1,15 +1,32 @@
 package object
 
 import (
+	"image/color"
+	"unsafe"
+
 	"karalis/internal/camera"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
+/*
+#include "raylib.h"
+
+void UpdateModelUVs(Model* mdl) {
+	UpdateMeshBuffer(mdl->meshes[0], 1, &(mdl->meshes->texcoords[0]), mdl->meshes->vertexCount*2*sizeof(float), 0);
+}
+*/
+import "C"
+
 var ()
 
 type Object interface {
 	GetModelMatrix() raylib.Matrix
+	SetColor(c color.Color)
+	GetColor() color.Color
+	SetScale(s raylib.Vector3)
+	GetScale() raylib.Vector3
+	SetPos(p raylib.Vector3)
 	GetPos() raylib.Vector3
 	GetPitch() float32
 	SetPitch(p float32)
@@ -31,4 +48,8 @@ type Object interface {
 	OnRemove()
 	AddChild(obj Object)
 	RemChild(obj Object)
+}
+
+func UpdateModelUVs(mdl *raylib.Model) {
+	C.UpdateModelUVs((*C.Model)(unsafe.Pointer(mdl)))
 }

@@ -16,7 +16,7 @@ var ()
 type Game struct {
 	curcell *cell.Cell
 	player  *character.Player
-	portal1 portal.Portal
+	portal1 *portal.Portal
 }
 
 // initialize game object
@@ -27,47 +27,42 @@ func (g *Game) Init() error {
 		return err
 	}
 
-	g.player = &character.Player{}
-	err = g.player.Init()
+	g.player, err = character.NewPlayer()
 	if err != nil {
 		return err
 	}
 	g.curcell.AddChild(g.player)
 
-	grid2 := prim.Grid{}
-	err = grid2.Init()
+	grid2, err := prim.NewGrid()
 	if err != nil {
 		return err
 	}
-	g.curcell.AddChild(&grid2)
+	g.curcell.AddChild(grid2)
 
-	g.portal1 = portal.Portal{}
-	err = g.portal1.Init(nil, nil, nil, nil)
+	g.portal1, err = portal.NewPortal(nil, nil, nil, nil)
 	if err != nil {
 		return err
 	}
-	g.curcell.AddChild(&g.portal1)
+	g.curcell.AddChild(g.portal1)
 
-	grid1 := prim.Grid{}
-	err = grid1.Init()
+	grid1, err := prim.NewGrid()
 	if err != nil {
 		return err
 	}
-	g.portal1.AddChild(&grid1)
+	g.portal1.AddChild(grid1)
 
 	box1, err := prim.NewCube()
 	if err != nil {
 		return err
 	}
-	box1.SetPos(raylib.NewVector3(0, 0, -3))
+	box1.SetPos(raylib.NewVector3(0, 0, -2))
 	g.portal1.AddChild(box1)
 
-	ter := object.Terrain{}
-	err = ter.Init()
+	ter, err := object.NewTerrain("tex/map/heightmap.png", "tex/map/heightmap.png")
 	if err != nil {
 		return err
 	}
-	g.curcell.AddChild(&ter)
+	g.curcell.AddChild(ter)
 
 	return nil
 }
