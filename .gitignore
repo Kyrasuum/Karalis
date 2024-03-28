@@ -7,6 +7,8 @@
 *.dll
 *.so
 *.dylib
+*.deps
+*.dev-deps
 bin/*
 vendor/*
 
