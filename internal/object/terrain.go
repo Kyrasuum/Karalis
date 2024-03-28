@@ -98,6 +98,9 @@ func (t *Terrain) LoadImage(i interface{}) {
 	case raylib.Color:
 		img = raylib.GenImageColor(1536, 256, data)
 	default:
+		if t.tex != nil {
+			return
+		}
 		width := 256
 		height := 256
 		color := color.RGBA{uint8(255), uint8(255), uint8(255), uint8(255)}
@@ -163,6 +166,9 @@ func (t *Terrain) LoadMap(m string) {
 	mesh := raylib.GenMeshHeightmap(*img, raylib.NewVector3(1, 1, 1))
 	mdl := raylib.LoadModelFromMesh(mesh)
 	t.mdl = &mdl
+	if t.tex == nil {
+		t.LoadImage(nil)
+	}
 	raylib.SetMaterialTexture(t.mdl.Materials, raylib.MapDiffuse, *t.tex)
 }
 
