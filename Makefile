@@ -84,10 +84,17 @@ deps:
 .dev-deps:
 	$(MAKE) --no-print-directory dev-deps
 
+# dev-deps for linux
+ifeq ($(DISTRO),linux)
+dev-deps: .dev-deps-linux
+.PHONY: .dev-deps-linux
+.dev-deps-linux:
+	@sudo apt-get install -y libgl1-mesa-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev libwayland-dev libxkbcommon-dev
+	@sudo apt-get install -y libgl-dev libx11-dev xorg-dev libxxf86vm-dev
+endif
+
 #: Install dependencies for compiling targets in this makefile
 dev-deps: .deps
-	@if [ "linux" = "$(DISTRO)" ]; then sudo apt-get install -y libgl1-mesa-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev libwayland-dev libxkbcommon-dev; fi;
-	@if [ "linux" = "$(DISTRO)" ]; then sudo apt-get install -y libgl-dev libx11-dev xorg-dev libxxf86vm-dev; fi;
 	@go mod tidy
 	@go get -v -u github.com/gen2brain/raylib-go/raylib
 	@touch .dev-deps
