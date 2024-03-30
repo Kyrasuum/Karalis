@@ -54,13 +54,12 @@ run: build .deps
 .PHONY: build
 #: Performs a clean run of the project
 build: .dev-deps $(PRI_DIR)** $(PUB_DIR)**
-	@go \
-		CC="zig cc -target $(CFLAGS)" \
-		CXX="zig c++ -target $(CFLAGS)" \
-		CGO_ENABLED=1 \
-		GOOS=$(DISTRO) \
-		GOARCH=$(ARCH) \
-		build -o $(BIN_DIR)$(EXEC) $(LDFLAGS) cmd/main.go
+	@CC="zig cc -target $(CFLAGS)" \
+	CXX="zig c++ -target $(CFLAGS)" \
+	CGO_ENABLED=1 \
+	GOOS=$(DISTRO) \
+	GOARCH=$(ARCH) \
+	go build -o $(BIN_DIR)$(EXEC) $(LDFLAGS) cmd/main.go
 
 build-linux-amd64:
 	@DISTRO=linux \
