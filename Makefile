@@ -9,6 +9,8 @@ ZIG ?= false
 #Get OS and configure based on OS
 ifeq ($(OS),Windows_NT)
     DISTRO ?= windows
+    CLAGS ?= -I/usr/include -L/usr/library
+    CPPFLAGS ?= -I/usr/include -L/usr/library
     ifeq ($(PROCESSOR_ARCHITEW6432),AMD64)
         ARCH ?= amd64
     else
@@ -53,13 +55,15 @@ build: .dev-deps $(PRI_DIR)** $(PUB_DIR)**
 	@CGO_ENABLED=1 \
 	GOOS=$(DISTRO) \
 	GOARCH=$(ARCH) \
+	CGO_CFLAGS=$(CFLAGS) \
+	CGO_CPPFLAGS=$(CPPFLAGS) \
 	go build -o $(BIN_DIR)$(EXEC) $(LDFLAGS) cmd/main.go
 
 build-wasm:
 	@DISTRO=js \
 	ARCH=wasm \
 	$(MAKE) --no-print-directory build
-build-mac:
+build-macos:
 	@DISTRO=mac \
 	ARCH=amd64 \
 	$(MAKE) --no-print-directory build
