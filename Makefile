@@ -7,41 +7,42 @@ EXEC = karalis
 
 #Get OS and configure based on OS
 ifeq ($(OS),Windows_NT)
+    DISTRO ?= windows
+    LDFLAGS ?= -ldflags='-H=windowsgui'
     ifeq ($(PROCESSOR_ARCHITEW6432),AMD64)
-        CFLAGS += -D AMD64
-   		DISTRO = windows64
-   	else
-	    ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
-	        CFLAGS += -D AMD64
-			DISTRO = windows64
-	    endif
-	    ifeq ($(PROCESSOR_ARCHITECTURE),x86)
-	        CFLAGS += -D IA32 WIN32
-			DISTRO = windows32
-	    endif
+        ARCH ?= amd64
+	CFLAGS ?= x86_64-windows-gnu
+    else
+	ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
+	    ARCH ?= amd64
+	    CFLAGS ?= x86_64-windows-gnu
+	endif
+	ifeq ($(PROCESSOR_ARCHITECTURE),x86)
+	    ARCH ?= ia32
+	endif
     endif
 else
     UNAME_S := $(shell uname -s)
     ifeq ($(UNAME_S),Linux)
-        CFLAGS += -D LINUX
-   		DISTRO = linux
+   	DISTRO ?= linux
     endif
     ifeq ($(UNAME_S),Darwin)
-        CFLAGS += -D OSX
-   		DISTRO = mac
+   	DISTRO ?= mac
     endif
     ifeq ($(UNAME),Solaris)
-   		DISTRO = solaris
+   	DISTRO ?= solaris
     endif
     UNAME_P := $(shell uname -p)
     ifeq ($(UNAME_P),x86_64)
-        CFLAGS += -D AMD64
+        ARCH ?= amd64
+	CFLAGS ?= x86_64-linux-gnu -isystem /usr/include -L/usr/lib/x86_64-linux-gnu
     endif
     ifneq ($(filter %86,$(UNAME_P)),)
-        CFLAGS += -D IA32
+        ARCH ?= ia32
     endif
     ifneq ($(filter arm%,$(UNAME_P)),)
-        CFLAGS += -D ARM
+        ARCH ?= arm64
+	CFLAGS ?= aarch64-linux-gnu -isystem /usr/include -L/usr/lib/aarch64-linux-gnu
     endif
 endif
 
@@ -53,7 +54,13 @@ run: build .deps
 .PHONY: build
 #: Performs a clean run of the project
 build: .dev-deps $(PRI_DIR)** $(PUB_DIR)**
-	@go build -o $(BIN_DIR)$(EXEC) cmd/main.go
+	@go \
+		CC="zig cc -target $(CFLAGS)" \
+		CXX="zig c++ -target $(CFLAGS)" \
+		CGO_ENABLED=1 \
+		GOOS=$(DISTRO) \
+		GOARCH=$(ARCH) \
+		build -o $(BIN_DIR)$(EXEC) $(LDFLAGS) cmd/main.go
 
 .PHONY: release
 #: packages release target
@@ -86,11 +93,21 @@ deps:
 
 # dev-deps for linux
 ifeq ($(DISTRO),linux)
-dev-deps: .dev-deps-linux
-.PHONY: .dev-deps-linux
-.dev-deps-linux:
+ifeq ($(ARCH),amd64)
+dev-deps: .dev-deps-linux-amd64
+.PHONY: .dev-deps-linux-amd64
+.dev-deps-linux-amd64:
 	@sudo apt-get install -y libgl1-mesa-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev libwayland-dev libxkbcommon-dev
 	@sudo apt-get install -y libgl-dev libx11-dev xorg-dev libxxf86vm-dev
+endif
+ifeq ($(ARCH),arm64)
+dev-deps: .dev-deps-linux-arm64
+.PHONY: .dev-deps-linux-arm64
+.dev-deps-linux-arm64:
+	@sudo dpkg --add-architecture arm64
+	@sudo apt-get install -y libgl1-mesa-dev:arm64 libxi-dev:arm64 libxcursor-dev:arm64 libxrandr-dev:arm64 libxinerama-dev:arm64 libwayland-dev:arm64 libxkbcommon-dev:arm64
+	@sudo apt-get install -y libgl-dev:arm64 libx11-dev:arm64 xorg-dev:arm64 libxxf86vm-dev:arm64
+endif
 endif
 
 #: Install dependencies for compiling targets in this makefile
