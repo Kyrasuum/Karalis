@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
   workflow_run:
     workflows: ["Test"]
-    branches: ["master", "main"]
+    branches: ["master", "main", "dev"]
     types:
       - completed
 
