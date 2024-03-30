@@ -53,6 +53,7 @@ run: build .deps
 
 .PHONY: build
 #: Performs a clean run of the project
+ifneq ($(DISTRO),mac)
 build: .dev-deps $(PRI_DIR)** $(PUB_DIR)**
 	@CC="zig cc -target $(CFLAGS)" \
 	CXX="zig c++ -target $(CFLAGS)" \
@@ -60,7 +61,13 @@ build: .dev-deps $(PRI_DIR)** $(PUB_DIR)**
 	GOOS=$(DISTRO) \
 	GOARCH=$(ARCH) \
 	go build -o $(BIN_DIR)$(EXEC) $(LDFLAGS) cmd/main.go
+else
+build: .dev-deps $(PRI_DIR)** $(PUB_DIR)**
+	@go build -o $(BIN_DIR)$(EXEC) cmd/main.go
+endif
 
+build-mac-:
+	@DISTRO=mac $(MAKE) --no-print-directory build
 build-linux-amd64:
 	@DISTRO=linux \
 	ARCH=amd64 \
