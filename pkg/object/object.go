@@ -10,6 +10,8 @@ import (
 )
 
 /*
+#cgo windows CFLAGS: -I../../raylib/src
+#cgo windows LDFLAGS: -L../../raylib/src
 #include "raylib.h"
 
 void UpdateModelUVs(Model* mdl) {

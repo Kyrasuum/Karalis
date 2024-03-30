@@ -9,6 +9,7 @@
 *.dylib
 *.deps
 *.dev-deps
+raylib
 bin/*
 vendor/*
 

@@ -4,42 +4,40 @@ PUB_DIR = ./pkg/
 BIN_DIR = ./bin/
 RELEASE_DIR = ./release/
 EXEC = karalis
-ZIG ?= false
 
 #Get OS and configure based on OS
 ifeq ($(OS),Windows_NT)
-    DISTRO ?= windows
-    CFLAGS ?= -I./raylib/src -L./raylib/src
+    DISTRO ?=windows
     ifeq ($(PROCESSOR_ARCHITEW6432),AMD64)
-        ARCH ?= amd64
+        ARCH ?=amd64
     else
 		ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
-		    ARCH ?= amd64
+		    ARCH ?=amd64
 		endif
 		ifeq ($(PROCESSOR_ARCHITECTURE),x86)
-		    ARCH ?= ia32
+		    ARCH ?=ia32
 		endif
     endif
 else
     UNAME_S := $(shell uname -s)
     ifeq ($(UNAME_S),Linux)
-   		DISTRO ?= linux
+   		DISTRO ?=linux
     endif
     ifeq ($(UNAME_S),Darwin)
-   		DISTRO ?= darwin
+   		DISTRO ?=darwin
     endif
     ifeq ($(UNAME),Solaris)
-	   	DISTRO ?= solaris
+	   	DISTRO ?=solaris
     endif
     UNAME_P := $(shell uname -p)
     ifeq ($(UNAME_P),x86_64)
-        ARCH ?= amd64
+        ARCH ?=amd64
     endif
     ifneq ($(filter %86,$(UNAME_P)),)
-        ARCH ?= ia32
+        ARCH ?=ia32
     endif
     ifneq ($(filter arm%,$(UNAME_P)),)
-        ARCH ?= arm64
+        ARCH ?=arm64
     endif
 endif
 
@@ -51,12 +49,19 @@ run: build .deps
 .PHONY: build
 #: Performs a clean run of the project
 build: .dev-deps $(PRI_DIR)** $(PUB_DIR)**
+ifeq ($(DISTRO),windows)
+	@go env -w CGO_ENABLED=1
+	@go env -w GOOS='$(DISTRO)'
+	@go env -w GOARCH='$(ARCH)'
+	@go build -o $(BIN_DIR)$(EXEC).exe cmd/main.go
+else
 	@CGO_ENABLED=1 \
 	GOOS=$(DISTRO) \
 	GOARCH=$(ARCH) \
 	GO_CFLAGS=$(CFLAGS) \
 	GO_CPPFLAGS=$(CFLAGS) \
 	go build -o $(BIN_DIR)$(EXEC) cmd/main.go
+endif
 
 build-wasm:
 	@DISTRO=js \
