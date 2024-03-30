@@ -11,11 +11,11 @@ ifeq ($(OS),Windows_NT)
     LDFLAGS ?= -ldflags='-H=windowsgui'
     ifeq ($(PROCESSOR_ARCHITEW6432),AMD64)
         ARCH ?= amd64
-	CFLAGS ?= x86_64-windows-gnu
+	CFLAGS ?= x86_64-windows-gnu -L/usr/local/lib/raysan5
     else
 	ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
 	    ARCH ?= amd64
-	    CFLAGS ?= x86_64-windows-gnu
+	    CFLAGS ?= x86_64-windows-gnu -L/usr/local/lib/raysan5
 	endif
 	ifeq ($(PROCESSOR_ARCHITECTURE),x86)
 	    ARCH ?= ia32
@@ -35,14 +35,14 @@ else
     UNAME_P := $(shell uname -p)
     ifeq ($(UNAME_P),x86_64)
         ARCH ?= amd64
-	CFLAGS ?= x86_64-linux-gnu -isystem /usr/include -L/usr/lib/x86_64-linux-gnu
+	CFLAGS ?= x86_64-linux-gnu -isystem /usr/include -I/usr/include/GL -L/usr/lib/x86_64-linux-gnu -L/usr/local/lib/raysan5
     endif
     ifneq ($(filter %86,$(UNAME_P)),)
         ARCH ?= ia32
     endif
     ifneq ($(filter arm%,$(UNAME_P)),)
         ARCH ?= arm64
-	CFLAGS ?= aarch64-linux-gnu -isystem /usr/include -L/usr/lib/aarch64-linux-gnu
+	CFLAGS ?= aarch64-linux-gnu -isystem /usr/include -I/usr/include/GL -L/usr/lib/aarch64-linux-gnu -L/usr/local/lib/raysan5
     endif
 endif
 
