@@ -62,6 +62,24 @@ build: .dev-deps $(PRI_DIR)** $(PUB_DIR)**
 		GOARCH=$(ARCH) \
 		build -o $(BIN_DIR)$(EXEC) $(LDFLAGS) cmd/main.go
 
+build-linux-amd64:
+	@DISTRO=linux \
+	ARCH=amd64 \
+	CFLAGS="x86_64-linux-gnu -isystem /usr/include -L/usr/lib/x86_64-linux-gnu" \
+	$(MAKE) --no-print-directory build
+build-linux-arm64:
+	@DISTRO=linux \
+	ARCH=arm64 \
+	CFLAGS="aarch64-linux-gnu -isystem /usr/include -L/usr/lib/aarch64-linux-gnu" \
+	$(MAKE) --no-print-directory build
+build-windows-amd64:
+	@DISTRO=windows \
+	ARCH=amd64 \
+	CFLAGS="x86_64-windows-gnu" \
+	LDFLAGS="-ldflags='-H=windowsgui'" \
+	$(MAKE) --no-print-directory build
+
+
 .PHONY: release
 #: packages release target
 release: build .deps
@@ -80,7 +98,7 @@ clean-all:
 # deps include target
 .PHONY: deps
 .deps:
-	$(MAKE) --no-print-directory deps
+	@$(MAKE) --no-print-directory deps
 
 #: Install dependencies for running this project
 deps:
@@ -89,7 +107,7 @@ deps:
 # dev-deps include target
 .PHONY: dev-deps
 .dev-deps:
-	$(MAKE) --no-print-directory dev-deps
+	@$(MAKE) --no-print-directory dev-deps
 
 # dev-deps for linux
 ifeq ($(DISTRO),linux)
