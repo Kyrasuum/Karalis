@@ -26,7 +26,7 @@ else
    		DISTRO ?= linux
     endif
     ifeq ($(UNAME_S),Darwin)
-   		DISTRO ?= mac
+   		DISTRO ?= darwin
     endif
     ifeq ($(UNAME),Solaris)
 	   	DISTRO ?= solaris
@@ -63,7 +63,7 @@ build-wasm:
 	ARCH=wasm \
 	$(MAKE) --no-print-directory build
 build-macos:
-	@DISTRO=mac \
+	@DISTRO=darwin \
 	ARCH=amd64 \
 	$(MAKE) --no-print-directory build
 build-ubuntu:
