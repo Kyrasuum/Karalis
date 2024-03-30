@@ -9,14 +9,11 @@ ZIG ?= false
 #Get OS and configure based on OS
 ifeq ($(OS),Windows_NT)
     DISTRO ?= windows
-    LDFLAGS ?= -ldflags='-H=windowsgui'
     ifeq ($(PROCESSOR_ARCHITEW6432),AMD64)
         ARCH ?= amd64
-		CFLAGS ?= x86_64-windows-gnu -I/usr/local/include -L/usr/local/lib
     else
 		ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
 		    ARCH ?= amd64
-		    CFLAGS ?= x86_64-windows-gnu -I/usr/local/include -L/usr/local/lib
 		endif
 		ifeq ($(PROCESSOR_ARCHITECTURE),x86)
 		    ARCH ?= ia32
@@ -36,14 +33,12 @@ else
     UNAME_P := $(shell uname -p)
     ifeq ($(UNAME_P),x86_64)
         ARCH ?= amd64
-		CFLAGS ?= x86_64-linux-gnu -isystem /usr/include -I/usr/include/GL -I/usr/local/include -L/usr/lib/x86_64-linux-gnu -L/usr/local/lib
     endif
     ifneq ($(filter %86,$(UNAME_P)),)
         ARCH ?= ia32
     endif
     ifneq ($(filter arm%,$(UNAME_P)),)
         ARCH ?= arm64
-		CFLAGS ?= aarch64-linux-gnu -isystem /usr/include -I/usr/include/GL -I/usr/local/include -L/usr/lib/aarch64-linux-gnu -L/usr/local/lib
     endif
 endif
 
@@ -53,52 +48,29 @@ run: build .deps
 	@$(BIN_DIR)$(EXEC)
 
 .PHONY: build
-# check if zig enabled and linux or windows os
-ifneq (,$(filter $(ZIG)$(DISTRO),truelinux truewindows))
-# zig build
+#: Performs a clean run of the project
 build: .dev-deps $(PRI_DIR)** $(PUB_DIR)**
-	@CC="zig cc -target $(CFLAGS)" \
-	CXX="zig c++ -target $(CFLAGS)" \
-	CGO_ENABLED=1 \
+	@CGO_ENABLED=1 \
 	GOOS=$(DISTRO) \
 	GOARCH=$(ARCH) \
 	go build -o $(BIN_DIR)$(EXEC) $(LDFLAGS) cmd/main.go
-else
-#: Performs a clean run of the project
-build: .dev-deps $(PRI_DIR)** $(PUB_DIR)**
-	@go build -o $(BIN_DIR)$(EXEC) cmd/main.go
-endif
 
 build-wasm:
-	@ZIG=$(ZIG) \
-	DISTRO=js \
+	@DISTRO=js \
 	ARCH=wasm \
 	$(MAKE) --no-print-directory build
 build-mac:
-	@ZIG=$(ZIG) \
-	DISTRO=mac \
+	@DISTRO=mac \
 	ARCH=amd64 \
 	$(MAKE) --no-print-directory build
-build-linux-amd64:
-	@ZIG=$(ZIG) \
-	DISTRO=linux \
+build-ubuntu:
+	@DISTRO=linux \
 	ARCH=amd64 \
-	CFLAGS="x86_64-linux-gnu -isystem /usr/include -L/usr/lib/x86_64-linux-gnu" \
 	$(MAKE) --no-print-directory build
-build-linux-arm64:
-	@ZIG=$(ZIG) \
-	DISTRO=linux \
-	ARCH=arm64 \
-	CFLAGS="aarch64-linux-gnu -isystem /usr/include -L/usr/lib/aarch64-linux-gnu" \
-	$(MAKE) --no-print-directory build
-build-windows-amd64:
-	@ZIG=$(ZIG) \
-	DISTRO=windows \
+build-windows:
+	@DISTRO=windows \
 	ARCH=amd64 \
-	CFLAGS="x86_64-windows-gnu" \
-	LDFLAGS="-ldflags='-H=windowsgui'" \
 	$(MAKE) --no-print-directory build
-
 
 .PHONY: release
 #: packages release target
