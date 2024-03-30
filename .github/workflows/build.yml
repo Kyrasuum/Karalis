@@ -6,7 +6,7 @@ on:
   workflow_call:
   workflow_dispatch:
   workflow_run:
-    workflows: [Run Tests]
+    workflows: ["Test"]
     branches: ["master", "main"]
     types:
       - completed
@@ -31,7 +31,7 @@ jobs:
       uses: actions/setup-go@v4
       with:
         go-version: '1.22'
-        
+
     - uses: goto-bus-stop/setup-zig@v2
 
     - uses: actions/checkout@v3
@@ -42,7 +42,7 @@ jobs:
       run: make dev-deps
 
     - name: Build
-      run: make build
+      run: ZIG=true make build-${{ matrix.os }}
 
     - name: Archive Production Artifacts
       uses: actions/upload-artifact@v2
