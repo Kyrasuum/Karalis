@@ -9,8 +9,7 @@ ZIG ?= false
 #Get OS and configure based on OS
 ifeq ($(OS),Windows_NT)
     DISTRO ?= windows
-    CLAGS ?= -I/usr/include -L/usr/library
-    CPPFLAGS ?= -I/usr/include -L/usr/library
+    CFLAGS ?= -I./raylib/src -L./raylib/src
     ifeq ($(PROCESSOR_ARCHITEW6432),AMD64)
         ARCH ?= amd64
     else
@@ -55,9 +54,9 @@ build: .dev-deps $(PRI_DIR)** $(PUB_DIR)**
 	@CGO_ENABLED=1 \
 	GOOS=$(DISTRO) \
 	GOARCH=$(ARCH) \
-	CGO_CFLAGS=$(CFLAGS) \
-	CGO_CPPFLAGS=$(CPPFLAGS) \
-	go build -o $(BIN_DIR)$(EXEC) $(LDFLAGS) cmd/main.go
+	GO_CFLAGS=$(CFLAGS) \
+	GO_CPPFLAGS=$(CFLAGS) \
+	go build -o $(BIN_DIR)$(EXEC) cmd/main.go
 
 build-wasm:
 	@DISTRO=js \
@@ -122,6 +121,15 @@ dev-deps: .dev-deps-linux-arm64
 	@sudo apt-get install -y libgl1-mesa-dev:arm64 libxi-dev:arm64 libxcursor-dev:arm64 libxrandr-dev:arm64 libxinerama-dev:arm64 libwayland-dev:arm64 libxkbcommon-dev:arm64
 	@sudo apt-get install -y libgl-dev:arm64 libx11-dev:arm64 xorg-dev:arm64 libxxf86vm-dev:arm64
 endif
+endif
+
+# dev-deps for windows
+ifeq ($(DISTRO),windows)
+dev-deps: .dev-deps-windows
+.PHONY: .dev-deps-windows
+.dev-deps-windows:
+	@git clone https://github.com/raysan5/raylib.git
+	@cd raylib/src && make PLATFORM=PLATFORM_DESKTOP
 endif
 
 #: Install dependencies for compiling targets in this makefile
