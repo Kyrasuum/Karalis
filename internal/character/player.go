@@ -1,6 +1,8 @@
 package character
 
 import (
+	"image/color"
+
 	"karalis/internal/camera"
 	"karalis/pkg/app"
 	"karalis/pkg/input"
@@ -13,8 +15,8 @@ import (
 var ()
 
 type Player struct {
-	cam  camera.Cam
-	char Character
+	cam  *camera.Cam
+	char *Character
 
 	lastmpos raylib.Vector2
 	nextmpos raylib.Vector2
@@ -27,19 +29,39 @@ type Player struct {
 	capture bool
 }
 
-func (p *Player) Init() error {
+func NewPlayer() (p *Player, err error) {
+	p = &Player{}
+	err = p.Init()
+
+	return p, err
+}
+
+func (p *Player) Init() (err error) {
 	p.pos = raylib.NewVector3(0, 0, 0)
 	p.rot = raylib.NewVector3(0, 0, 0)
 	p.scale = raylib.NewVector3(1, 1, 1)
-	p.char.Init()
 
-	p.cam = camera.Cam{}
-	p.cam.Init()
+	p.char, err = NewCharacter()
+	if err != nil {
+		return err
+	}
+
+	p.cam, err = camera.NewCam()
+	if err != nil {
+		return err
+	}
 
 	capt := p.ToggleCapture
-	input.RegisterAction("ToggleMouseCapture", &capt, nil, true)
+	err = input.RegisterAction("ToggleMouseCapture", &capt, nil, true)
+	if err != nil {
+		return err
+	}
+
 	view := p.ToggleView
-	input.RegisterAction("ToggleViewMode", &view, nil, true)
+	err = input.RegisterAction("ToggleViewMode", &view, nil, true)
+	if err != nil {
+		return err
+	}
 
 	p.mode = 1
 	p.capture = false
@@ -90,6 +112,24 @@ func (p *Player) GetModelMatrix() raylib.Matrix {
 	matTranslation := raylib.MatrixTranslate(p.pos.X, p.pos.Y, p.pos.Z)
 	matTransform := raylib.MatrixMultiply(raylib.MatrixMultiply(matScale, matRotation), matTranslation)
 	return matTransform
+}
+
+func (p *Player) SetColor(col color.Color) {
+}
+
+func (p *Player) GetColor() color.Color {
+	return raylib.White
+}
+
+func (p *Player) SetScale(sc raylib.Vector3) {
+}
+
+func (p *Player) GetScale() raylib.Vector3 {
+	return raylib.NewVector3(1, 1, 1)
+}
+
+func (p *Player) SetPos(pos raylib.Vector3) {
+	p.pos = pos
 }
 
 func (p *Player) GetPos() raylib.Vector3 {
@@ -148,7 +188,7 @@ func (p *Player) GetTexture(mat *raylib.Material) raylib.Texture2D {
 }
 
 func (p *Player) GetCam() *camera.Cam {
-	return &p.cam
+	return p.cam
 }
 
 func (p *Player) CaptureMouse() {

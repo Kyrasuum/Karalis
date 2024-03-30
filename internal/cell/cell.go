@@ -2,17 +2,24 @@ package cell
 
 import (
 	"karalis/internal/camera"
-	"karalis/pkg/object"
+	"karalis/internal/object"
+	pub_object "karalis/pkg/object"
 )
 
 var ()
 
 type Cell struct {
-	childs []object.Object
+	childs []pub_object.Object
 }
 
 func (c *Cell) Init() error {
-	c.childs = []object.Object{}
+	c.childs = []pub_object.Object{}
+
+	sky, err := object.NewSkybox(nil)
+	if err != nil {
+		return err
+	}
+	c.AddChild(sky)
 
 	return nil
 }
@@ -59,12 +66,12 @@ func (c *Cell) OnRemove() {
 	}
 }
 
-func (c *Cell) AddChild(obj object.Object) {
+func (c *Cell) AddChild(obj pub_object.Object) {
 	c.childs = append(c.childs, obj)
 	obj.OnAdd()
 }
 
-func (c *Cell) RemChild(obj object.Object) {
+func (c *Cell) RemChild(obj pub_object.Object) {
 	index := -1
 	for i, child := range c.childs {
 		if obj == child {

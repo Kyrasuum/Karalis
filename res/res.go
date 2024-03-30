@@ -12,6 +12,8 @@ import (
 )
 
 /*
+#cgo windows CFLAGS: -I../raylib/src
+#cgo windows LDFLAGS: -L../raylib/src
 #include "res.h"
 #include "stdlib.h"
 */
@@ -83,6 +85,7 @@ func LoadDir(cwd string) error {
 			LoadDir(path)
 		} else {
 			data, err := resfs.ReadFile(path)
+			fmt.Printf("%+v: %+v\n", path, len(data))
 			resources[path] = resource{data, err}
 		}
 	}

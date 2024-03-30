@@ -231,7 +231,8 @@ func (this *Mat3) MultInScalar(val float64) *Mat3 {
 
 // Divides in a constant value to all the terms fo the matrix.
 // Return a new matrix with the result.
-//  precondition: val > 0
+//
+//	precondition: val > 0
 func (this Mat3) DivScalar(val float64) Mat3 {
 	this.DivInScalar(val)
 	return this
@@ -239,7 +240,8 @@ func (this Mat3) DivScalar(val float64) Mat3 {
 
 // Divides in a constant value to all the terms fo the matrix.
 // Returns a pointer to 'this'.
-//  precondition: val > 0
+//
+//	precondition: val > 0
 func (this *Mat3) DivInScalar(val float64) *Mat3 {
 	for k, _ := range this.mat {
 		this.mat[k] /= val
@@ -420,9 +422,10 @@ func (this Mat3) IsIdentity() bool {
 }
 
 // Check to see if the matrix is a valid rotation matrix.
-//  The two properties it checks are
-//  1) Determinant() == 1
-//  2) m*m.Transpose  == Identity
+//
+//	The two properties it checks are
+//	1) Determinant() == 1
+//	2) m*m.Transpose  == Identity
 func (this Mat3) IsRotation() bool {
 	return closeEq(this.Determinant(), 1, epsilon) && this.Mult(this.Transpose()).IsIdentity()
 }
@@ -454,9 +457,10 @@ func (this *Mat3) ToScale(x, y float64) *Mat3 {
 }
 
 // Create a 2D shearing matrix for Mat3. Overwrites all values in the matrix.
-// 	0 x 0
-// 	y 0 0
-// 	0 0 1
+//
+//	0 x 0
+//	y 0 0
+//	0 0 1
 func (this *Mat3) ToShear(x, y float64) *Mat3 {
 	this.ToIdentity()
 	this.Set(0, 0, 0)

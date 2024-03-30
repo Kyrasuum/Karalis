@@ -11,15 +11,17 @@ import (
 
 type Shader struct {
 	shader   *raylib.Shader
+	name     string
 	shaders  map[string]*raylib.Shader
 	defines  map[string]bool
 	uniforms map[string]interface{}
 }
 
-func (s *Shader) Init() error {
+func (s *Shader) Init(shader string) error {
 	s.shaders = map[string]*raylib.Shader{}
 	s.defines = map[string]bool{}
 	s.uniforms = map[string]interface{}{}
+	s.name = shader
 	err := s.genShader()
 	if err != nil {
 		return err
@@ -44,24 +46,23 @@ func (s *Shader) genShader() error {
 	if shader, ok := s.shaders[key]; ok {
 		s.shader = shader
 	} else {
-		fs, err := res.GetRes("shader/shader.frag")
+		fs, err := res.GetRes("shader/" + s.name + ".frag")
 		if err != nil {
 			return err
 		}
-		vx, err := res.GetRes("shader/shader.vert")
+		vx, err := res.GetRes("shader/" + s.name + ".vert")
 		if err != nil {
 			return err
 		}
 		strvx := string(vx.([]byte))
 		strfs := string(fs.([]byte))
 
+		posvx := strings.Index(strvx, "\n") + 1
+		posfs := strings.Index(strvx, "\n") + 1
 		for define, _ := range s.defines {
-			strvx = "#define " + define + "\n" + strvx
-			strfs = "#define " + define + "\n" + strfs
+			strvx = strvx[:posvx] + "#define " + define + "\n" + strvx[posvx:]
+			strfs = strfs[:posfs] + "#define " + define + "\n" + strfs[posfs:]
 		}
-
-		strvx = "#version 330\n" + strvx
-		strfs = "#version 330\n" + strfs
 
 		shader := raylib.LoadShaderFromMemory(strvx, strfs)
 		s.shader = &shader

@@ -1,13 +1,13 @@
 package lmath
 
 import (
-	// "fmt"
+	"fmt"
 	"math"
 	"testing"
 )
 
-//Test creation with 16 values
-//Test Equals with matrices
+// Test creation with 16 values
+// Test Equals with matrices
 func TestNewMat3(t *testing.T) {
 	m := NewMat3(
 		1, 2, 3,
@@ -18,7 +18,7 @@ func TestNewMat3(t *testing.T) {
 		5, 6, 7,
 		9, 10, 11)
 	if m.Eq(*m2) == false {
-		t.Errorf("TestNewMat3 ")
+		t.Error(fmt.Sprintf("TestNewMat3 "))
 	}
 }
 
@@ -47,12 +47,12 @@ func TestGetterSetterMat3(t *testing.T) {
 	for testIndex, c := range cases {
 		get := c.orig.Get(c.y, c.x)
 		if get != c.wantBeforeSet {
-			t.Errorf("TestGetterSetterMat3 wantBeforeSet %d %v", testIndex, get)
+			t.Error(fmt.Sprintf("TestGetterSetterMat3 wantBeforeSet %d %v", testIndex, get))
 		}
 
 		get = c.orig.Set(c.y, c.x, c.wantAfterSet).Get(c.y, c.x)
 		if get != c.wantAfterSet {
-			t.Errorf("TestGetterSetterMat3 wantAfterSet %d %v", testIndex, get)
+			t.Error(fmt.Sprintf("TestGetterSetterMat3 wantAfterSet %d %v", testIndex, get))
 		}
 	}
 
@@ -60,13 +60,13 @@ func TestGetterSetterMat3(t *testing.T) {
 	for k, _ := range orig.Dump() {
 		get := orig.At(k)
 		if get != float64(k+1) {
-			t.Errorf("TestGetterSetterMat3 At %d %v", k, get)
+			t.Error(fmt.Sprintf("TestGetterSetterMat3 At %d %v", k, get))
 		}
 
 		orig.SetAt(k, float64((k+1)*10))
 		get = orig.At(k)
 		if get != float64((k+1)*10) {
-			t.Errorf("TestGetterSetterMat3 SetAt %d", k)
+			t.Error(fmt.Sprintf("TestGetterSetterMat3 SetAt %d", k))
 		}
 	}
 }
@@ -90,7 +90,7 @@ func TestLoadDumpMat3(t *testing.T) {
 
 		for k, _ := range get {
 			if get[k] != c.loadArray[k] {
-				t.Errorf("TestLoadDumpMat3 %d", testIndex)
+				t.Error(fmt.Sprintf("TestLoadDumpMat3 %d", testIndex))
 				break
 			}
 		}
@@ -103,7 +103,7 @@ func TestLoadDumpMat3(t *testing.T) {
 	get := m.DumpOpenGL()
 	for k, _ := range get {
 		if !closeEq(get[k], cases[0].loadArray[k], epsilon) {
-			t.Errorf("TestDumpOpenGLMat3")
+			t.Error(fmt.Sprintf("TestDumpOpenGLMat3"))
 			break
 		}
 	}
@@ -111,7 +111,7 @@ func TestLoadDumpMat3(t *testing.T) {
 	get2 := m.DumpOpenGLf32()
 	for k, _ := range get {
 		if !closeEq(float64(get2[k]), cases[0].loadArray[k], epsilon) {
-			t.Errorf("TestDumpOpenGLf32Mat3 %d", k)
+			t.Error(fmt.Sprintf("TestDumpOpenGLf32Mat3 %d", k))
 			break
 		}
 	}
@@ -134,7 +134,7 @@ func TestRowMat3(t *testing.T) {
 		m.Load(c.orig)
 		x, y, z = m.Row(c.rowIndex)
 		if x != c.want[0] || y != c.want[1] || z != c.want[2] {
-			t.Errorf("TestRowMat3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestRowMat3 %d", testIndex))
 		}
 	}
 }
@@ -157,7 +157,7 @@ func TestSetRowMat3(t *testing.T) {
 		m.SetRow(c.rowIndex, c.x, c.y, c.z)
 		x, y, z = m.Row(c.rowIndex)
 		if x != c.x || y != c.y || z != c.z {
-			t.Errorf("TestSetRowMat3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestSetRowMat3 %d", testIndex))
 		}
 	}
 }
@@ -179,7 +179,7 @@ func TestColMat3(t *testing.T) {
 		m.Load(c.orig)
 		x, y, z = m.Col(c.colIndex)
 		if x != c.want[0] || y != c.want[1] || z != c.want[2] {
-			t.Errorf("TestColMat3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestColMat3 %d", testIndex))
 		}
 	}
 }
@@ -202,7 +202,7 @@ func TestSetColMat3(t *testing.T) {
 		m.SetCol(c.colIndex, c.x, c.y, c.z)
 		x, y, z = m.Col(c.colIndex)
 		if x != c.x || y != c.y || z != c.z {
-			t.Errorf("TestSetColMat3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestSetColMat3 %d", testIndex))
 		}
 	}
 }
@@ -228,20 +228,20 @@ func TestAddScalarMat3(t *testing.T) {
 		get := ret_mat.Dump()
 		for k, _ := range c.orig {
 			if get[k] != c.orig[k]+c.value {
-				t.Errorf("TestAddScalarMat3 %d %d", testIndex, k)
+				t.Error(fmt.Sprintf("TestAddScalarMat3 %d %d", testIndex, k))
 				break
 			}
 		}
 
 		ret_mat2 := m.AddInScalar(c.value)
 		if ret_mat2 != &m {
-			t.Errorf("TestAddInScalarMat3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestAddInScalarMat3 %d", testIndex))
 		}
 
 		get = ret_mat2.Dump()
 		for k, _ := range c.orig {
 			if get[k] != c.orig[k]+c.value {
-				t.Errorf("TestAddInScalarMat3 %d %d", testIndex, k)
+				t.Error(fmt.Sprintf("TestAddInScalarMat3 %d %d", testIndex, k))
 				break
 			}
 		}
@@ -269,20 +269,20 @@ func TestSubScalarMat3(t *testing.T) {
 		get := ret_mat.Dump()
 		for k, _ := range c.orig {
 			if get[k] != c.orig[k]-c.value {
-				t.Errorf("TestSubScalarMat3 %d %d", testIndex, k)
+				t.Error(fmt.Sprintf("TestSubScalarMat3 %d %d", testIndex, k))
 				break
 			}
 		}
 
 		ret_mat2 := m.SubInScalar(c.value)
 		if ret_mat2 != &m {
-			t.Errorf("TestSubInScalarMat3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestSubInScalarMat3 %d", testIndex))
 		}
 
 		get = ret_mat2.Dump()
 		for k, _ := range c.orig {
 			if get[k] != c.orig[k]-c.value {
-				t.Errorf("TestSubInScalarMat3 %d %d", testIndex, k)
+				t.Error(fmt.Sprintf("TestSubInScalarMat3 %d %d", testIndex, k))
 				break
 			}
 		}
@@ -310,20 +310,20 @@ func TestMultScalarMat3(t *testing.T) {
 		get := ret_mat.Dump()
 		for k, _ := range c.orig {
 			if get[k] != c.orig[k]*c.value {
-				t.Errorf("TestMultScalarMat3 %d %d", testIndex, k)
+				t.Error(fmt.Sprintf("TestMultScalarMat3 %d %d", testIndex, k))
 				break
 			}
 		}
 
 		ret_mat2 := m.MultInScalar(c.value)
 		if ret_mat2 != &m {
-			t.Errorf("TestMultInScalarMat3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestMultInScalarMat3 %d", testIndex))
 		}
 
 		get = ret_mat2.Dump()
 		for k, _ := range c.orig {
 			if get[k] != c.orig[k]*c.value {
-				t.Errorf("TestMultInScalarMat3 %d %d", testIndex, k)
+				t.Error(fmt.Sprintf("TestMultInScalarMat3 %d %d", testIndex, k))
 				break
 			}
 		}
@@ -351,20 +351,20 @@ func TestDivScalarMat3(t *testing.T) {
 		get := ret_mat.Dump()
 		for k, _ := range c.orig {
 			if get[k] != c.orig[k]/c.value {
-				t.Errorf("TestDivScalarMat3 %d %d", testIndex, k)
+				t.Error(fmt.Sprintf("TestDivScalarMat3 %d %d", testIndex, k))
 				break
 			}
 		}
 
 		ret_mat2 := m.DivInScalar(c.value)
 		if ret_mat2 != &m {
-			t.Errorf("TestDivInScalarMat3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestDivInScalarMat3 %d", testIndex))
 		}
 
 		get = ret_mat2.Dump()
 		for k, _ := range c.orig {
 			if get[k] != c.orig[k]/c.value {
-				t.Errorf("TestDivInScalarMat3 %d %d", testIndex, k)
+				t.Error(fmt.Sprintf("TestDivInScalarMat3 %d %d", testIndex, k))
 				break
 			}
 		}
@@ -395,20 +395,20 @@ func TestAddMat3(t *testing.T) {
 		get := ret_mat.Dump()
 		for k, _ := range c.orig {
 			if closeEq(get[k], c.orig[k]+c.other[k], epsilon) == false {
-				t.Errorf("TestAddMat3 %d %d", testIndex, k)
+				t.Error(fmt.Sprintf("TestAddMat3 %d %d", testIndex, k))
 				break
 			}
 		}
 
 		ret_mat2 := m.AddIn(m2)
 		if ret_mat2 != &m {
-			t.Errorf("TestAddInMat3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestAddInMat3 %d", testIndex))
 		}
 
 		get = ret_mat2.Dump()
 		for k, _ := range c.orig {
 			if closeEq(get[k], c.orig[k]+c.other[k], epsilon) == false {
-				t.Errorf("TestAddInMat3 %d %d", testIndex, k)
+				t.Error(fmt.Sprintf("TestAddInMat3 %d %d", testIndex, k))
 				break
 			}
 		}
@@ -439,20 +439,20 @@ func TestSubMat3(t *testing.T) {
 		get := ret_mat.Dump()
 		for k, _ := range c.orig {
 			if closeEq(get[k], c.orig[k]-c.other[k], epsilon) == false {
-				t.Errorf("TestSubMat3 %d %d", testIndex, k)
+				t.Error(fmt.Sprintf("TestSubMat3 %d %d", testIndex, k))
 				break
 			}
 		}
 
 		ret_mat2 := m.SubIn(m2)
 		if ret_mat2 != &m {
-			t.Errorf("TestSubInMat3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestSubInMat3 %d", testIndex))
 		}
 
 		get = ret_mat2.Dump()
 		for k, _ := range c.orig {
 			if closeEq(get[k], c.orig[k]-c.other[k], epsilon) == false {
-				t.Errorf("TestSubInMat3 %d %d", testIndex, k)
+				t.Error(fmt.Sprintf("TestSubInMat3 %d %d", testIndex, k))
 				break
 			}
 		}
@@ -498,14 +498,14 @@ func TestMultMat3(t *testing.T) {
 		get := ret_mat.Dump()
 		for k, _ := range c.orig {
 			if closeEq(get[k], c.want[k], epsilon) == false {
-				t.Errorf("TestMultMat3 %d %d", testIndex, k)
+				t.Error(fmt.Sprintf("TestMultMat3 %d %d", testIndex, k))
 				break
 			}
 		}
 
 		ret_mat2 := orig.MultIn(other)
 		if ret_mat2 != &orig {
-			t.Errorf("TestMultInMat3 %d", testIndex)
+			t.Error(fmt.Sprintf("TestMultInMat3 %d", testIndex))
 		}
 	}
 }
@@ -519,7 +519,7 @@ func TestIdentityMat3(t *testing.T) {
 	want := [9]float64{1, 0, 0, 0, 1, 0, 0, 0, 1}
 	for k, _ := range get {
 		if want[k] != get[k] {
-			t.Errorf("TestIdentity %d", k)
+			t.Error(fmt.Sprintf("TestIdentity %d", k))
 			break
 		}
 	}
@@ -546,7 +546,7 @@ func TestTransposeMat3(t *testing.T) {
 
 		for k, _ := range c.want {
 			if closeEq(get[k], c.want[k], epsilon) == false {
-				t.Errorf("TestTransposeMat3 %d %d", testIndex, k)
+				t.Error(fmt.Sprintf("TestTransposeMat3 %d %d", testIndex, k))
 				break
 			}
 		}
@@ -555,7 +555,7 @@ func TestTransposeMat3(t *testing.T) {
 		get = orig.TransposeIn().Dump()
 		for k, _ := range c.want {
 			if closeEq(get[k], c.want[k], epsilon) == false {
-				t.Errorf("TestTransposeInMat3 %d %d", testIndex, k)
+				t.Error(fmt.Sprintf("TestTransposeInMat3 %d %d", testIndex, k))
 				break
 			}
 		}
@@ -580,7 +580,7 @@ func TestDeterminantMat3(t *testing.T) {
 
 	get := m.Determinant()
 	if closeEq(get, want, epsilon) == false {
-		t.Errorf("TestDeterminantMat3 %v", get)
+		t.Error(fmt.Sprintf("TestDeterminantMat3 %v", get))
 	}
 }
 
@@ -611,7 +611,7 @@ func TestAdjointMat3(t *testing.T) {
 		// the adjoint values I got from wolframalpha
 		// only went up to 6 places
 		if closeEq(get[k], want[k], 0.0001) == false {
-			t.Errorf("TestAdjointMat3 %d %v %v", k, get[k], want[k])
+			t.Error(fmt.Sprintf("TestAdjointMat3 %d %v %v", k, get[k], want[k]))
 			break
 		}
 	}
@@ -656,7 +656,7 @@ func TestInverseMat3(t *testing.T) {
 		m.Load(c.orig)
 		get_inverse_flag := m.HasInverse()
 		if get_inverse_flag != c.want_inverse_flag {
-			t.Errorf("TestInverseMat3 %d %v", testIndex, get_inverse_flag)
+			t.Error(fmt.Sprintf("TestInverseMat3 %d %v", testIndex, get_inverse_flag))
 			continue
 		}
 		if get_inverse_flag == false {
@@ -667,7 +667,7 @@ func TestInverseMat3(t *testing.T) {
 		get := m2.Dump()
 		for k, _ := range c.want {
 			if closeEq(get[k], c.want[k], 0.0001) == false {
-				t.Errorf("TestInverseMat3 %d %d %v %v", testIndex, k, get[k], c.want[k])
+				t.Error(fmt.Sprintf("TestInverseMat3 %d %d %v %v", testIndex, k, get[k], c.want[k]))
 				break
 			}
 		}
@@ -691,7 +691,7 @@ func TestMultVec3Mat3(t *testing.T) {
 		m.Load(c.orig_mat)
 		get := m.MultVec3(c.orig_v)
 		if get.Eq(c.want) == false {
-			t.Errorf("TestMultVec3Mat3 %d \n%v\n%v\n\n", testIndex, m, get)
+			t.Error(fmt.Sprintf("TestMultVec3Mat3 %d \n%v\n%v\n\n", testIndex, m, get))
 		}
 	}
 }
@@ -747,7 +747,7 @@ func TestFromAxisAngleMat3(t *testing.T) {
 
 		get := m.MultVec3(c.start_vec)
 		if get.Eq(c.want) == false {
-			t.Errorf("TestFromAxisAngleMat3 %d \n%v\n%v\n\n", testIndex, m, get)
+			t.Error(fmt.Sprintf("TestFromAxisAngleMat3 %d \n%v\n%v\n\n", testIndex, m, get))
 		}
 	}
 }
@@ -796,8 +796,8 @@ func TestAxisAngleMat3(t *testing.T) {
 				closeEq(math.Abs(get_z)-math.Abs(v.Z), 0, epsilon) {
 				continue
 			} else {
-				t.Errorf("TestAxisAngleMat3 %d %v \n%f %f %f %f\n%f %f %f %f\n",
-					testIndex, v, Degrees(get_angle), get_x, get_y, get_z, c.angle, v.X, v.Y, v.Z)
+				t.Error(fmt.Sprintf("TestAxisAngleMat3 %d %v \n%f %f %f %f\n%f %f %f %f\n",
+					testIndex, v, Degrees(get_angle), get_x, get_y, get_z, c.angle, v.X, v.Y, v.Z))
 			}
 		}
 	}
@@ -871,7 +871,7 @@ func TestFromEulerMat3(t *testing.T) {
 		m.FromEuler(Radians(c.pitch), Radians(c.yaw), Radians(c.roll))
 		get := m.MultVec3(c.start_vec)
 		if get.Eq(c.want) == false {
-			t.Errorf("TestFromEulerMat3 %d \n%v\n%v\n\n", testIndex, m, get)
+			t.Error(fmt.Sprintf("TestFromEulerMat3 %d \n%v\n%v\n\n", testIndex, m, get))
 		}
 	}
 }
@@ -955,6 +955,6 @@ func TestEulerMat3(t *testing.T) {
 			continue
 		}
 
-		t.Errorf("TestEulerMat3 %d %f %f %f", testIndex, x, y, z)
+		t.Error(fmt.Sprintf("TestEulerMat3 %d %f %f %f", testIndex, x, y, z))
 	}
 }

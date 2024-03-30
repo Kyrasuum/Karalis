@@ -7,7 +7,11 @@
 *.dll
 *.so
 *.dylib
+*.deps
+*.dev-deps
+raylib
 bin/*
+vendor/*
 
 # Test binary, built with `go test -c`
 *.test

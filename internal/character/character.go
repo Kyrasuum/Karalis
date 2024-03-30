@@ -12,6 +12,13 @@ var ()
 type Character struct {
 }
 
+func NewCharacter() (c *Character, err error) {
+	c = &Character{}
+	err = c.Init()
+
+	return c, err
+}
+
 func (c *Character) Init() error {
 	return nil
 }

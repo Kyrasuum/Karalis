@@ -1,4 +1,4 @@
-name: "Run Tests"
+name: 'Test'
 
 on:
   workflow_call:
@@ -21,29 +21,6 @@ jobs:
           - ubuntu-latest
 
     steps:
-      - name: Download artifact
-        uses: dawidd6/action-download-artifact@v2
-        continue-on-error: true
-        id: artifact
-        with:
-          github_token: ${{secrets.GITHUB_TOKEN}}
-          workflow: build.yml
-          workflow_conclusion: success
-          # Optional, uploaded artifact name,
-          # will download all artifacts if not specified
-          # and extract them in respective subdirectories
-          # https://github.com/actions/download-artifact#download-all-artifacts
-          name: build-${{ matrix.os }}
-          # Optional, directory where to extract artifact(s), defaults to current directory
-          path: release
-          # Optional, check the workflow run whether it has an artifact
-          # then will get the last available artifact from previous workflow
-          # default false, just try to download from the last one
-          check_artifacts:  true
-          # Optional, search for the last workflow run whose stored an artifact named as in `name` input
-          # default false
-          search_artifacts: true
-
       - name: Setup
         uses: Kyrasuum/RaylibSetup@main
 

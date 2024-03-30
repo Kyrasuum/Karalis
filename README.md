@@ -18,7 +18,7 @@ IN PROGRESS
 We utilize Golang and Raylib so leave credit where credit is due.
 
 ## Versioning
-Releases will be versioned and packed into a zip for convenience each release will be incremental in verison number.
+Releases will be versioned and packed into a zip for convenience each release will be incremental in version number.
 
 ## License
 This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details

@@ -13,15 +13,6 @@ import (
 	lmath "karalis/pkg/lmath"
 )
 
-/*
-#include "raylib.h"
-
-void UpdateModelUVs(Model* mdl) {
-	UpdateMeshBuffer(mdl->meshes[0], 1, &(mdl->meshes->texcoords[0]), mdl->meshes->vertexCount*2*sizeof(float), 0);
-}
-*/
-import "C"
-
 type Prim struct {
 	mdl   raylib.Model
 	pos   raylib.Vector3
@@ -51,8 +42,31 @@ func (p *Prim) GetModelMatrix() raylib.Matrix {
 	return matTransform
 }
 
+func (p *Prim) GetColor() color.Color {
+	return p.color
+}
+
+func (p *Prim) SetColor(col color.Color) {
+	switch color := col.(type) {
+	case color.RGBA:
+		p.color = color
+	}
+}
+
+func (p *Prim) GetScale() raylib.Vector3 {
+	return p.scale
+}
+
+func (p *Prim) SetScale(sc raylib.Vector3) {
+	p.scale = sc
+}
+
 func (p *Prim) GetPos() raylib.Vector3 {
 	return p.pos
+}
+
+func (p *Prim) SetPos(pos raylib.Vector3) {
+	p.pos = pos
 }
 
 func (p *Prim) GetPitch() float32 {
@@ -125,7 +139,7 @@ func (p *Prim) SetUVs(uvs []raylib.Vector2) {
 		mdluvs[i*2] = uvs[i].X
 		mdluvs[i*2+1] = uvs[i].Y
 	}
-	C.UpdateModelUVs((*C.Model)(unsafe.Pointer(&p.mdl)))
+	pub_object.UpdateModelUVs(&p.mdl)
 }
 
 func (p *Prim) GetMaterials() *raylib.Material {
@@ -170,8 +184,4 @@ func (p *Prim) AddChild(obj pub_object.Object) {
 }
 
 func (p *Prim) RemChild(obj pub_object.Object) {
-}
-
-func (p *Prim) SetPos(pos raylib.Vector3) {
-	p.mdl.Transform = raylib.MatrixMultiply(p.mdl.Transform, raylib.MatrixTranslate(pos.X, pos.Y, pos.Z))
 }

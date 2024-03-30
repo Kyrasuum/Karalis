@@ -1,28 +1,46 @@
 package object
 
 import (
+	"bytes"
+	"image"
+	"image/color"
+	"image/jpeg"
+	"image/png"
+	"strings"
+
 	"karalis/internal/camera"
+	"karalis/internal/shader"
 	pub_object "karalis/pkg/object"
+	pub_shader "karalis/pkg/shader"
+	"karalis/res"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
 type Skybox struct {
 	tex *raylib.Texture2D
+	shd pub_shader.Shader
 
 	uvs   [][]raylib.Vector2
 	verts [][]raylib.Vector3
 }
 
-func (s *Skybox) Init() error {
-	col := raylib.White
-	col.R = 255
-	col.G = 0
-	col.B = 0
+// constructor for skybox
+func NewSkybox(i interface{}) (s *Skybox, err error) {
+	s = &Skybox{}
+	err = s.Init()
+	if err == nil {
+		s.LoadImage(i)
+	}
 
-	img := raylib.GenImageColor(1536, 256, col)
-	tex := raylib.LoadTextureCubemap(img, raylib.CubemapLayoutAutoDetect)
-	s.tex = &tex
+	return s, err
+}
+
+func (s *Skybox) Init() error {
+	s.LoadImage(nil)
+
+	s.shd = &shader.Shader{}
+	s.shd.Init("skybox")
 
 	points := [][]float32{
 		[]float32{-1, -1, -1},
@@ -70,8 +88,94 @@ func (s *Skybox) Init() error {
 	return nil
 }
 
+func (s *Skybox) LoadImage(i interface{}) {
+	var img *raylib.Image
+	switch data := i.(type) {
+	case string:
+		tex, err := res.GetRes(data)
+		if err != nil {
+			s.LoadImage(nil)
+			return
+		}
+		var img image.Image
+
+		pos := strings.Index(data, ".") + 1
+		ext := data[pos:]
+		switch ext {
+		case "png":
+			img, err = png.Decode(bytes.NewReader(tex.([]byte)))
+			if err != nil {
+				s.LoadImage(nil)
+				return
+			}
+		case "jpeg":
+			img, err = jpeg.Decode(bytes.NewReader(tex.([]byte)))
+			if err != nil {
+				s.LoadImage(nil)
+				return
+			}
+		default:
+			img, _, err = image.Decode(bytes.NewReader(tex.([]byte)))
+			if err != nil {
+				s.LoadImage(nil)
+				return
+			}
+		}
+		if err != nil {
+			s.LoadImage(nil)
+			return
+		}
+		s.LoadImage(img)
+		return
+	case image.Image:
+		img = raylib.NewImageFromImage(data)
+	case raylib.Color:
+		img = raylib.GenImageColor(1536, 256, data)
+	default:
+		width := 1536
+		height := 256
+		colors := []color.RGBA{
+			color.RGBA{uint8(255), uint8(0), uint8(0), uint8(255)},
+			color.RGBA{uint8(0), uint8(255), uint8(0), uint8(255)},
+			color.RGBA{uint8(0), uint8(0), uint8(255), uint8(255)},
+			color.RGBA{uint8(255), uint8(255), uint8(0), uint8(255)},
+			color.RGBA{uint8(0), uint8(255), uint8(255), uint8(255)},
+			color.RGBA{uint8(255), uint8(0), uint8(255), uint8(255)},
+		}
+		cube := image.NewRGBA(image.Rect(0, 0, width, height))
+		for i := range 6 {
+			for j := range width / 6 {
+				for k := range height {
+					cube.Set(i*width/6+j, k, colors[i])
+				}
+			}
+		}
+		img = raylib.NewImageFromImage(cube)
+	}
+
+	tex := raylib.LoadTextureCubemap(img, raylib.CubemapLayoutAutoDetect)
+	s.tex = &tex
+}
+
 func (s *Skybox) GetModelMatrix() raylib.Matrix {
 	return raylib.MatrixIdentity()
+}
+
+func (s *Skybox) SetColor(col color.Color) {
+}
+
+func (s *Skybox) GetColor() color.Color {
+	return raylib.White
+}
+
+func (s *Skybox) GetScale() raylib.Vector3 {
+	return raylib.Vector3{1, 1, 1}
+}
+
+func (s *Skybox) SetScale(sc raylib.Vector3) {
+}
+
+func (s *Skybox) SetPos(pos raylib.Vector3) {
 }
 
 func (s *Skybox) GetPos() raylib.Vector3 {
@@ -132,9 +236,14 @@ func (s *Skybox) Prerender(cam *camera.Cam) []func() {
 func (s *Skybox) Render(cam *camera.Cam) []func() {
 	cmds := []func(){}
 
+	raylib.DisableDepthMask()
+	raylib.DisableDepthTest()
 	raylib.PushMatrix()
 	raylib.Begin(raylib.Quads)
 	raylib.EnableTextureCubemap(s.tex.ID)
+	s.shd.Begin()
+	s.shd.SetUniform("matView", raylib.GetMatrixModelview())
+	s.shd.SetUniform("matProjection", raylib.GetMatrixProjection())
 
 	raylib.Color4ub(255, 255, 255, 255)
 	for i, quad := range s.verts {
@@ -144,9 +253,12 @@ func (s *Skybox) Render(cam *camera.Cam) []func() {
 		}
 	}
 
+	s.shd.End()
 	raylib.DisableTextureCubemap()
 	raylib.End()
 	raylib.PopMatrix()
+	raylib.EnableDepthTest()
+	raylib.EnableDepthMask()
 
 	return cmds
 }
@@ -169,7 +281,4 @@ func (s *Skybox) AddChild(obj pub_object.Object) {
 }
 
 func (s *Skybox) RemChild(obj pub_object.Object) {
-}
-
-func (s *Skybox) SetPos(pos raylib.Vector3) {
 }

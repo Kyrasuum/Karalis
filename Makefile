@@ -5,6 +5,42 @@ BIN_DIR = ./bin/
 RELEASE_DIR = ./release/
 EXEC = karalis
 
+#Get OS and configure based on OS
+ifeq ($(OS),Windows_NT)
+    DISTRO ?=windows
+    ifeq ($(PROCESSOR_ARCHITEW6432),AMD64)
+        ARCH ?=amd64
+    else
+		ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
+		    ARCH ?=amd64
+		endif
+		ifeq ($(PROCESSOR_ARCHITECTURE),x86)
+		    ARCH ?=ia32
+		endif
+    endif
+else
+    UNAME_S := $(shell uname -s)
+    ifeq ($(UNAME_S),Linux)
+   		DISTRO ?=linux
+    endif
+    ifeq ($(UNAME_S),Darwin)
+   		DISTRO ?=darwin
+    endif
+    ifeq ($(UNAME),Solaris)
+	   	DISTRO ?=solaris
+    endif
+    UNAME_P := $(shell uname -p)
+    ifeq ($(UNAME_P),x86_64)
+        ARCH ?=amd64
+    endif
+    ifneq ($(filter %86,$(UNAME_P)),)
+        ARCH ?=ia32
+    endif
+    ifneq ($(filter arm%,$(UNAME_P)),)
+        ARCH ?=arm64
+    endif
+endif
+
 .PHONY: run
 #: Starts the project
 run: build .deps
@@ -13,7 +49,36 @@ run: build .deps
 .PHONY: build
 #: Performs a clean run of the project
 build: .dev-deps $(PRI_DIR)** $(PUB_DIR)**
-	@go build -o $(BIN_DIR)$(EXEC) cmd/main.go
+ifeq ($(DISTRO),windows)
+	@go env -w CGO_ENABLED=1
+	@go env -w GOOS='$(DISTRO)'
+	@go env -w GOARCH='$(ARCH)'
+	@go build -o $(BIN_DIR)$(EXEC).exe cmd/main.go
+else
+	@CGO_ENABLED=1 \
+	GOOS=$(DISTRO) \
+	GOARCH=$(ARCH) \
+	GO_CFLAGS=$(CFLAGS) \
+	GO_CPPFLAGS=$(CFLAGS) \
+	go build -o $(BIN_DIR)$(EXEC) cmd/main.go
+endif
+
+build-wasm:
+	@DISTRO=js \
+	ARCH=wasm \
+	$(MAKE) --no-print-directory build
+build-macos:
+	@DISTRO=darwin \
+	ARCH=amd64 \
+	$(MAKE) --no-print-directory build
+build-ubuntu:
+	@DISTRO=linux \
+	ARCH=amd64 \
+	$(MAKE) --no-print-directory build
+build-windows:
+	@DISTRO=windows \
+	ARCH=amd64 \
+	$(MAKE) --no-print-directory build
 
 .PHONY: release
 #: packages release target
@@ -33,7 +98,7 @@ clean-all:
 # deps include target
 .PHONY: deps
 .deps:
-	$(MAKE) --no-print-directory deps
+	@$(MAKE) --no-print-directory deps
 
 #: Install dependencies for running this project
 deps:
@@ -42,12 +107,38 @@ deps:
 # dev-deps include target
 .PHONY: dev-deps
 .dev-deps:
-	$(MAKE) --no-print-directory dev-deps
+	@$(MAKE) --no-print-directory dev-deps
+
+# dev-deps for linux
+ifeq ($(DISTRO),linux)
+ifeq ($(ARCH),amd64)
+dev-deps: .dev-deps-linux-amd64
+.PHONY: .dev-deps-linux-amd64
+.dev-deps-linux-amd64:
+	@sudo apt-get install -y libgl1-mesa-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev libwayland-dev libxkbcommon-dev
+	@sudo apt-get install -y libgl-dev libx11-dev xorg-dev libxxf86vm-dev
+endif
+ifeq ($(ARCH),arm64)
+dev-deps: .dev-deps-linux-arm64
+.PHONY: .dev-deps-linux-arm64
+.dev-deps-linux-arm64:
+	@sudo dpkg --add-architecture arm64
+	@sudo apt-get install -y libgl1-mesa-dev:arm64 libxi-dev:arm64 libxcursor-dev:arm64 libxrandr-dev:arm64 libxinerama-dev:arm64 libwayland-dev:arm64 libxkbcommon-dev:arm64
+	@sudo apt-get install -y libgl-dev:arm64 libx11-dev:arm64 xorg-dev:arm64 libxxf86vm-dev:arm64
+endif
+endif
+
+# dev-deps for windows
+ifeq ($(DISTRO),windows)
+dev-deps: .dev-deps-windows
+.PHONY: .dev-deps-windows
+.dev-deps-windows:
+	@git clone https://github.com/raysan5/raylib.git
+	@cd raylib/src && make PLATFORM=PLATFORM_DESKTOP
+endif
 
 #: Install dependencies for compiling targets in this makefile
 dev-deps: .deps
-	@sudo apt-get install -y libgl1-mesa-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev libwayland-dev libxkbcommon-dev
-	@sudo apt-get install -y libgl-dev libx11-dev xorg-dev libxxf86vm-dev
 	@go mod tidy
 	@go get -v -u github.com/gen2brain/raylib-go/raylib
 	@touch .dev-deps
@@ -55,7 +146,8 @@ dev-deps: .deps
 .PHONY: test
 #: Perfrom unit tests for application
 test:
-	@go test
+	@gofmt -e -w .
+	@go test ./... -cover || true;
 
 .PHONY: help
 #: Lists available commands
