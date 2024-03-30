@@ -18,9 +18,9 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu
-          - windows
-          - macos
+          - ubuntu-arm64
+          - ubuntu-amd64
+          - windows-amd64
 
     steps:
     - name: Setup
