@@ -3,7 +3,7 @@ package stage
 import (
 	"karalis/internal/cell"
 	"karalis/internal/character"
-	// "karalis/internal/object"
+	"karalis/internal/object"
 	"karalis/internal/object/prim"
 	"karalis/internal/portal"
 	pub_object "karalis/pkg/object"

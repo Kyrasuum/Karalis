@@ -148,3 +148,42 @@ func LoadObjFS(path string) (interface{}, error) {
 	mdl := *(*raylib.Model)(unsafe.Pointer(obj))
 	return mdl, nil
 }
+
+func LoadIqmFS(path string) (interface{}, error) {
+	res, ok := resources[path]
+	if !ok {
+		return nil, fmt.Errorf("Resource not found\n")
+	}
+	if res.err != nil {
+		return nil, res.err
+	}
+
+	cpath := C.CString(path)
+	cdata := C.CString(string(res.data.([]byte)))
+	obj := C.LoadIQM(cpath, cdata)
+	C.free(unsafe.Pointer(cpath))
+	C.free(unsafe.Pointer(cdata))
+
+	mdl := *(*raylib.Model)(unsafe.Pointer(obj))
+	return mdl, nil
+}
+
+func LoadIqmAnimFS(path string) (interface{}, error) {
+	res, ok := resources[path]
+	if !ok {
+		return nil, fmt.Errorf("Resource not found\n")
+	}
+	if res.err != nil {
+		return nil, res.err
+	}
+
+	cpath := C.CString(path)
+	cdata := C.CString(string(res.data.([]byte)))
+	count := C.int(0)
+	iqm := C.LoadAnimIQM(cpath, cdata, &count)
+	C.free(unsafe.Pointer(cpath))
+	C.free(unsafe.Pointer(cdata))
+
+	anim := (*[1 << 24]raylib.ModelAnimation)(unsafe.Pointer(iqm))[:int(count)]
+	return anim, nil
+}
