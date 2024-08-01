@@ -220,11 +220,11 @@ func (s *Skybox) GetMaterials() *raylib.Material {
 	return nil
 }
 
-func (s *Skybox) SetTexture(mat *raylib.Material, tex raylib.Texture2D) {
+func (s *Skybox) SetTexture(tex raylib.Texture2D) {
 	*s.tex = tex
 }
 
-func (s *Skybox) GetTexture(mat *raylib.Material) raylib.Texture2D {
+func (s *Skybox) GetTexture() raylib.Texture2D {
 	return *s.tex
 }
 
@@ -271,6 +271,21 @@ func (s *Skybox) Postrender(cam *camera.Cam) []func() {
 func (s *Skybox) Update(dt float32) {
 }
 
+func (s *Skybox) Collide(data pub_object.CollisionData) {
+}
+
+func (s *Skybox) RegCollideHandler(handler func(pub_object.CollisionData) bool) {
+}
+
+func (s *Skybox) CanCollide() bool {
+	return false
+}
+
+func (s *Skybox) GetCollider() pub_object.Collider {
+	col := pub_object.Collider{}
+	return col
+}
+
 func (s *Skybox) OnAdd() {
 }
 
@@ -281,4 +296,8 @@ func (s *Skybox) AddChild(obj pub_object.Object) {
 }
 
 func (s *Skybox) RemChild(obj pub_object.Object) {
+}
+
+func (s *Skybox) GetChilds() []pub_object.Object {
+	return []pub_object.Object{}
 }

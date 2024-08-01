@@ -17,6 +17,8 @@ type Game struct {
 	curcell *cell.Cell
 	player  *character.Player
 	portal1 *portal.Portal
+	portal2 *portal.Portal
+	box1    *prim.Prim
 }
 
 // initialize game object
@@ -49,14 +51,22 @@ func (g *Game) Init() error {
 	if err != nil {
 		return err
 	}
-	g.portal1.AddChild(grid1)
+	g.portal1.GetScene().AddChild(grid1)
 
-	box1, err := prim.NewCube()
+	g.box1, err = prim.NewCube()
 	if err != nil {
 		return err
 	}
-	box1.SetPos(raylib.NewVector3(0, 0, -2))
-	g.portal1.AddChild(box1)
+	g.box1.SetPos(raylib.NewVector3(0, 0, -1))
+	g.box1.SetScale(raylib.NewVector3(0.5, 0.5, 0.5))
+	g.portal1.GetScene().AddChild(g.box1)
+
+	g.portal2, err = portal.NewPortal(g.curcell, g.portal1, nil, nil)
+	if err != nil {
+		return err
+	}
+	g.portal2.SetYaw(raylib.Pi)
+	g.portal1.GetScene().AddChild(g.portal2)
 
 	return nil
 }
@@ -65,6 +75,7 @@ func (g *Game) Init() error {
 func (g *Game) OnResize(w int32, h int32) {
 	g.player.GetCam().OnResize(w, h)
 	g.portal1.OnResize(w, h)
+	g.portal2.OnResize(w, h)
 }
 
 // prerender hook
@@ -94,6 +105,12 @@ func (g *Game) Postrender() []func() {
 // handle update cycle
 func (g *Game) Update(dt float32) {
 	g.curcell.Update(dt)
+	if g.box1 != nil {
+		g.box1.SetPos(raylib.NewVector3(0, 0, g.box1.GetPos().Z+dt/3))
+		if g.box1.GetPos().Z > 2 {
+			g.box1.SetPos(raylib.NewVector3(0, 0, -1))
+		}
+	}
 }
 
 // handle player input

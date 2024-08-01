@@ -2,6 +2,7 @@ package prim
 
 import (
 	"image/color"
+	"math"
 	"reflect"
 	"unsafe"
 
@@ -19,6 +20,9 @@ type Prim struct {
 	rot   raylib.Vector3
 	scale raylib.Vector3
 	color color.RGBA
+
+	colhandlers []func(pub_object.CollisionData) bool
+	childs      []pub_object.Object
 }
 
 func (p *Prim) init() error {
@@ -146,12 +150,12 @@ func (p *Prim) GetMaterials() *raylib.Material {
 	return p.mdl.Materials
 }
 
-func (p *Prim) SetTexture(mat *raylib.Material, tex raylib.Texture2D) {
-	raylib.SetMaterialTexture(mat, raylib.MapDiffuse, tex)
+func (p *Prim) SetTexture(tex raylib.Texture2D) {
+	raylib.SetMaterialTexture(p.mdl.Materials, raylib.MapDiffuse, tex)
 }
 
-func (p *Prim) GetTexture(mat *raylib.Material) raylib.Texture2D {
-	return mat.Maps.Texture
+func (p *Prim) GetTexture() raylib.Texture2D {
+	return p.mdl.Materials.Maps.Texture
 }
 
 func (p *Prim) Prerender(cam *camera.Cam) []func() {
@@ -174,6 +178,50 @@ func (p *Prim) Postrender(cam *camera.Cam) []func() {
 func (p *Prim) Update(dt float32) {
 }
 
+func (p *Prim) Collide(data pub_object.CollisionData) {
+	for _, handler := range p.colhandlers {
+		if !handler(data) {
+			break
+		}
+	}
+}
+
+func (p *Prim) RegCollideHandler(handler func(pub_object.CollisionData) bool) {
+	p.colhandlers = append(p.colhandlers, handler)
+}
+
+func (p *Prim) CanCollide() bool {
+	return true
+}
+
+func (p *Prim) GetCollider() pub_object.Collider {
+	col := pub_object.Collider{
+		Box:    raylib.GetModelBoundingBox(p.mdl),
+		Sphere: pub_object.BoundingSphere{},
+	}
+	matTransform := p.GetModelMatrix()
+	col.Box.Max = raylib.Vector3Transform(col.Box.Max, matTransform)
+	col.Box.Min = raylib.Vector3Transform(col.Box.Min, matTransform)
+
+	min := raylib.NewVector3(
+		float32(math.Min(float64(col.Box.Min.X), float64(col.Box.Max.X))),
+		float32(math.Min(float64(col.Box.Min.Y), float64(col.Box.Max.Y))),
+		float32(math.Min(float64(col.Box.Min.Z), float64(col.Box.Max.Z))),
+	)
+	max := raylib.NewVector3(
+		float32(math.Max(float64(col.Box.Min.X), float64(col.Box.Max.X))),
+		float32(math.Max(float64(col.Box.Min.Y), float64(col.Box.Max.Y))),
+		float32(math.Max(float64(col.Box.Min.Z), float64(col.Box.Max.Z))),
+	)
+	col.Box.Min = min
+	col.Box.Max = max
+
+	col.Sphere.Center = raylib.NewVector3((col.Box.Min.X+col.Box.Max.X)/2, (col.Box.Min.Y+col.Box.Max.Y)/2, (col.Box.Min.Z+col.Box.Max.Z)/2)
+	col.Sphere.Radius = raylib.Vector3Distance(col.Sphere.Center, col.Box.Min)
+
+	return col
+}
+
 func (p *Prim) OnAdd() {
 }
 
@@ -184,4 +232,14 @@ func (p *Prim) AddChild(obj pub_object.Object) {
 }
 
 func (p *Prim) RemChild(obj pub_object.Object) {
+}
+
+func (p *Prim) GetChilds() []pub_object.Object {
+	childs := p.childs
+	grandchilds := []pub_object.Object{}
+	for _, child := range childs {
+		grandchilds = append(grandchilds, child.GetChilds()...)
+	}
+
+	return append(grandchilds, childs...)
 }

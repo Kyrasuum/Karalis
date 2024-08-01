@@ -42,14 +42,6 @@ func Init() error {
 	return nil
 }
 
-func Load() error {
-	err := ProcFs()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func WriteFs() error {
 	for path, res := range resources {
 		if res.err == nil {
@@ -85,26 +77,24 @@ func LoadDir(cwd string) error {
 			LoadDir(path)
 		} else {
 			data, err := resfs.ReadFile(path)
-			fmt.Printf("%+v: %+v\n", path, len(data))
 			resources[path] = resource{data, err}
 		}
 	}
-	return nil
-}
-
-func ProcFs() error {
-	for path, res := range resources {
-		if res.err == nil && strings.Contains(path, ".obj") {
-			data, err := LoadObjFS(path)
-			resources[path] = resource{data, err}
-		}
-	}
-
 	return nil
 }
 
 func GetRes(path string) (interface{}, error) {
 	if res, ok := resources[path]; ok {
+		if res.err == nil && strings.Contains(path, ".obj") {
+			return LoadObjFS(path)
+		}
+		if res.err == nil && strings.Contains(path, "anim.iqm") {
+			return LoadIqmAnimFS(path)
+		}
+		if res.err == nil && strings.Contains(path, ".iqm") {
+			return LoadIqmFS(path)
+		}
+
 		return res.data, res.err
 	} else {
 		return nil, fmt.Errorf("Resource not found: %s\n", path)

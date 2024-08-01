@@ -98,6 +98,20 @@ func (p *Player) Update(dt float32) {
 	p.char.Update(dt)
 }
 
+func (p *Player) Collide(data object.CollisionData) {
+}
+
+func (p *Player) RegCollideHandler(handler func(object.CollisionData) bool) {
+}
+
+func (p *Player) CanCollide() bool {
+	return p.char.CanCollide()
+}
+
+func (p *Player) GetCollider() object.Collider {
+	return p.char.GetCollider()
+}
+
 func (p *Player) OnAdd() {
 	p.char.OnAdd()
 }
@@ -112,6 +126,10 @@ func (p *Player) AddChild(obj object.Object) {
 
 func (p *Player) RemChild(obj object.Object) {
 	p.char.AddChild(obj)
+}
+
+func (p *Player) GetChilds() []object.Object {
+	return p.char.GetChilds()
 }
 
 func (p *Player) GetModelMatrix() raylib.Matrix {
@@ -189,12 +207,12 @@ func (p *Player) GetMaterials() *raylib.Material {
 	return p.char.GetMaterials()
 }
 
-func (p *Player) SetTexture(mat *raylib.Material, tex raylib.Texture2D) {
-	p.char.SetTexture(mat, tex)
+func (p *Player) SetTexture(tex raylib.Texture2D) {
+	p.char.SetTexture(tex)
 }
 
-func (p *Player) GetTexture(mat *raylib.Material) raylib.Texture2D {
-	return p.char.GetTexture(mat)
+func (p *Player) GetTexture() raylib.Texture2D {
+	return p.char.GetTexture()
 }
 
 func (p *Player) GetCam() *camera.Cam {

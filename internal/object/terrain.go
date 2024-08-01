@@ -283,11 +283,11 @@ func (t *Terrain) GetMaterials() *raylib.Material {
 	return t.mdl.Materials
 }
 
-func (t *Terrain) SetTexture(mat *raylib.Material, tex raylib.Texture2D) {
+func (t *Terrain) SetTexture(tex raylib.Texture2D) {
 	*t.tex = tex
 }
 
-func (t *Terrain) GetTexture(mat *raylib.Material) raylib.Texture2D {
+func (t *Terrain) GetTexture() raylib.Texture2D {
 	return *t.tex
 }
 
@@ -315,6 +315,26 @@ func (t *Terrain) Postrender(cam *camera.Cam) []func() {
 func (t *Terrain) Update(dt float32) {
 }
 
+func (t *Terrain) Collide(data pub_object.CollisionData) {
+}
+
+func (t *Terrain) RegCollideHandler(handler func(pub_object.CollisionData) bool) {
+}
+
+func (t *Terrain) CanCollide() bool {
+	return true
+}
+
+func (t *Terrain) GetCollider() pub_object.Collider {
+	col := pub_object.Collider{
+		Box:    raylib.GetModelBoundingBox(*t.mdl),
+		Sphere: pub_object.BoundingSphere{},
+	}
+	col.Sphere.Center = raylib.NewVector3((col.Box.Min.X+col.Box.Max.X)/2, (col.Box.Min.Y+col.Box.Max.Y)/2, (col.Box.Min.Z+col.Box.Max.Z)/2)
+	col.Sphere.Radius = raylib.Vector3Distance(col.Sphere.Center, col.Box.Min)
+	return col
+}
+
 func (t *Terrain) OnAdd() {
 }
 
@@ -325,4 +345,8 @@ func (t *Terrain) AddChild(obj pub_object.Object) {
 }
 
 func (t *Terrain) RemChild(obj pub_object.Object) {
+}
+
+func (t *Terrain) GetChilds() []pub_object.Object {
+	return []pub_object.Object{}
 }

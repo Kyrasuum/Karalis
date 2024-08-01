@@ -11,6 +11,7 @@ import (
 	pub_object "karalis/pkg/object"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
+	lmath "karalis/pkg/lmath"
 )
 
 var ()
@@ -49,9 +50,7 @@ func (p *Portal) Init(scene *cell.Cell, exit *Portal, cam *camera.Cam, obj pub_o
 	}
 
 	if exit != nil {
-		p.exit = exit
-	} else {
-		p.exit = nil
+		exit.Pair(p)
 	}
 
 	if cam != nil {
@@ -83,6 +82,11 @@ func (p *Portal) Init(scene *cell.Cell, exit *Portal, cam *camera.Cam, obj pub_o
 	}
 
 	return nil
+}
+
+// get exit scene
+func (p *Portal) GetScene() *cell.Cell {
+	return p.scene
 }
 
 // get exit portal pair
@@ -193,12 +197,12 @@ func (p *Portal) GetMaterials() *raylib.Material {
 }
 
 // set portal render texture
-func (p *Portal) SetTexture(mat *raylib.Material, tex raylib.Texture2D) {
+func (p *Portal) SetTexture(tex raylib.Texture2D) {
 	p.target.Texture = tex
 }
 
 // get portal render texture
-func (p *Portal) GetTexture(mat *raylib.Material) raylib.Texture2D {
+func (p *Portal) GetTexture() raylib.Texture2D {
 	return p.target.Texture
 }
 
@@ -209,7 +213,7 @@ func (p *Portal) SetPortal(obj pub_object.Object) {
 	}
 	p.obj = obj
 	p.obj.OnAdd()
-	p.obj.SetTexture(p.obj.GetMaterials(), p.GetTexture(nil))
+	p.obj.SetTexture(p.GetTexture())
 	raylib.SetTextureFilter(p.target.Texture, raylib.FilterBilinear)
 	raylib.SetTextureWrap(p.target.Texture, raylib.WrapRepeat)
 }
@@ -246,7 +250,11 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 		wldToLcl := raylib.MatrixInvert(portalmdl)
 		lclToWld := raylib.MatrixIdentity()
 		if p.exit != nil {
-			lclToWld = p.exit.GetModelMatrix()
+			//need to flip to place camera looking out not in
+			Quat := lmath.Quat{}
+			Quat = *Quat.FromEuler(float64(0), float64(raylib.Pi), float64(0))
+			matFlip := raylib.QuaternionToMatrix(raylib.NewQuaternion(float32(Quat.X), float32(Quat.Y), float32(Quat.Z), float32(Quat.W)))
+			lclToWld = raylib.MatrixMultiply(matFlip, p.exit.GetModelMatrix())
 		}
 		transform := raylib.MatrixMultiply(lclToWld, wldToLcl)
 
@@ -258,6 +266,16 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 		raylib.ClearBackground(color.RGBA{255, 255, 255, 255})
 		sh := app.CurApp.GetShader()
 		err := sh.SetDefine("PORTAL_SCN", true)
+		if err != nil {
+			fmt.Printf("%+v\n", err)
+			p.visible = false
+		}
+		err = sh.SetUniform("portalPos", raylib.NewVector3(0, 0, 0))
+		if err != nil {
+			fmt.Printf("%+v\n", err)
+			p.visible = false
+		}
+		err = sh.SetUniform("portalNorm", raylib.NewVector3(0, 0, -1))
 		if err != nil {
 			fmt.Printf("%+v\n", err)
 			p.visible = false
@@ -300,7 +318,7 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 // render hook
 func (p *Portal) Render(cam *camera.Cam) []func() {
 	cmds := []func(){}
-
+	//avoid rendering if not visible to fix rendering self twice
 	if p.visible {
 		if p.target != nil && p.obj != nil {
 			sh := app.CurApp.GetShader()
@@ -333,12 +351,43 @@ func (p *Portal) Update(dt float32) {
 	if p.obj != nil {
 		p.obj.Update(dt)
 	}
-	p.scene.Update(dt)
+
+	var exit_scene *cell.Cell
+	if p.exit != nil {
+		exit_scene = p.exit.scene
+		p.exit.scene = nil
+	}
+	if p.scene != nil {
+		p.scene.Update(dt)
+	}
+	if p.exit != nil {
+		p.exit.scene = exit_scene
+	}
+}
+
+// handle collision event
+func (p *Portal) Collide(data pub_object.CollisionData) {
+}
+
+// register new collision handler
+func (p *Portal) RegCollideHandler(handler func(pub_object.CollisionData) bool) {
+}
+
+// check if object can collide
+func (p *Portal) CanCollide() bool {
+	return p.obj.CanCollide()
+}
+
+// retrieve the collider for collision detection
+func (p *Portal) GetCollider() pub_object.Collider {
+	return p.obj.GetCollider()
 }
 
 // handle add event
 func (p *Portal) OnAdd() {
-	p.scene.OnAdd()
+	if p.obj != nil {
+		p.obj.OnAdd()
+	}
 }
 
 // handle remove event
@@ -347,8 +396,9 @@ func (p *Portal) OnRemove() {
 		raylib.UnloadRenderTexture(*p.target)
 		p.target = nil
 	}
-
-	p.scene.OnRemove()
+	if p.obj != nil {
+		p.obj.OnRemove()
+	}
 }
 
 // handle resize event
@@ -359,13 +409,22 @@ func (p *Portal) OnResize(w int32, h int32) {
 // add child to object
 func (p *Portal) AddChild(obj pub_object.Object) {
 	if obj != nil {
-		p.scene.AddChild(obj.(pub_object.Object))
+		p.obj.AddChild(obj.(pub_object.Object))
 	}
 }
 
 // removes child from object
 func (p *Portal) RemChild(obj pub_object.Object) {
 	if obj != nil {
-		p.scene.RemChild(obj.(pub_object.Object))
+		p.obj.RemChild(obj.(pub_object.Object))
+	}
+}
+
+// gets all childs recursively
+func (p *Portal) GetChilds() []pub_object.Object {
+	if p.obj != nil {
+		return p.obj.GetChilds()
+	} else {
+		return []pub_object.Object{}
 	}
 }
