@@ -91,10 +91,10 @@ func (c *Grid) GetMaterials() *raylib.Material {
 	return &raylib.Material{}
 }
 
-func (c *Grid) SetTexture(mat *raylib.Material, tex raylib.Texture2D) {
+func (c *Grid) SetTexture(tex raylib.Texture2D) {
 }
 
-func (c *Grid) GetTexture(mat *raylib.Material) raylib.Texture2D {
+func (c *Grid) GetTexture() raylib.Texture2D {
 	return raylib.Texture2D{}
 }
 
@@ -117,6 +117,21 @@ func (g *Grid) Postrender(cam *camera.Cam) []func() {
 func (g *Grid) Update(dt float32) {
 }
 
+func (g *Grid) Collide(data pub_object.CollisionData) {
+}
+
+func (g *Grid) RegCollideHandler(handler func(pub_object.CollisionData) bool) {
+}
+
+func (g *Grid) CanCollide() bool {
+	return false
+}
+
+func (g *Grid) GetCollider() pub_object.Collider {
+	col := pub_object.Collider{}
+	return col
+}
+
 func (g *Grid) OnAdd() {
 }
 
@@ -127,4 +142,8 @@ func (g *Grid) AddChild(obj pub_object.Object) {
 }
 
 func (g *Grid) RemChild(obj pub_object.Object) {
+}
+
+func (g *Grid) GetChilds() []pub_object.Object {
+	return []pub_object.Object{}
 }

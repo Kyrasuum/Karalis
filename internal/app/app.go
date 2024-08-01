@@ -142,11 +142,6 @@ func (a *app) run() error {
 		return err
 	}
 
-	err = res.Load()
-	if err != nil {
-		return err
-	}
-
 	menu := stage.Game{}
 	err = menu.Init()
 	if err != nil {

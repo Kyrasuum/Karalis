@@ -1,6 +1,8 @@
 package prim
 
 import (
+	"fmt"
+
 	"karalis/res"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
@@ -16,7 +18,13 @@ func NewCube() (p *Prim, err error) {
 	if err != nil {
 		return nil, err
 	}
-	p.mdl = mdl.(raylib.Model)
+
+	switch model := mdl.(type) {
+	case raylib.Model:
+		p.mdl = model
+	default:
+		return nil, fmt.Errorf("Invalid model object\n")
+	}
 
 	return p, nil
 }

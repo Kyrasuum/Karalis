@@ -38,6 +38,21 @@ func (c *Character) Postrender(cam *camera.Cam) []func() {
 func (c *Character) Update(dt float32) {
 }
 
+func (c *Character) Collide(data object.CollisionData) {
+}
+
+func (c *Character) RegCollideHandler(handler func(object.CollisionData) bool) {
+}
+
+func (c *Character) CanCollide() bool {
+	return false
+}
+
+func (c *Character) GetCollider() object.Collider {
+	col := object.Collider{}
+	return col
+}
+
 func (c *Character) OnAdd() {
 }
 
@@ -48,6 +63,10 @@ func (c *Character) AddChild(obj object.Object) {
 }
 
 func (c *Character) RemChild(obj object.Object) {
+}
+
+func (c *Character) GetChilds() []object.Object {
+	return []object.Object{}
 }
 
 func (c *Character) GetVertices() []raylib.Vector3 {
@@ -67,9 +86,9 @@ func (c *Character) GetMaterials() *raylib.Material {
 	return &raylib.Material{}
 }
 
-func (c *Character) SetTexture(mat *raylib.Material, tex raylib.Texture2D) {
+func (c *Character) SetTexture(tex raylib.Texture2D) {
 }
 
-func (c *Character) GetTexture(mat *raylib.Material) raylib.Texture2D {
+func (c *Character) GetTexture() raylib.Texture2D {
 	return raylib.Texture2D{}
 }

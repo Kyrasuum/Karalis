@@ -46,6 +46,6 @@ void main() {
     fragScrPos = gl_Position;
     #endif
     #ifdef PORTAL_SCN
-    fragClip = dot((vec3(fragPosition) - portalPos), portalNorm);
+    fragClip = dot((vec3(fragPosition) - portalPos), vec3(0,0,-1));
     #endif
 }

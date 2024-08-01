@@ -23,6 +23,8 @@ import "C"
 var ()
 
 type Object interface {
+	CanCollide() bool
+	GetCollider() Collider
 	GetModelMatrix() raylib.Matrix
 	SetColor(c color.Color)
 	GetColor() color.Color
@@ -40,16 +42,19 @@ type Object interface {
 	GetUVs() []raylib.Vector2
 	SetUVs(uvs []raylib.Vector2)
 	GetMaterials() *raylib.Material
-	SetTexture(mat *raylib.Material, tex raylib.Texture2D)
-	GetTexture(mat *raylib.Material) raylib.Texture2D
+	SetTexture(tex raylib.Texture2D)
+	GetTexture() raylib.Texture2D
 	Prerender(cam *camera.Cam) []func()
 	Render(cam *camera.Cam) []func()
 	Postrender(cam *camera.Cam) []func()
 	Update(dt float32)
+	Collide(CollisionData)
+	RegCollideHandler(func(CollisionData) bool)
 	OnAdd()
 	OnRemove()
 	AddChild(obj Object)
 	RemChild(obj Object)
+	GetChilds() []Object
 }
 
 func UpdateModelUVs(mdl *raylib.Model) {
