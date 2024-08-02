@@ -123,8 +123,8 @@ func (g *Grid) Collide(data pub_object.CollisionData) {
 func (g *Grid) RegCollideHandler(handler func(pub_object.CollisionData) bool) {
 }
 
-func (g *Grid) CanCollide() bool {
-	return false
+func (g *Grid) GetCollidable() []pub_object.Object {
+	return []pub_object.Object{}
 }
 
 func (g *Grid) GetCollider() pub_object.Collider {

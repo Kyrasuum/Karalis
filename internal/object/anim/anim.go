@@ -205,8 +205,8 @@ func (a *Anim) Collide(data pub_object.CollisionData) {}
 
 func (a *Anim) RegCollideHandler(handler func(pub_object.CollisionData) bool) {}
 
-func (a *Anim) CanCollide() bool {
-	return false
+func (a *Anim) GetCollidable() []pub_object.Object {
+	return []pub_object.Object{}
 }
 
 func (a *Anim) GetCollider() pub_object.Collider {

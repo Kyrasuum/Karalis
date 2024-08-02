@@ -4,6 +4,7 @@ import (
 	"image/color"
 	"math"
 	"reflect"
+	"slices"
 	"unsafe"
 
 	"karalis/internal/camera"
@@ -21,6 +22,8 @@ type Prim struct {
 	scale raylib.Vector3
 	color color.RGBA
 
+	touching    []pub_object.Object
+	collidable  []pub_object.Object
 	colhandlers []func(pub_object.CollisionData) bool
 	childs      []pub_object.Object
 }
@@ -31,6 +34,11 @@ func (p *Prim) init() error {
 	p.scale = raylib.NewVector3(1, 1, 1)
 	p.color = raylib.White
 	p.mdl = raylib.Model{}
+
+	p.touching = []pub_object.Object{}
+	p.collidable = nil
+	p.colhandlers = []func(pub_object.CollisionData) bool{}
+	p.childs = []pub_object.Object{}
 
 	return nil
 }
@@ -190,8 +198,8 @@ func (p *Prim) RegCollideHandler(handler func(pub_object.CollisionData) bool) {
 	p.colhandlers = append(p.colhandlers, handler)
 }
 
-func (p *Prim) CanCollide() bool {
-	return true
+func (p *Prim) GetCollidable() []pub_object.Object {
+	return p.collidable
 }
 
 func (p *Prim) GetCollider() pub_object.Collider {
@@ -241,5 +249,5 @@ func (p *Prim) GetChilds() []pub_object.Object {
 		grandchilds = append(grandchilds, child.GetChilds()...)
 	}
 
-	return append(grandchilds, childs...)
+	return slices.Concat(grandchilds, childs)
 }

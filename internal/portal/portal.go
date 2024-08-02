@@ -233,12 +233,22 @@ func (p *Portal) GetCam() *camera.Cam {
 	return p.cam
 }
 
+// return normal for portal plane
+func (p *Portal) GetNormal() raylib.Vector3 {
+	norm := raylib.NewVector3(0, 0, 1)
+	Quat := lmath.Quat{}
+	Quat = *Quat.FromEuler(float64(p.obj.GetPitch()), float64(p.obj.GetYaw()), float64(p.obj.GetRoll()))
+	matRot := raylib.QuaternionToMatrix(raylib.NewQuaternion(float32(Quat.X), float32(Quat.Y), float32(Quat.Z), float32(Quat.W)))
+	norm = raylib.Vector3Transform(norm, matRot)
+	return norm
+}
+
 // prerender hook
 func (p *Portal) Prerender(cam *camera.Cam) []func() {
 	cmds := []func(){}
 
 	//guards to ensure we only render when we should be
-	if p.target != nil && !p.rendering && p.visible {
+	if p.target != nil && p.scene != nil && !p.rendering && p.visible {
 		//prevent rerendering a portal a second time
 		p.rendering = true
 		if p.exit != nil {
@@ -270,12 +280,12 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 			fmt.Printf("%+v\n", err)
 			p.visible = false
 		}
-		err = sh.SetUniform("portalPos", raylib.NewVector3(0, 0, 0))
+		err = sh.SetUniform("portalPos", p.exit.obj.GetPos())
 		if err != nil {
 			fmt.Printf("%+v\n", err)
 			p.visible = false
 		}
-		err = sh.SetUniform("portalNorm", raylib.NewVector3(0, 0, -1))
+		err = sh.SetUniform("portalNorm", p.exit.GetNormal())
 		if err != nil {
 			fmt.Printf("%+v\n", err)
 			p.visible = false
@@ -318,8 +328,9 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 // render hook
 func (p *Portal) Render(cam *camera.Cam) []func() {
 	cmds := []func(){}
-	//avoid rendering if not visible to fix rendering self twice
+	//avoid rendering if not visible
 	if p.visible {
+		//render portal surface
 		if p.target != nil && p.obj != nil {
 			sh := app.CurApp.GetShader()
 			err := sh.SetDefine("PORTAL_OBJ", true)
@@ -333,6 +344,43 @@ func (p *Portal) Render(cam *camera.Cam) []func() {
 				fmt.Printf("%+v\n", err)
 				p.visible = false
 			}
+		}
+
+		//render objects exiting portal
+		sh := app.CurApp.GetShader()
+		err := sh.SetDefine("PORTAL_SCN", true)
+		if err != nil {
+			fmt.Printf("%+v\n", err)
+			p.visible = false
+		}
+		err = sh.SetUniform("portalPos", p.obj.GetPos())
+		if err != nil {
+			fmt.Printf("%+v\n", err)
+			p.visible = false
+		}
+		err = sh.SetUniform("portalNorm", p.GetNormal())
+		if err != nil {
+			fmt.Printf("%+v\n", err)
+			p.visible = false
+		}
+
+		//prevent rerendering a portal a second time
+		p.rendering = true
+		if p.exit != nil {
+			p.exit.visible = false
+		}
+
+		p.scene.Render(cam)
+
+		p.rendering = false
+		if p.exit != nil {
+			p.exit.visible = true
+		}
+
+		err = sh.SetDefine("PORTAL_SCN", false)
+		if err != nil {
+			fmt.Printf("%+v\n", err)
+			p.visible = false
 		}
 	}
 
@@ -374,8 +422,8 @@ func (p *Portal) RegCollideHandler(handler func(pub_object.CollisionData) bool) 
 }
 
 // check if object can collide
-func (p *Portal) CanCollide() bool {
-	return p.obj.CanCollide()
+func (p *Portal) GetCollidable() []pub_object.Object {
+	return p.obj.GetCollidable()
 }
 
 // retrieve the collider for collision detection

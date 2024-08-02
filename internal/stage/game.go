@@ -19,6 +19,7 @@ type Game struct {
 	portal1 *portal.Portal
 	portal2 *portal.Portal
 	box1    *prim.Prim
+	box2    *prim.Prim
 }
 
 // initialize game object
@@ -35,23 +36,17 @@ func (g *Game) Init() error {
 	}
 	g.curcell.AddChild(g.player)
 
-	grid2, err := prim.NewGrid()
+	grid, err := prim.NewGrid()
 	if err != nil {
 		return err
 	}
-	g.curcell.AddChild(grid2)
+	g.curcell.AddChild(grid)
 
 	g.portal1, err = portal.NewPortal(nil, nil, nil, nil)
 	if err != nil {
 		return err
 	}
 	g.curcell.AddChild(g.portal1)
-
-	grid1, err := prim.NewGrid()
-	if err != nil {
-		return err
-	}
-	g.portal1.GetScene().AddChild(grid1)
 
 	g.box1, err = prim.NewCube()
 	if err != nil {
@@ -60,6 +55,14 @@ func (g *Game) Init() error {
 	g.box1.SetPos(raylib.NewVector3(0, 0, -1))
 	g.box1.SetScale(raylib.NewVector3(0.5, 0.5, 0.5))
 	g.portal1.GetScene().AddChild(g.box1)
+
+	g.box2, err = prim.NewCube()
+	if err != nil {
+		return err
+	}
+	g.box2.SetPos(raylib.NewVector3(0, -1, 2))
+	g.box2.SetScale(raylib.NewVector3(0.5, 0.5, 0.5))
+	g.portal1.GetScene().AddChild(g.box2)
 
 	g.portal2, err = portal.NewPortal(g.curcell, g.portal1, nil, nil)
 	if err != nil {
@@ -106,9 +109,15 @@ func (g *Game) Postrender() []func() {
 func (g *Game) Update(dt float32) {
 	g.curcell.Update(dt)
 	if g.box1 != nil {
-		g.box1.SetPos(raylib.NewVector3(0, 0, g.box1.GetPos().Z+dt/3))
-		if g.box1.GetPos().Z > 2 {
+		g.box1.SetPos(raylib.NewVector3(0, 0, g.box1.GetPos().Z+dt/5))
+		if g.box1.GetPos().Z > 1 {
 			g.box1.SetPos(raylib.NewVector3(0, 0, -1))
+		}
+	}
+	if g.box2 != nil {
+		g.box2.SetPos(raylib.NewVector3(0, g.box2.GetPos().Y+dt/2, 2))
+		if g.box2.GetPos().Y > 1 {
+			g.box2.SetPos(raylib.NewVector3(0, -1, 2))
 		}
 	}
 }

@@ -63,6 +63,8 @@ func (a *app) handleInput(dt float32) {
 
 // render cycle
 func (a *app) render() {
+	raylib.BeginDrawing()
+	raylib.ClearBackground(color.RGBA{0, 0, 0, 255})
 	if a.curStage != nil {
 		cmds := a.curStage.Prerender()
 		for _, cmd := range cmds {
@@ -70,8 +72,6 @@ func (a *app) render() {
 		}
 	}
 
-	raylib.BeginDrawing()
-	raylib.ClearBackground(color.RGBA{0, 0, 0, 255})
 	if a.curStage != nil {
 		cmds := a.curStage.Render()
 		for _, cmd := range cmds {

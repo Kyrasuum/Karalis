@@ -44,8 +44,8 @@ func (c *Character) Collide(data object.CollisionData) {
 func (c *Character) RegCollideHandler(handler func(object.CollisionData) bool) {
 }
 
-func (c *Character) CanCollide() bool {
-	return false
+func (c *Character) GetCollidable() []object.Object {
+	return []object.Object{}
 }
 
 func (c *Character) GetCollider() object.Collider {
