@@ -277,8 +277,8 @@ func (s *Skybox) Collide(data pub_object.CollisionData) {
 func (s *Skybox) RegCollideHandler(handler func(pub_object.CollisionData) bool) {
 }
 
-func (s *Skybox) CanCollide() bool {
-	return false
+func (s *Skybox) GetCollidable() []pub_object.Object {
+	return []pub_object.Object{}
 }
 
 func (s *Skybox) GetCollider() pub_object.Collider {

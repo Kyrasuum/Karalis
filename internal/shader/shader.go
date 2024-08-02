@@ -97,20 +97,24 @@ func (s *Shader) GetLoc(uniform string) (loc int32, err error) {
 }
 
 func (s *Shader) SetDefine(define string, val bool) error {
-	if def, ok := s.defines[define]; !ok || !def {
-		s.defines[define] = val
+	_, ok := s.defines[define]
+	if ok && !val {
+		delete(s.defines, define)
 	} else {
-		if !val {
-			delete(s.defines, define)
-		} else {
-			return nil
-		}
+		s.defines[define] = val
 	}
 	err := s.genShader()
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func (s *Shader) GetDefine(define string) bool {
+	if _, ok := s.defines[define]; ok {
+		return s.defines[define]
+	}
+	return false
 }
 
 func (s *Shader) SetUniform(uniform string, val interface{}) error {

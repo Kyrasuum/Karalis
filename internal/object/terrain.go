@@ -321,8 +321,8 @@ func (t *Terrain) Collide(data pub_object.CollisionData) {
 func (t *Terrain) RegCollideHandler(handler func(pub_object.CollisionData) bool) {
 }
 
-func (t *Terrain) CanCollide() bool {
-	return true
+func (t *Terrain) GetCollidable() []pub_object.Object {
+	return []pub_object.Object{}
 }
 
 func (t *Terrain) GetCollider() pub_object.Collider {

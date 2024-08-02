@@ -13,6 +13,7 @@ type Shader interface {
 	GetLocs() *int32
 	GetLoc(uniform string) (loc int32, err error)
 	SetDefine(string, bool) error
+	GetDefine(string) bool
 	SetUniform(string, interface{}) error
 	Begin() error
 	End() error

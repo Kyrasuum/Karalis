@@ -104,8 +104,8 @@ func (p *Player) Collide(data object.CollisionData) {
 func (p *Player) RegCollideHandler(handler func(object.CollisionData) bool) {
 }
 
-func (p *Player) CanCollide() bool {
-	return p.char.CanCollide()
+func (p *Player) GetCollidable() []object.Object {
+	return p.char.GetCollidable()
 }
 
 func (p *Player) GetCollider() object.Collider {

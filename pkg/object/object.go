@@ -23,7 +23,7 @@ import "C"
 var ()
 
 type Object interface {
-	CanCollide() bool
+	GetCollidable() []Object
 	GetCollider() Collider
 	GetModelMatrix() raylib.Matrix
 	SetColor(c color.Color)
