@@ -2,12 +2,12 @@ package prim
 
 import (
 	"image/color"
-	"math"
 	"reflect"
 	"slices"
 	"unsafe"
 
 	"karalis/internal/camera"
+	"karalis/internal/collider"
 	"karalis/pkg/app"
 	pub_object "karalis/pkg/object"
 
@@ -22,10 +22,8 @@ type Prim struct {
 	scale raylib.Vector3
 	color color.RGBA
 
-	touching    []pub_object.Object
-	collidable  []pub_object.Object
-	colhandlers []func(pub_object.CollisionData) bool
-	childs      []pub_object.Object
+	childs []pub_object.Object
+	col    pub_object.Collider
 }
 
 func (p *Prim) init() error {
@@ -35,10 +33,13 @@ func (p *Prim) init() error {
 	p.color = raylib.White
 	p.mdl = raylib.Model{}
 
-	p.touching = []pub_object.Object{}
-	p.collidable = nil
-	p.colhandlers = []func(pub_object.CollisionData) bool{}
 	p.childs = []pub_object.Object{}
+
+	col, err := collider.NewCollider(p)
+	if err != nil {
+		return err
+	}
+	p.col = col
 
 	return nil
 }
@@ -52,6 +53,10 @@ func (p *Prim) GetModelMatrix() raylib.Matrix {
 	matTransform := raylib.MatrixMultiply(raylib.MatrixMultiply(matScale, matRotation), matTranslation)
 	matTransform = raylib.MatrixMultiply(p.mdl.Transform, matTransform)
 	return matTransform
+}
+
+func (p *Prim) GetModel() *raylib.Model {
+	return &p.mdl
 }
 
 func (p *Prim) GetColor() color.Color {
@@ -184,50 +189,13 @@ func (p *Prim) Postrender(cam *camera.Cam) []func() {
 }
 
 func (p *Prim) Update(dt float32) {
-}
-
-func (p *Prim) Collide(data pub_object.CollisionData) {
-	for _, handler := range p.colhandlers {
-		if !handler(data) {
-			break
-		}
+	if p.col != nil {
+		p.col.Update(dt)
 	}
-}
-
-func (p *Prim) RegCollideHandler(handler func(pub_object.CollisionData) bool) {
-	p.colhandlers = append(p.colhandlers, handler)
-}
-
-func (p *Prim) GetCollidable() []pub_object.Object {
-	return p.collidable
 }
 
 func (p *Prim) GetCollider() pub_object.Collider {
-	col := pub_object.Collider{
-		Box:    raylib.GetModelBoundingBox(p.mdl),
-		Sphere: pub_object.BoundingSphere{},
-	}
-	matTransform := p.GetModelMatrix()
-	col.Box.Max = raylib.Vector3Transform(col.Box.Max, matTransform)
-	col.Box.Min = raylib.Vector3Transform(col.Box.Min, matTransform)
-
-	min := raylib.NewVector3(
-		float32(math.Min(float64(col.Box.Min.X), float64(col.Box.Max.X))),
-		float32(math.Min(float64(col.Box.Min.Y), float64(col.Box.Max.Y))),
-		float32(math.Min(float64(col.Box.Min.Z), float64(col.Box.Max.Z))),
-	)
-	max := raylib.NewVector3(
-		float32(math.Max(float64(col.Box.Min.X), float64(col.Box.Max.X))),
-		float32(math.Max(float64(col.Box.Min.Y), float64(col.Box.Max.Y))),
-		float32(math.Max(float64(col.Box.Min.Z), float64(col.Box.Max.Z))),
-	)
-	col.Box.Min = min
-	col.Box.Max = max
-
-	col.Sphere.Center = raylib.NewVector3((col.Box.Min.X+col.Box.Max.X)/2, (col.Box.Min.Y+col.Box.Max.Y)/2, (col.Box.Min.Z+col.Box.Max.Z)/2)
-	col.Sphere.Radius = raylib.Vector3Distance(col.Sphere.Center, col.Box.Min)
-
-	return col
+	return p.col
 }
 
 func (p *Prim) OnAdd() {

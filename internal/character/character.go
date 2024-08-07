@@ -38,19 +38,8 @@ func (c *Character) Postrender(cam *camera.Cam) []func() {
 func (c *Character) Update(dt float32) {
 }
 
-func (c *Character) Collide(data object.CollisionData) {
-}
-
-func (c *Character) RegCollideHandler(handler func(object.CollisionData) bool) {
-}
-
-func (c *Character) GetCollidable() []object.Object {
-	return []object.Object{}
-}
-
 func (c *Character) GetCollider() object.Collider {
-	col := object.Collider{}
-	return col
+	return nil
 }
 
 func (c *Character) OnAdd() {
@@ -91,4 +80,8 @@ func (c *Character) SetTexture(tex raylib.Texture2D) {
 
 func (c *Character) GetTexture() raylib.Texture2D {
 	return raylib.Texture2D{}
+}
+
+func (c *Character) GetModel() *raylib.Model {
+	return nil
 }

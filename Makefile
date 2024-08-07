@@ -47,7 +47,7 @@ run: build .deps
 	@$(BIN_DIR)$(EXEC)
 
 .PHONY: build
-#: Performs a clean run of the project
+#: Performs a clean build of the project
 build: .dev-deps $(PRI_DIR)** $(PUB_DIR)**
 ifeq ($(DISTRO),windows)
 	@go env -w CGO_ENABLED=1

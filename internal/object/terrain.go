@@ -183,6 +183,10 @@ func (t *Terrain) GetModelMatrix() raylib.Matrix {
 	return matTransform
 }
 
+func (t *Terrain) GetModel() *raylib.Model {
+	return t.mdl
+}
+
 func (t *Terrain) SetColor(col color.Color) {
 }
 
@@ -315,24 +319,8 @@ func (t *Terrain) Postrender(cam *camera.Cam) []func() {
 func (t *Terrain) Update(dt float32) {
 }
 
-func (t *Terrain) Collide(data pub_object.CollisionData) {
-}
-
-func (t *Terrain) RegCollideHandler(handler func(pub_object.CollisionData) bool) {
-}
-
-func (t *Terrain) GetCollidable() []pub_object.Object {
-	return []pub_object.Object{}
-}
-
 func (t *Terrain) GetCollider() pub_object.Collider {
-	col := pub_object.Collider{
-		Box:    raylib.GetModelBoundingBox(*t.mdl),
-		Sphere: pub_object.BoundingSphere{},
-	}
-	col.Sphere.Center = raylib.NewVector3((col.Box.Min.X+col.Box.Max.X)/2, (col.Box.Min.Y+col.Box.Max.Y)/2, (col.Box.Min.Z+col.Box.Max.Z)/2)
-	col.Sphere.Radius = raylib.Vector3Distance(col.Sphere.Center, col.Box.Min)
-	return col
+	return nil
 }
 
 func (t *Terrain) OnAdd() {

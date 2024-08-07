@@ -31,8 +31,12 @@ func (g *Grid) Init() error {
 	return nil
 }
 
-func (c *Grid) GetModelMatrix() raylib.Matrix {
+func (g *Grid) GetModelMatrix() raylib.Matrix {
 	return raylib.MatrixIdentity()
+}
+
+func (g *Grid) GetModel() *raylib.Model {
+	return nil
 }
 
 func (g *Grid) SetColor(col color.Color) {
@@ -56,23 +60,23 @@ func (g *Grid) GetPos() raylib.Vector3 {
 	return raylib.NewVector3(0, 0, 0)
 }
 
-func (c *Grid) GetPitch() float32 {
+func (g *Grid) GetPitch() float32 {
 	return 0
 }
 
-func (c *Grid) SetPitch(p float32) {}
+func (g *Grid) SetPitch(p float32) {}
 
-func (c *Grid) GetYaw() float32 {
+func (g *Grid) GetYaw() float32 {
 	return 0
 }
 
-func (c *Grid) SetYaw(y float32) {}
+func (g *Grid) SetYaw(y float32) {}
 
-func (c *Grid) GetRoll() float32 {
+func (g *Grid) GetRoll() float32 {
 	return 0
 }
 
-func (c *Grid) SetRoll(r float32) {}
+func (g *Grid) SetRoll(r float32) {}
 
 func (g *Grid) GetVertices() []raylib.Vector3 {
 	verts := []raylib.Vector3{}
@@ -117,19 +121,8 @@ func (g *Grid) Postrender(cam *camera.Cam) []func() {
 func (g *Grid) Update(dt float32) {
 }
 
-func (g *Grid) Collide(data pub_object.CollisionData) {
-}
-
-func (g *Grid) RegCollideHandler(handler func(pub_object.CollisionData) bool) {
-}
-
-func (g *Grid) GetCollidable() []pub_object.Object {
-	return []pub_object.Object{}
-}
-
 func (g *Grid) GetCollider() pub_object.Collider {
-	col := pub_object.Collider{}
-	return col
+	return nil
 }
 
 func (g *Grid) OnAdd() {

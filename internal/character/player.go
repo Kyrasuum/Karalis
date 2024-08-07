@@ -98,16 +98,6 @@ func (p *Player) Update(dt float32) {
 	p.char.Update(dt)
 }
 
-func (p *Player) Collide(data object.CollisionData) {
-}
-
-func (p *Player) RegCollideHandler(handler func(object.CollisionData) bool) {
-}
-
-func (p *Player) GetCollidable() []object.Object {
-	return p.char.GetCollidable()
-}
-
 func (p *Player) GetCollider() object.Collider {
 	return p.char.GetCollider()
 }
@@ -140,6 +130,10 @@ func (p *Player) GetModelMatrix() raylib.Matrix {
 	matTranslation := raylib.MatrixTranslate(p.pos.X, p.pos.Y, p.pos.Z)
 	matTransform := raylib.MatrixMultiply(raylib.MatrixMultiply(matScale, matRotation), matTranslation)
 	return matTransform
+}
+
+func (p *Player) GetModel() *raylib.Model {
+	return p.char.GetModel()
 }
 
 func (p *Player) SetColor(col color.Color) {
