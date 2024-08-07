@@ -25,6 +25,8 @@ type Portal struct {
 	obj    pub_object.Object
 	cam    *camera.Cam
 
+	touching []pub_object.Object
+
 	rendering bool
 	visible   bool
 }
@@ -67,6 +69,8 @@ func (p *Portal) Init(scene *cell.Cell, exit *Portal, cam *camera.Cam, obj pub_o
 	raylib.SetTextureFilter(text.Texture, raylib.FilterBilinear)
 	raylib.SetTextureWrap(text.Texture, raylib.WrapRepeat)
 	p.target = &text
+
+	p.touching = []pub_object.Object{}
 
 	p.rendering = false
 	p.visible = true
@@ -162,6 +166,10 @@ func (p *Portal) GetModelMatrix() raylib.Matrix {
 	} else {
 		return raylib.MatrixTranslate(0, 0, 0)
 	}
+}
+
+func (p *Portal) GetModel() *raylib.Model {
+	return p.obj.GetModel()
 }
 
 func (p *Portal) GetPitch() float32 {
@@ -346,41 +354,47 @@ func (p *Portal) Render(cam *camera.Cam) []func() {
 			}
 		}
 
-		//render objects exiting portal
-		sh := app.CurApp.GetShader()
-		err := sh.SetDefine("PORTAL_SCN", true)
-		if err != nil {
-			fmt.Printf("%+v\n", err)
-			p.visible = false
-		}
-		err = sh.SetUniform("portalPos", p.obj.GetPos())
-		if err != nil {
-			fmt.Printf("%+v\n", err)
-			p.visible = false
-		}
-		err = sh.SetUniform("portalNorm", p.GetNormal())
-		if err != nil {
-			fmt.Printf("%+v\n", err)
-			p.visible = false
-		}
+		col := p.exit.obj.GetCollider()
+		if col != nil {
+			//render objects exiting portal
+			sh := app.CurApp.GetShader()
+			err := sh.SetDefine("PORTAL_SCN", true)
+			if err != nil {
+				fmt.Printf("%+v\n", err)
+				p.visible = false
+			}
+			err = sh.SetUniform("portalPos", p.obj.GetPos())
+			if err != nil {
+				fmt.Printf("%+v\n", err)
+				p.visible = false
+			}
+			err = sh.SetUniform("portalNorm", p.GetNormal())
+			if err != nil {
+				fmt.Printf("%+v\n", err)
+				p.visible = false
+			}
 
-		//prevent rerendering a portal a second time
-		p.rendering = true
-		if p.exit != nil {
-			p.exit.visible = false
-		}
+			//prevent rerendering a portal a second time
+			p.rendering = true
+			if p.exit != nil {
+				p.exit.visible = false
+			}
 
-		p.scene.Render(cam)
+			touching := col.GetTouching()
+			for _, obj := range touching {
+				obj.Render(cam)
+			}
 
-		p.rendering = false
-		if p.exit != nil {
-			p.exit.visible = true
-		}
+			p.rendering = false
+			if p.exit != nil {
+				p.exit.visible = true
+			}
 
-		err = sh.SetDefine("PORTAL_SCN", false)
-		if err != nil {
-			fmt.Printf("%+v\n", err)
-			p.visible = false
+			err = sh.SetDefine("PORTAL_SCN", false)
+			if err != nil {
+				fmt.Printf("%+v\n", err)
+				p.visible = false
+			}
 		}
 	}
 
@@ -411,19 +425,6 @@ func (p *Portal) Update(dt float32) {
 	if p.exit != nil {
 		p.exit.scene = exit_scene
 	}
-}
-
-// handle collision event
-func (p *Portal) Collide(data pub_object.CollisionData) {
-}
-
-// register new collision handler
-func (p *Portal) RegCollideHandler(handler func(pub_object.CollisionData) bool) {
-}
-
-// check if object can collide
-func (p *Portal) GetCollidable() []pub_object.Object {
-	return p.obj.GetCollidable()
 }
 
 // retrieve the collider for collision detection

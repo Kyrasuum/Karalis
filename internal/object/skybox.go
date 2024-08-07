@@ -161,6 +161,10 @@ func (s *Skybox) GetModelMatrix() raylib.Matrix {
 	return raylib.MatrixIdentity()
 }
 
+func (s *Skybox) GetModel() *raylib.Model {
+	return nil
+}
+
 func (s *Skybox) SetColor(col color.Color) {
 }
 
@@ -271,19 +275,8 @@ func (s *Skybox) Postrender(cam *camera.Cam) []func() {
 func (s *Skybox) Update(dt float32) {
 }
 
-func (s *Skybox) Collide(data pub_object.CollisionData) {
-}
-
-func (s *Skybox) RegCollideHandler(handler func(pub_object.CollisionData) bool) {
-}
-
-func (s *Skybox) GetCollidable() []pub_object.Object {
-	return []pub_object.Object{}
-}
-
 func (s *Skybox) GetCollider() pub_object.Collider {
-	col := pub_object.Collider{}
-	return col
+	return nil
 }
 
 func (s *Skybox) OnAdd() {

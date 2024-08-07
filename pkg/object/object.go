@@ -23,9 +23,9 @@ import "C"
 var ()
 
 type Object interface {
-	GetCollidable() []Object
 	GetCollider() Collider
 	GetModelMatrix() raylib.Matrix
+	GetModel() *raylib.Model
 	SetColor(c color.Color)
 	GetColor() color.Color
 	SetScale(s raylib.Vector3)
@@ -48,8 +48,6 @@ type Object interface {
 	Render(cam *camera.Cam) []func()
 	Postrender(cam *camera.Cam) []func()
 	Update(dt float32)
-	Collide(CollisionData)
-	RegCollideHandler(func(CollisionData) bool)
 	OnAdd()
 	OnRemove()
 	AddChild(obj Object)

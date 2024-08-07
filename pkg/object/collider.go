@@ -6,19 +6,24 @@ import (
 
 var ()
 
-type CollisionData struct {
-	Obj1 Object
-	Obj2 Object
-}
-
 type BoundingSphere struct {
 	Center raylib.Vector3
 	Radius float32
 }
 
-type Collider struct {
-	Box    raylib.BoundingBox
-	Sphere BoundingSphere
+type CollisionData struct {
+	Obj1 Object
+	Obj2 Object
+}
+
+type Collider interface {
+	GetBoundingSphere() BoundingSphere
+	GetBoundingBox() raylib.BoundingBox
+	GetCollidable() []Object
+	Collide(CollisionData)
+	Update(dt float32)
+	RegHandler(string, interface{})
+	GetTouching() []Object
 }
 
 func CheckCollisionSpheres(sp1 BoundingSphere, sp2 BoundingSphere) bool {

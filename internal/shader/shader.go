@@ -2,9 +2,10 @@ package shader
 
 import (
 	"fmt"
-	"karalis/res"
 	"slices"
 	"strings"
+
+	"karalis/res"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
@@ -41,32 +42,35 @@ func (s *Shader) shaderKey() string {
 	return strings.Join(keys, "")
 }
 
+func (s *Shader) loadShader(name string) string {
+	strss := ""
+
+	ss, err := res.GetRes(name)
+	if err != nil {
+		return strss
+	}
+
+	strss = string(ss.([]byte))
+	posss := strings.Index(strss, "\n") + 1
+	for define, _ := range s.defines {
+		strss = strss[:posss] + "#define " + define + "\n" + strss[posss:]
+	}
+
+	return strss
+}
+
 func (s *Shader) genShader() error {
 	key := s.shaderKey()
 	if shader, ok := s.shaders[key]; ok {
 		s.shader = shader
 	} else {
-		fs, err := res.GetRes("shader/" + s.name + ".frag")
-		if err != nil {
-			return err
-		}
-		vx, err := res.GetRes("shader/" + s.name + ".vert")
-		if err != nil {
-			return err
-		}
-		strvx := string(vx.([]byte))
-		strfs := string(fs.([]byte))
+		strgs := s.loadShader("shader/" + s.name + ".geom")
+		strvs := s.loadShader("shader/" + s.name + ".vert")
+		strfs := s.loadShader("shader/" + s.name + ".frag")
 
-		posvx := strings.Index(strvx, "\n") + 1
-		posfs := strings.Index(strvx, "\n") + 1
-		for define, _ := range s.defines {
-			strvx = strvx[:posvx] + "#define " + define + "\n" + strvx[posvx:]
-			strfs = strfs[:posfs] + "#define " + define + "\n" + strfs[posfs:]
-		}
-
-		shader := raylib.LoadShaderFromMemory(strvx, strfs)
+		shader := raylib.LoadShaderFromMemory(strgs, strvs, strfs)
 		s.shader = &shader
-		s.shaders[key] = &shader
+		s.shaders[key] = s.shader
 	}
 
 	for uniform, val := range s.uniforms {
