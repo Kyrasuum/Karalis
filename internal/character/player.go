@@ -8,8 +8,9 @@ import (
 	"karalis/pkg/input"
 	"karalis/pkg/object"
 
-	raylib "github.com/gen2brain/raylib-go/raylib"
 	lmath "karalis/pkg/lmath"
+
+	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
 var ()
@@ -18,12 +19,11 @@ type Player struct {
 	cam  *camera.Cam
 	char *Character
 
-	lastmpos raylib.Vector2
-	nextmpos raylib.Vector2
-
 	pos   raylib.Vector3
 	rot   raylib.Vector3
 	scale raylib.Vector3
+
+	rchan chan (int)
 
 	mode    int
 	capture bool
@@ -40,6 +40,8 @@ func (p *Player) Init() (err error) {
 	p.pos = raylib.NewVector3(0, 0, 0)
 	p.rot = raylib.NewVector3(0, 0, 0)
 	p.scale = raylib.NewVector3(1, 1, 1)
+
+	p.rchan = make(chan int)
 
 	p.char, err = NewCharacter()
 	if err != nil {
@@ -76,6 +78,14 @@ func (p *Player) Prerender(cam *camera.Cam) []func() {
 
 func (p *Player) Render(cam *camera.Cam) []func() {
 	cmds := p.char.Render(cam)
+
+	//update cant directly set mouse position
+	select {
+	case <-p.rchan:
+		raylib.SetMousePosition(int(float32(app.CurApp.GetWidth())/2), int(float32(app.CurApp.GetHeight())/2))
+	default:
+	}
+
 	return cmds
 }
 
@@ -192,9 +202,10 @@ func (p *Player) GetCam() *camera.Cam {
 }
 
 func (p *Player) CaptureMouse() {
-	p.nextmpos = raylib.NewVector2(float32(app.CurApp.GetWidth())/2, float32(app.CurApp.GetHeight())/2)
-	raylib.SetMousePosition(int(p.nextmpos.X), int(p.nextmpos.Y))
-	p.lastmpos = p.nextmpos
+	//can't directly call from update
+	// raylib.SetMousePosition(int(float32(app.CurApp.GetWidth())/2), int(float32(app.CurApp.GetHeight())/2))
+	p.rchan <- 1
+
 	p.capture = true
 }
 
@@ -259,17 +270,18 @@ func (p *Player) OnInput(dt float32) {
 	}
 
 	if p.MouseCaptured() {
-		p.nextmpos = raylib.GetMousePosition()
+		mpos := raylib.GetMousePosition()
 		raylib.DisableCursor()
 		raylib.HideCursor()
 
 		zoom = float32(raylib.GetMouseWheelMove()) * dt * 20
 
-		dx = dt * 20 * raylib.Deg2rad * (p.lastmpos.X - p.nextmpos.X)
-		dy = dt * 20 * raylib.Deg2rad * (p.lastmpos.Y - p.nextmpos.Y)
+		dx = dt * 20 * raylib.Deg2rad * (float32(app.CurApp.GetWidth())/2 - mpos.X)
+		dy = dt * 20 * raylib.Deg2rad * (float32(app.CurApp.GetHeight())/2 - mpos.Y)
 
-		p.lastmpos = raylib.NewVector2(float32(app.CurApp.GetWidth())/2, float32(app.CurApp.GetHeight())/2)
-		raylib.SetMousePosition(int(p.lastmpos.X), int(p.lastmpos.Y))
+		//cant directly call due to bug using this in a subroutine on windows
+		// raylib.SetMousePosition(int(float32(app.CurApp.GetWidth())/2), int(float32(app.CurApp.GetHeight())/2))
+		p.rchan <- 1
 	}
 	p.updateCam(move, zoom, dx, dy)
 }
