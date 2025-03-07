@@ -102,7 +102,7 @@ func GetKeysPressed() map[string]bool {
 
 	//check mouse
 	for key, enum := range mouse {
-		if raylib.IsMouseButtonDown(enum) {
+		if raylib.IsMouseButtonDown(raylib.MouseButton(enum)) {
 			keys[key] = true
 		}
 	}

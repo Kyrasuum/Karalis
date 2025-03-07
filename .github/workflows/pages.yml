@@ -1,0 +1,35 @@
+name: Deploy/Build pages
+
+on:
+  push:
+    branches: ["master", "main"]
+    paths:
+    - 'pages'
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  build-pages:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v4 #https://github.com/actions/checkout
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 23
+          
+      - run: cd pages && npm ci
+      - run: cd pages && npm run build
+      - run: touch pages/dist/.nojekyll
+
+      - name: Deploy gh-pages
+        continue-on-error: true
+        uses: JamesIves/github-pages-deploy-action@4.1.4
+        with:
+          branch: pages
+          folder: pages/dist

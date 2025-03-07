@@ -11,6 +11,12 @@ Compiling requires resources file downloaded seperately and an install of golang
 ## Building
 Building is done via the makefile script
 
+### Build Dependencies
+This project utilizes raylib so you will need to install this on the system.
+Raylib: https://github.com/raysan5/raylib
+Github Action for installing raylib: https://github.com/Kyrasuum/RaylibSetup/tree/main
+Any other dependencies are handled via the makefile target 'dep'
+
 ## Design Goals
 IN PROGRESS
 

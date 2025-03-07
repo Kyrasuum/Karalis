@@ -1,0 +1,139 @@
+// app global css in SCSS form
+$grey-15: #2a2a2a;
+$grey-16: #262626;
+$grey-17: #232323;
+$red-15: #600000;
+$red-16: #400000;
+
+.bg-grey-15 {
+	background-color: $grey-15;
+}
+.bg-grey-16 {
+	background-color: $grey-16;
+}
+.bg-grey-17 {
+	background-color: $grey-17;
+}
+.bg-red-15 {
+	background-color: $red-15;
+}
+.bg-red-16 {
+	background-color: $red-16;
+}
+.bg-steelblue {
+	background-color: rgb(96, 115, 141);
+}
+
+.truncate {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.invert {
+	filter: invert(75%)
+}
+
+.borders {
+	border-style: solid;
+	border-width: 1px;
+}
+
+.tooltip {
+	display: none;
+	position: absolute;
+	z-index: 10;
+}
+.tooltip-parent:hover .tooltip {
+	display: block;
+	opacity: 1;
+	animation-name: tooltip-appear;
+	animation-duration: 1s;
+
+	.tooltip {
+		display: block;
+		opacity: 1;
+		animation-name: tooltip-appear;
+		animation-duration: 1s;
+	}
+}
+@keyframes tooltip-appear {
+	0%      {opacity: 0}
+	100%    {opacity: 1}
+}
+
+a {
+	color: $blue-6;
+}
+a:visited {
+	color: $blue-6;
+}
+.body--dark a {
+	color: $blue-10;
+}
+.body--dark a:visited {
+	color: $blue-10;
+}
+
+.dropdown {
+	display: none;
+	position: absolute;
+	z-index: 1;
+}
+.dropdown-visible {
+	display: block;
+}
+
+.hoverable:hover {
+	background-color: #dadada;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: -moz-none;
+	-o-user-select: none;
+	user-select: none;
+}
+.body--dark .hoverable:hover {
+	background-color: #4a4a4a;
+}
+
+/* width */
+::-webkit-scrollbar {
+	width: 7px; //Changed to make the scroll bars more obvious
+	height: 7px; //Changed to make the scroll bars more obvious
+	overflow: overlay;
+}
+
+::-webkit-scrollbar-corner {
+	background: none;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+	background: none;
+
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+	background: grayscale($color: $blue-7); //Changed to make the scroll bars more obvious
+	border-radius: 10px;
+}
+
+/* When the user hovers over a scroll bar, the bar will light-up*/
+::-webkit-scrollbar-thumb:hover {
+	background: rgb(180, 178, 178);
+}
+
+
+pre {
+	white-space: pre-wrap;       /* css-3 */
+	white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+	white-space: -pre-wrap;      /* Opera 4-6 */
+	white-space: -o-pre-wrap;    /* Opera 7 */
+	word-wrap: break-word;       /* Internet Explorer 5.5+ */
+}
+
+
+.text-underline {
+	text-decoration: underline;
+}

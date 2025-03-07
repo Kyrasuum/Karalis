@@ -136,13 +136,13 @@ var (
 
 	mouse map[string]int32 = map[string]int32{
 		// Mouse Buttons
-		"LeftButton":    raylib.MouseButtonLeft,
-		"RightButton":   raylib.MouseButtonRight,
-		"MiddleButton":  raylib.MouseButtonMiddle,
-		"SideButton":    raylib.MouseButtonSide,
-		"ExtraButton":   raylib.MouseButtonExtra,
-		"ForwardButton": raylib.MouseButtonForward,
-		"BackButton":    raylib.MouseButtonBack,
+		"LeftButton":    int32(raylib.MouseButtonLeft),
+		"RightButton":   int32(raylib.MouseButtonRight),
+		"MiddleButton":  int32(raylib.MouseButtonMiddle),
+		"SideButton":    int32(raylib.MouseButtonSide),
+		"ExtraButton":   int32(raylib.MouseButtonExtra),
+		"ForwardButton": int32(raylib.MouseButtonForward),
+		"BackButton":    int32(raylib.MouseButtonBack),
 	}
 
 	gamepad map[string]int32 = map[string]int32{

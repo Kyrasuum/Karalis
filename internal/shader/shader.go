@@ -65,10 +65,12 @@ func (s *Shader) genShader() error {
 		s.shader = shader
 	} else {
 		strgs := s.loadShader("shader/" + s.name + ".geom")
+		strcs := s.loadShader("shader/" + s.name + ".ctrl")
+		stres := s.loadShader("shader/" + s.name + ".eval")
 		strvs := s.loadShader("shader/" + s.name + ".vert")
 		strfs := s.loadShader("shader/" + s.name + ".frag")
 
-		shader := raylib.LoadShaderFromMemory(strgs, strvs, strfs)
+		shader := raylib.LoadShaderFromMemory(strgs, strcs, stres, strvs, strfs)
 		s.shader = &shader
 		s.shaders[key] = s.shader
 	}

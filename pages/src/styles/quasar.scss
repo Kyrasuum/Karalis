@@ -1,0 +1,147 @@
+@import 'quasar/dist/quasar.css';
+
+$off-white: #eaeaea;
+$shadow-dk-color: $accent;
+
+.bg-trans {
+    opacity: 0.5;
+}
+
+.bg-no-trans {
+    opacity: 1.0;
+}
+
+button>span>span {
+    transform: translateY(1.49px);
+}
+
+.title {
+  font-size: large;
+  font-weight: bold;
+  text-align: center;
+
+  .body {
+	font-size: medium;
+	font-weight: normal;
+  }
+}
+
+.body--light .filterDrawer {
+	background-image: linear-gradient(to right, rgba(200,200,200,1), rgba(112,128,144,0.2), rgba(112,128,144,0.2));
+	padding: 10px;
+}
+.body--dark .filterDrawer {
+	background-color: rgba(0,0,0,1);
+	padding: 10px;
+}
+
+.body--light .my-card {
+	background-color: rgba(255,255,255,0.05)
+}
+
+.body--dark .my-card {
+	background-color: rgba(255,255,255,0.05)
+}
+
+.body--light .drawer {
+	background-image: linear-gradient(to right, rgba(200,200,200,1), rgba(112,128,144,0.2), rgba(112,128,144,0.2));
+}
+.body--dark .drawer {
+	background-image: linear-gradient(to right, rgba(50,50,50,0.5), rgba(50,50,50,0.1), rgba(0,0,0,1), rgba(0,0,0,1));
+}
+
+
+$shadow-dk-color         : #aaa;
+$shadow-dk-transition    : box-shadow .28s cubic-bezier(.4, 0, .2, 1);
+$inset-shadow-dk         : 0 7px 9px -7px rgba($shadow-dk-color, .7) inset;
+$inset-shadow-dk-down    : 0 -7px 9px -7px rgba($shadow-dk-color, .7) inset;
+
+$elevation-dk-umbra      : rgba($shadow-dk-color, .2);
+$elevation-dk-penumbra   : rgba($shadow-dk-color, .14);
+$elevation-dk-ambient    : rgba($shadow-dk-color, .12);
+
+$shadow-dk-0  : 0 0 0 $elevation-dk-umbra, 0 0 0 $elevation-dk-penumbra, 0 0 0 $elevation-dk-ambient;
+$shadow-dk-1  : 0 1px 3px $elevation-dk-umbra, 0 1px 1px $elevation-dk-penumbra, 0 2px 1px -1px $elevation-dk-ambient;
+$shadow-dk-2  : 0 1px 5px $elevation-dk-umbra, 0 2px 2px $elevation-dk-penumbra, 0 3px 1px -2px $elevation-dk-ambient;
+$shadow-dk-3  : 0 1px 8px $elevation-dk-umbra, 0 3px 4px $elevation-dk-penumbra, 0 3px 3px -2px $elevation-dk-ambient;
+$shadow-dk-4  : 0 2px 4px -1px $elevation-dk-umbra, 0 4px 5px $elevation-dk-penumbra, 0 1px 10px $elevation-dk-ambient;
+$shadow-dk-5  : 0 3px 5px -1px $elevation-dk-umbra, 0 5px 8px $elevation-dk-penumbra, 0 1px 14px $elevation-dk-ambient;
+$shadow-dk-6  : 0 3px 5px -1px $elevation-dk-umbra, 0 6px 10px $elevation-dk-penumbra, 0 1px 18px $elevation-dk-ambient;
+$shadow-dk-7  : 0 4px 5px -2px $elevation-dk-umbra, 0 7px 10px 1px $elevation-dk-penumbra, 0 2px 16px 1px $elevation-dk-ambient;
+$shadow-dk-8  : 0 5px 5px -3px $elevation-dk-umbra, 0 8px 10px 1px $elevation-dk-penumbra, 0 3px 14px 2px $elevation-dk-ambient;
+$shadow-dk-9  : 0 5px 6px -3px $elevation-dk-umbra, 0 9px 12px 1px $elevation-dk-penumbra, 0 3px 16px 2px $elevation-dk-ambient;
+$shadow-dk-10 : 0 6px 6px -3px $elevation-dk-umbra, 0 10px 14px 1px $elevation-dk-penumbra, 0 4px 18px 3px $elevation-dk-ambient;
+$shadow-dk-11 : 0 6px 7px -4px $elevation-dk-umbra, 0 11px 15px 1px $elevation-dk-penumbra, 0 4px 20px 3px $elevation-dk-ambient;
+$shadow-dk-12 : 0 7px 8px -4px $elevation-dk-umbra, 0 12px 17px 2px $elevation-dk-penumbra, 0 5px 22px 4px $elevation-dk-ambient;
+$shadow-dk-13 : 0 7px 8px -4px $elevation-dk-umbra, 0 13px 19px 2px $elevation-dk-penumbra, 0 5px 24px 4px $elevation-dk-ambient;
+$shadow-dk-14 : 0 7px 9px -4px $elevation-dk-umbra, 0 14px 21px 2px $elevation-dk-penumbra, 0 5px 26px 4px $elevation-dk-ambient;
+$shadow-dk-15 : 0 8px 9px -5px $elevation-dk-umbra, 0 15px 22px 2px $elevation-dk-penumbra, 0 6px 28px 5px $elevation-dk-ambient;
+$shadow-dk-16 : 0 8px 10px -5px $elevation-dk-umbra, 0 16px 24px 2px $elevation-dk-penumbra, 0 6px 30px 5px $elevation-dk-ambient;
+$shadow-dk-17 : 0 8px 11px -5px $elevation-dk-umbra, 0 17px 26px 2px $elevation-dk-penumbra, 0 6px 32px 5px $elevation-dk-ambient;
+$shadow-dk-18 : 0 9px 11px -5px $elevation-dk-umbra, 0 18px 28px 2px $elevation-dk-penumbra, 0 7px 34px 6px $elevation-dk-ambient;
+$shadow-dk-19 : 0 9px 12px -6px $elevation-dk-umbra, 0 19px 29px 2px $elevation-dk-penumbra, 0 7px 36px 6px $elevation-dk-ambient;
+$shadow-dk-20 : 0 10px 13px -6px $elevation-dk-umbra, 0 20px 31px 3px $elevation-dk-penumbra, 0 8px 38px 7px $elevation-dk-ambient;
+$shadow-dk-21 : 0 10px 13px -6px $elevation-dk-umbra, 0 21px 33px 3px $elevation-dk-penumbra, 0 8px 40px 7px $elevation-dk-ambient;
+$shadow-dk-22 : 0 10px 14px -6px $elevation-dk-umbra, 0 22px 35px 3px $elevation-dk-penumbra, 0 8px 42px 7px $elevation-dk-ambient;
+$shadow-dk-23 : 0 11px 14px -7px $elevation-dk-umbra, 0 23px 36px 3px $elevation-dk-penumbra, 0 9px 44px 8px $elevation-dk-ambient;
+$shadow-dk-24 : 0 11px 15px -7px $elevation-dk-umbra, 0 24px 38px 3px $elevation-dk-penumbra, 0 9px 46px 8px $elevation-dk-ambient;
+
+$shadows-dk: ($shadow-dk-1, $shadow-dk-2, $shadow-dk-3, $shadow-dk-4, $shadow-dk-5, $shadow-dk-6, $shadow-dk-7, $shadow-dk-8, $shadow-dk-9, $shadow-dk-10, $shadow-dk-11, $shadow-dk-12, $shadow-dk-13, $shadow-dk-14, $shadow-dk-15, $shadow-dk-16, $shadow-dk-17, $shadow-dk-18, $shadow-dk-19, $shadow-dk-20, $shadow-dk-21, $shadow-dk-22, $shadow-dk-23, $shadow-dk-24);
+
+$shadow-dk-up-0  : 0 0 0 $elevation-dk-umbra, 0 0 0 $elevation-dk-penumbra, 0 0 0 $elevation-dk-ambient;
+$shadow-dk-up-1  : 0 -1px 3px $elevation-dk-umbra, 0 -1px 1px $elevation-dk-penumbra, 0 -2px 1px -1px $elevation-dk-ambient;
+$shadow-dk-up-2  : 0 -1px 5px $elevation-dk-umbra, 0 -2px 2px $elevation-dk-penumbra, 0 -3px 1px -2px $elevation-dk-ambient;
+$shadow-dk-up-3  : 0 -1px 8px $elevation-dk-umbra, 0 -3px 4px $elevation-dk-penumbra, 0 -3px 3px -2px $elevation-dk-ambient;
+$shadow-dk-up-4  : 0 -2px 4px -1px $elevation-dk-umbra, 0 -4px 5px $elevation-dk-penumbra, 0 -1px 10px $elevation-dk-ambient;
+$shadow-dk-up-5  : 0 -3px 5px -1px $elevation-dk-umbra, 0 -5px 8px $elevation-dk-penumbra, 0 -1px 14px $elevation-dk-ambient;
+$shadow-dk-up-6  : 0 -3px 5px -1px $elevation-dk-umbra, 0 -6px 10px $elevation-dk-penumbra, 0 -1px 18px $elevation-dk-ambient;
+$shadow-dk-up-7  : 0 -4px 5px -2px $elevation-dk-umbra, 0 -7px 10px 1px $elevation-dk-penumbra, 0 -2px 16px 1px $elevation-dk-ambient;
+$shadow-dk-up-8  : 0 -5px 5px -3px $elevation-dk-umbra, 0 -8px 10px 1px $elevation-dk-penumbra, 0 -3px 14px 2px $elevation-dk-ambient;
+$shadow-dk-up-9  : 0 -5px 6px -3px $elevation-dk-umbra, 0 -9px 12px 1px $elevation-dk-penumbra, 0 -3px 16px 2px $elevation-dk-ambient;
+$shadow-dk-up-10 : 0 -6px 6px -3px $elevation-dk-umbra, 0 -10px 14px 1px $elevation-dk-penumbra, 0 -4px 18px 3px $elevation-dk-ambient;
+$shadow-dk-up-11 : 0 -6px 7px -4px $elevation-dk-umbra, 0 -11px 15px 1px $elevation-dk-penumbra, 0 -4px 20px 3px $elevation-dk-ambient;
+$shadow-dk-up-12 : 0 -7px 8px -4px $elevation-dk-umbra, 0 -12px 17px 2px $elevation-dk-penumbra, 0 -5px 22px 4px $elevation-dk-ambient;
+$shadow-dk-up-13 : 0 -7px 8px -4px $elevation-dk-umbra, 0 -13px 19px 2px $elevation-dk-penumbra, 0 -5px 24px 4px $elevation-dk-ambient;
+$shadow-dk-up-14 : 0 -7px 9px -4px $elevation-dk-umbra, 0 -14px 21px 2px $elevation-dk-penumbra, 0 -5px 26px 4px $elevation-dk-ambient;
+$shadow-dk-up-15 : 0 -8px 9px -5px $elevation-dk-umbra, 0 -15px 22px 2px $elevation-dk-penumbra, 0 -6px 28px 5px $elevation-dk-ambient;
+$shadow-dk-up-16 : 0 -8px 10px -5px $elevation-dk-umbra, 0 -16px 24px 2px $elevation-dk-penumbra, 0 -6px 30px 5px $elevation-dk-ambient;
+$shadow-dk-up-17 : 0 -8px 11px -5px $elevation-dk-umbra, 0 -17px 26px 2px $elevation-dk-penumbra, 0 -6px 32px 5px $elevation-dk-ambient;
+$shadow-dk-up-18 : 0 -9px 11px -5px $elevation-dk-umbra, 0 -18px 28px 2px $elevation-dk-penumbra, 0 -7px 34px 6px $elevation-dk-ambient;
+$shadow-dk-up-19 : 0 -9px 12px -6px $elevation-dk-umbra, 0 -19px 29px 2px $elevation-dk-penumbra, 0 -7px 36px 6px $elevation-dk-ambient;
+$shadow-dk-up-20 : 0 -10px 13px -6px $elevation-dk-umbra, 0 -20px 31px 3px $elevation-dk-penumbra, 0 -8px 38px 7px $elevation-dk-ambient;
+$shadow-dk-up-21 : 0 -10px 13px -6px $elevation-dk-umbra, 0 -21px 33px 3px $elevation-dk-penumbra, 0 -8px 40px 7px $elevation-dk-ambient;
+$shadow-dk-up-22 : 0 -10px 14px -6px $elevation-dk-umbra, 0 -22px 35px 3px $elevation-dk-penumbra, 0 -8px 42px 7px $elevation-dk-ambient;
+$shadow-dk-up-23 : 0 -11px 14px -7px $elevation-dk-umbra, 0 -23px 36px 3px $elevation-dk-penumbra, 0 -9px 44px 8px $elevation-dk-ambient;
+$shadow-dk-up-24 : 0 -11px 15px -7px $elevation-dk-umbra, 0 -24px 38px 3px $elevation-dk-penumbra, 0 -9px 46px 8px $elevation-dk-ambient;
+
+$shadows-dk-up: ($shadow-dk-up-1, $shadow-dk-up-2, $shadow-dk-up-3, $shadow-dk-up-4, $shadow-dk-up-5, $shadow-dk-up-6, $shadow-dk-up-7, $shadow-dk-up-8, $shadow-dk-up-9, $shadow-dk-up-10, $shadow-dk-up-11, $shadow-dk-up-12, $shadow-dk-up-13, $shadow-dk-up-14, $shadow-dk-up-15, $shadow-dk-up-16, $shadow-dk-up-17, $shadow-dk-up-18, $shadow-dk-up-19, $shadow-dk-up-20, $shadow-dk-up-21, $shadow-dk-up-22, $shadow-dk-up-23, $shadow-dk-up-24);
+
+$button-shadow-dk                  : $shadow-dk-2;
+$button-shadow-dk-active           : $shadow-dk-5;
+$table-box-shadow-dk               : $shadow-dk-2;
+$layout-shadow-dk                  : 0 0 10px 2px rgba(1,1,1,0.2), 0 0px 10px rgba(0,0,0,0.24);
+$menu-box-shadow-dk                : $shadow-dk-2;
+$rating-shadow-dk                  : 0 1px 3px rgba(1, 1, 1, .12), 0 1px 2px rgba(0, 0, 0, .24);
+
+body.body--dark .shadow-transition {
+	transition: $shadow-dk-transition;
+}
+
+.bg-grey-15 {
+	background: #2a2a2a;
+}
+
+
+$h1:        (size: 4rem,     line-height: 4rem,     letter-spacing: normal,    weight: 300);
+$h2:        (size: 2.5rem,   line-height: 2.5rem,   letter-spacing: normal,    weight: 300);
+$h3:        (size: 2rem,     line-height: 2rem,     letter-spacing: normal,    weight: 400);
+$h4:        (size: 1.75rem,  line-height: 1.75rem,  letter-spacing: normal,    weight: 400);
+$h5:        (size: 1.5rem,   line-height: 2rem,     letter-spacing: normal,    weight: 400);
+$h6:        (size: 1.25rem,  line-height: 2rem,     letter-spacing: .0125em,   weight: 500);
+$subtitle1: (size: 1rem,     line-height: 1.75rem,  letter-spacing: .00937em,  weight: 400);
+$subtitle2: (size: .875rem,  line-height: 1.375rem, letter-spacing: .00714em,  weight: 500);
+$body1:     (size: 1rem,     line-height: 1.5rem,   letter-spacing: .03125em,  weight: 400);
+$body2:     (size: .875rem,  line-height: 1.25rem,  letter-spacing: .01786em,  weight: 400);
+$overline:  (size: .75rem,   line-height: 2rem,     letter-spacing: .16667em,  weight: 500);
+$caption:   (size: .75rem,   line-height: 1.25rem,  letter-spacing: .03333em,  weight: 400);
+
