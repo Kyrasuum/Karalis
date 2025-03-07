@@ -70,7 +70,7 @@ func (s *Shader) genShader() error {
 		strvs := s.loadShader("shader/" + s.name + ".vert")
 		strfs := s.loadShader("shader/" + s.name + ".frag")
 
-		shader := raylib.LoadShaderFromMemory(strgs, strcs, stres, strvs, strfs)
+		shader := raylib.LoadShaderFromMemory(strvs, strcs, stres, strgs, strfs)
 		s.shader = &shader
 		s.shaders[key] = s.shader
 	}
