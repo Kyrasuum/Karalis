@@ -140,7 +140,6 @@ endif
 #: Install dependencies for compiling targets in this makefile
 dev-deps: .deps
 	@go mod tidy
-	@go get -v -u github.com/gen2brain/raylib-go/raylib
 	@touch .dev-deps
 
 .PHONY: test
