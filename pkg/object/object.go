@@ -10,7 +10,7 @@ import (
 )
 
 /*
-#include "../../include/raylib.h"
+#include "raylib.h"
 
 void UpdateModelUVs(Model* mdl) {
 	UpdateMeshBuffer(mdl->meshes[0], 1, &(mdl->meshes->texcoords[0]), mdl->meshes->vertexCount*2*sizeof(float), 0);

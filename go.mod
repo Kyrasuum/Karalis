@@ -2,9 +2,7 @@ module karalis
 
 go 1.22
 
-replace github.com/gen2brain/raylib-go/raylib => ../raylib-go/raylib
-
-//replace github.com/gen2brain/raylib-go/raylib v0.0.0-20250215042252-db8e47f0e5c5 => github.com/Kyrasuum/raylib-go/raylib v0.0.0-20250307045506-609a727413fd
+replace github.com/gen2brain/raylib-go/raylib => ./include/raylib-go/raylib
 
 require (
 	github.com/gen2brain/raylib-go/raylib v0.0.0-20250215042252-db8e47f0e5c5

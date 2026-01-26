@@ -113,16 +113,19 @@ func GetRes(path string) (interface{}, error) {
 func GetData(cfile *C.char, cdir *C.char) *C.char {
 	file := C.GoString(cfile)
 	dir := C.GoString(cdir)
-	path := dir + "/" + file
+	path := dir
+	if strings.Compare("", dir) != 0 {
+		path = path + "/"
+	}
+	path = path + file
 
 	pos := strings.Index(path, "./")
 	if pos == 0 {
 		path = path[2:]
 	}
 
-	data, err := GetRes(path)
-	if err == nil {
-		return C.CString(string(data.([]byte)))
+	if res, ok := resources[path]; ok && res.err == nil {
+		return C.CString(string(res.data.([]byte)))
 	}
 
 	return nil

@@ -6,11 +6,8 @@ RELEASE_DIR = ./release/
 EXEC = karalis
 GCC = gcc
 GCP = g++
-
-INCLUDE_DIR = $(CURDIR)/include
-CFLAGS = -I$(INCLUDE_DIR)
-LIB_DIR = $(CURDIR)/lib
-LDFLAGS = -L$(LIB_DIR)
+CFLAGS = -I$(CURDIR)/include/raylib-go/raylib
+LDFLAGS = -L$(CURDIR)/lib
 
 #Get OS and configure based on OS
 ifeq ($(OS),Windows_NT)
