@@ -33,8 +33,8 @@ func (s *Cam) Init() error {
 
 	s.dist = 4
 	s.roll = 0
-	s.pitch = raylib.Deg2rad * -30
-	s.yaw = raylib.Deg2rad * 45
+	s.pitch = -30
+	s.yaw = 45
 	s.UpdateCam()
 
 	return nil
@@ -81,7 +81,7 @@ func (s *Cam) GetModelMatrix() raylib.Matrix {
 
 	view := ql.RotateVec3(lmath.Vec3{0, 0, float64(s.dist)})
 	view.X += float64(s.camera.Target.X)
-	view.Y -= float64(s.camera.Target.Y)
+	view.Y += float64(s.camera.Target.Y)
 	view.Z += float64(s.camera.Target.Z)
 
 	camMat := raylib.QuaternionToMatrix(raylib.NewQuaternion(float32(ql.X), float32(ql.Y), float32(ql.Z), float32(ql.W)))
@@ -151,7 +151,7 @@ func (s *Cam) MoveCam(move lmath.Vec3) {
 
 func (s *Cam) UpdateCam() {
 	ql := lmath.Quat{}
-	ql = *ql.FromEuler(float64(s.pitch), float64(s.yaw), float64(s.roll))
+	ql = *ql.FromEuler(raylib.Deg2rad*float64(s.pitch), raylib.Deg2rad*float64(s.yaw), float64(s.roll))
 
 	view := ql.RotateVec3(lmath.Vec3{0, 0, float64(s.dist)})
 

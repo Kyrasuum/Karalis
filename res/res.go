@@ -6,14 +6,11 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"unsafe"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
 /*
-#cgo windows CFLAGS: -I../raylib/src
-#cgo windows LDFLAGS: -L../raylib/src
 #include "res.h"
 #include "stdlib.h"
 */
@@ -34,6 +31,8 @@ const tmp = ".tmp/"
 var resfs embed.FS
 
 func Init() error {
+	C.Init()
+
 	err := LoadDir(".")
 	if err != nil {
 		return err
@@ -86,13 +85,22 @@ func LoadDir(cwd string) error {
 func GetRes(path string) (interface{}, error) {
 	if res, ok := resources[path]; ok {
 		if res.err == nil && strings.Contains(path, ".obj") {
-			return LoadObjFS(path)
-		}
-		if res.err == nil && strings.Contains(path, "anim.iqm") {
-			return LoadIqmAnimFS(path)
+			return raylib.LoadModel(path), nil
 		}
 		if res.err == nil && strings.Contains(path, ".iqm") {
-			return LoadIqmFS(path)
+			return raylib.LoadModel(path), nil
+		}
+		if res.err == nil && strings.Contains(path, ".gltf") {
+			return raylib.LoadModel(path), nil
+		}
+		if res.err == nil && strings.Contains(path, "glb") {
+			return raylib.LoadModel(path), nil
+		}
+		if res.err == nil && strings.Contains(path, "vox") {
+			return raylib.LoadModel(path), nil
+		}
+		if res.err == nil && strings.Contains(path, "m3d") {
+			return raylib.LoadModel(path), nil
 		}
 
 		return res.data, res.err
@@ -118,62 +126,4 @@ func GetData(cfile *C.char, cdir *C.char) *C.char {
 	}
 
 	return nil
-}
-
-func LoadObjFS(path string) (interface{}, error) {
-	res, ok := resources[path]
-	if !ok {
-		return nil, fmt.Errorf("Resource not found\n")
-	}
-	if res.err != nil {
-		return nil, res.err
-	}
-
-	cpath := C.CString(path)
-	cdata := C.CString(string(res.data.([]byte)))
-	obj := C.LoadOBJ(cpath, cdata)
-	C.free(unsafe.Pointer(cpath))
-	C.free(unsafe.Pointer(cdata))
-
-	mdl := *(*raylib.Model)(unsafe.Pointer(obj))
-	return mdl, nil
-}
-
-func LoadIqmFS(path string) (interface{}, error) {
-	res, ok := resources[path]
-	if !ok {
-		return nil, fmt.Errorf("Resource not found\n")
-	}
-	if res.err != nil {
-		return nil, res.err
-	}
-
-	cpath := C.CString(path)
-	cdata := C.CString(string(res.data.([]byte)))
-	obj := C.LoadIQM(cpath, cdata)
-	C.free(unsafe.Pointer(cpath))
-	C.free(unsafe.Pointer(cdata))
-
-	mdl := *(*raylib.Model)(unsafe.Pointer(obj))
-	return mdl, nil
-}
-
-func LoadIqmAnimFS(path string) (interface{}, error) {
-	res, ok := resources[path]
-	if !ok {
-		return nil, fmt.Errorf("Resource not found\n")
-	}
-	if res.err != nil {
-		return nil, res.err
-	}
-
-	cpath := C.CString(path)
-	cdata := C.CString(string(res.data.([]byte)))
-	count := C.int(0)
-	iqm := C.LoadAnimIQM(cpath, cdata, &count)
-	C.free(unsafe.Pointer(cpath))
-	C.free(unsafe.Pointer(cdata))
-
-	anim := (*[1 << 24]raylib.ModelAnimation)(unsafe.Pointer(iqm))[:int(count)]
-	return anim, nil
 }

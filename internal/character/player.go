@@ -79,7 +79,7 @@ func (p *Player) Prerender(cam *camera.Cam) []func() {
 func (p *Player) Render(cam *camera.Cam) []func() {
 	cmds := p.char.Render(cam)
 
-	//update cant directly set mouse position
+	//update cant directly set mouse positions
 	select {
 	case <-p.rchan:
 		raylib.SetMousePosition(int(float32(app.CurApp.GetWidth())/2), int(float32(app.CurApp.GetHeight())/2))
@@ -214,8 +214,6 @@ func (p *Player) GetCam() *camera.Cam {
 }
 
 func (p *Player) CaptureMouse() {
-	//can't directly call from update
-	// raylib.SetMousePosition(int(float32(app.CurApp.GetWidth())/2), int(float32(app.CurApp.GetHeight())/2))
 	p.rchan <- 1
 
 	p.capture = true
@@ -288,11 +286,9 @@ func (p *Player) OnInput(dt float32) {
 
 		zoom = float32(raylib.GetMouseWheelMove()) * dt * 20
 
-		dx = dt * 20 * raylib.Deg2rad * (float32(app.CurApp.GetWidth())/2 - mpos.X)
-		dy = dt * 20 * raylib.Deg2rad * (float32(app.CurApp.GetHeight())/2 - mpos.Y)
+		dx = dt * 200 * raylib.Deg2rad * (float32(app.CurApp.GetWidth())/2 - mpos.X)
+		dy = dt * 200 * raylib.Deg2rad * (float32(app.CurApp.GetHeight())/2 - mpos.Y)
 
-		//cant directly call due to bug using this in a subroutine on windows
-		// raylib.SetMousePosition(int(float32(app.CurApp.GetWidth())/2), int(float32(app.CurApp.GetHeight())/2))
 		p.rchan <- 1
 	}
 	p.updateCam(move, zoom, dx, dy)
@@ -321,10 +317,10 @@ func (p *Player) updateCam(move lmath.Vec3, zoom, dx, dy float32) {
 
 	ql := lmath.Quat{}
 	if p.mode == 0 {
-		move = ql.FromEuler(float64(p.cam.GetPitch()), float64(p.cam.GetYaw()), float64(p.cam.GetRoll())).RotateVec3(lmath.Vec3{float64(move.X), float64(move.Y), float64(move.Z)})
+		move = ql.FromEuler(float64(raylib.Deg2rad*p.cam.GetPitch()), raylib.Deg2rad*float64(p.cam.GetYaw()), float64(raylib.Deg2rad*p.cam.GetRoll())).RotateVec3(lmath.Vec3{float64(move.X), float64(move.Y), float64(move.Z)})
 	}
 	if p.mode == 1 {
-		move = ql.FromEuler(0, float64(p.cam.GetYaw()), 0).RotateVec3(lmath.Vec3{float64(move.X), float64(move.Y), float64(move.Z)})
+		move = ql.FromEuler(0, float64(raylib.Deg2rad*p.cam.GetYaw()), 0).RotateVec3(lmath.Vec3{float64(move.X), float64(move.Y), float64(move.Z)})
 	}
 
 	p.cam.SetDist(dist)

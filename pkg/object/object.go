@@ -10,9 +10,7 @@ import (
 )
 
 /*
-#cgo windows CFLAGS: -I../../raylib/src
-#cgo windows LDFLAGS: -L../../raylib/src
-#include "raylib.h"
+#include "../../include/raylib.h"
 
 void UpdateModelUVs(Model* mdl) {
 	UpdateMeshBuffer(mdl->meshes[0], 1, &(mdl->meshes->texcoords[0]), mdl->meshes->vertexCount*2*sizeof(float), 0);

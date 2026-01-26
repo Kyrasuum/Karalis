@@ -4,6 +4,13 @@ PUB_DIR = ./pkg/
 BIN_DIR = ./bin/
 RELEASE_DIR = ./release/
 EXEC = karalis
+GCC = gcc
+GCP = g++
+
+INCLUDE_DIR = $(CURDIR)/include
+CFLAGS = -I$(INCLUDE_DIR)
+LIB_DIR = $(CURDIR)/lib
+LDFLAGS = -L$(LIB_DIR)
 
 #Get OS and configure based on OS
 ifeq ($(OS),Windows_NT)
@@ -49,19 +56,13 @@ run: build .deps
 .PHONY: build
 #: Performs a clean build of the project
 build: .dev-deps $(PRI_DIR)** $(PUB_DIR)**
-ifeq ($(DISTRO),windows)
-	@go env -w CGO_ENABLED=1
-	@go env -w GOOS='$(DISTRO)'
-	@go env -w GOARCH='$(ARCH)'
-	@go build -o $(BIN_DIR)$(EXEC).exe cmd/main.go
-else
 	@CGO_ENABLED=1 \
 	GOOS=$(DISTRO) \
 	GOARCH=$(ARCH) \
-	GO_CFLAGS=$(CFLAGS) \
-	GO_CPPFLAGS=$(CFLAGS) \
-	go build -o $(BIN_DIR)$(EXEC) cmd/main.go
-endif
+	CGO_CFLAGS=$(CFLAGS) \
+	CGO_CPPFLAGS=$(CFLAGS) \
+	CGO_LDFLAGS=$(LDFLAGS) \
+	go build -tags x11 -o $(BIN_DIR)$(EXEC) cmd/main.go
 
 build-wasm:
 	@DISTRO=js \
@@ -78,6 +79,8 @@ build-ubuntu:
 build-windows:
 	@DISTRO=windows \
 	ARCH=amd64 \
+	CC=x86_64-w64-mingw32-gcc \
+	CXX=x86_64-w64-mingw32-g++ \
 	$(MAKE) --no-print-directory build
 
 .PHONY: release
@@ -124,7 +127,7 @@ dev-deps: .dev-deps-linux-arm64
 .dev-deps-linux-arm64:
 	@sudo dpkg --add-architecture arm64
 	@sudo apt-get install -y libgl1-mesa-dev:arm64 libxi-dev:arm64 libxcursor-dev:arm64 libxrandr-dev:arm64 libxinerama-dev:arm64 libwayland-dev:arm64 libxkbcommon-dev:arm64
-	@sudo apt-get install -y libgl-dev:arm64 libx11-dev:arm64 xorg-dev:arm64 libxxf86vm-dev:arm64
+	@sudo apt-get install -y libgl-dev:arm64 libx11-dev:arm64 xorg-dev:arm64 libxxf86vm-dev:arm64 mingw-w64
 endif
 endif
 
