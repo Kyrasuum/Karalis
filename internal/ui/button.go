@@ -31,6 +31,10 @@ type Button struct {
 }
 
 func (b *Button) defaults() {
+	if b == nil {
+		return
+	}
+
 	b.pos = raylib.Rectangle{0, 0, 0, 0}
 	b.inset = raylib.Vector2{0, 0}
 	b.border = float32(3)
@@ -53,55 +57,103 @@ func (b *Button) defaults() {
 }
 
 func (b *Button) Init() error {
+	if b == nil {
+		return fmt.Errorf("Invalid button")
+	}
+
 	b.defaults()
 
 	return nil
 }
 
 func (b *Button) SetOnPress(f func()) {
+	if b == nil {
+		return
+	}
+
 	b.onPress = f
 }
 
 func (b *Button) SetPosition(p raylib.Rectangle) {
+	if b == nil {
+		return
+	}
+
 	b.pos = p
 	b.calcText()
 }
 
 func (b *Button) SetInset(i raylib.Vector2) {
+	if b == nil {
+		return
+	}
+
 	b.inset = i
 	b.calcText()
 }
 
 func (b *Button) SetBorder(bo float32) {
+	if b == nil {
+		return
+	}
+
 	b.border = bo
 	b.calcText()
 }
 
 func (b *Button) SetText(t string) {
+	if b == nil {
+		return
+	}
+
 	b.text = t
 }
 
 func (b *Button) SetFont(f raylib.Font) {
+	if b == nil {
+		return
+	}
+
 	b.font = f
 }
 
 func (b *Button) SetFontSize(f float32) {
+	if b == nil {
+		return
+	}
+
 	b.fontSize = f
 }
 
 func (b *Button) SetTextColor(c color.RGBA) {
+	if b == nil {
+		return
+	}
+
 	b.textCol = c
 }
 
 func (b *Button) SetBGColor(c color.RGBA) {
+	if b == nil {
+		return
+	}
+
 	b.bgCol = c
 }
 
 func (b *Button) SetBorderColor(c color.RGBA) {
+	if b == nil {
+		return
+	}
+
 	b.bordCol = c
 }
 
 func (b *Button) calcText() {
+	if b == nil {
+		return
+	}
+
 	b.subtext = b.text[:0]
 	for i := 1; 1 < len(b.text); i++ {
 		w := raylib.MeasureTextEx(b.font, b.text[:i], b.fontSize, b.spacing)
@@ -113,15 +165,26 @@ func (b *Button) calcText() {
 }
 
 func (b *Button) Render() {
+	if b == nil {
+		return
+	}
+
 	raylib.DrawRectangleLinesEx(b.pos, b.border, b.bordCol)
 	raylib.DrawRectangleRec(b.pos, b.bgCol)
 	raylib.DrawTextEx(b.font, b.subtext, raylib.Vector2{(b.pos.X + b.inset.X + b.border), (b.pos.Y + b.inset.Y + b.border)}, b.fontSize, b.spacing, b.textCol)
 }
 
 func (b *Button) Update(dt float64) {
+	if b == nil {
+		return
+	}
 }
 
 func (b *Button) OnInput() {
+	if b == nil {
+		return
+	}
+
 	mp := raylib.GetMousePosition()
 	if raylib.CheckCollisionPointRec(mp, b.pos) {
 		if raylib.IsMouseButtonPressed(raylib.MouseLeftButton) {
@@ -140,10 +203,19 @@ func (b *Button) OnInput() {
 }
 
 func (b *Button) OnResize(w int32, h int32) {
+	if b == nil {
+		return
+	}
 }
 
 func (b *Button) OnAdd() {
+	if b == nil {
+		return
+	}
 }
 
 func (b *Button) OnRemove() {
+	if b == nil {
+		return
+	}
 }

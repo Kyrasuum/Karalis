@@ -2,6 +2,7 @@ package object
 
 import (
 	"bytes"
+	"fmt"
 	"image"
 	"image/color"
 	"image/jpeg"
@@ -37,6 +38,10 @@ func NewSkybox(i interface{}) (s *Skybox, err error) {
 }
 
 func (s *Skybox) Init() error {
+	if s == nil {
+		return fmt.Errorf("Invalid skybox")
+	}
+
 	s.LoadImage(nil)
 
 	s.shd = &shader.Shader{}
@@ -89,6 +94,10 @@ func (s *Skybox) Init() error {
 }
 
 func (s *Skybox) LoadImage(i interface{}) {
+	if s == nil {
+		return
+	}
+
 	var img *raylib.Image
 	switch data := i.(type) {
 	case string:
@@ -158,87 +167,167 @@ func (s *Skybox) LoadImage(i interface{}) {
 }
 
 func (s *Skybox) GetModelMatrix() raylib.Matrix {
+	if s == nil {
+		return raylib.Matrix{}
+	}
+
 	return raylib.MatrixIdentity()
 }
 
 func (s *Skybox) GetModel() *raylib.Model {
+	if s == nil {
+		return nil
+	}
+
 	return nil
 }
 
 func (s *Skybox) SetColor(col color.Color) {
+	if s == nil {
+		return
+	}
 }
 
 func (s *Skybox) GetColor() color.Color {
+	if s == nil {
+		return nil
+	}
+
 	return raylib.White
 }
 
 func (s *Skybox) GetScale() raylib.Vector3 {
+	if s == nil {
+		return raylib.Vector3{}
+	}
+
 	return raylib.Vector3{1, 1, 1}
 }
 
 func (s *Skybox) SetScale(sc raylib.Vector3) {
+	if s == nil {
+		return
+	}
 }
 
 func (s *Skybox) SetPos(pos raylib.Vector3) {
+	if s == nil {
+		return
+	}
 }
 
 func (s *Skybox) GetPos() raylib.Vector3 {
+	if s == nil {
+		return raylib.Vector3{}
+	}
+
 	return raylib.Vector3{0, 0, 0}
 }
 
 func (s *Skybox) GetPitch() float32 {
+	if s == nil {
+		return 0
+	}
+
 	return 0
 }
 
 func (s *Skybox) SetPitch(pitch float32) {
+	if s == nil {
+		return
+	}
 }
 
 func (s *Skybox) GetYaw() float32 {
+	if s == nil {
+		return 0
+	}
+
 	return 0
 }
 
 func (s *Skybox) SetYaw(yaw float32) {
+	if s == nil {
+		return
+	}
 }
 
 func (s *Skybox) GetRoll() float32 {
+	if s == nil {
+		return 0
+	}
+
 	return 0
 }
 
 func (s *Skybox) SetRoll(roll float32) {
+	if s == nil {
+		return
+	}
 }
 
 func (s *Skybox) GetVertices() []raylib.Vector3 {
+	if s == nil {
+		return []raylib.Vector3{}
+	}
+
 	verts := []raylib.Vector3{}
 	return verts
 }
 
 func (s *Skybox) GetUVs() []raylib.Vector2 {
+	if s == nil {
+		return []raylib.Vector2{}
+	}
+
 	uvs := []raylib.Vector2{}
 	return uvs
 }
 
 func (s *Skybox) SetUVs(uvs []raylib.Vector2) {
+	if s == nil {
+		return
+	}
 }
 
 func (s *Skybox) GetMaterials() *raylib.Material {
+	if s == nil {
+		return nil
+	}
+
 	return nil
 }
 
 func (s *Skybox) SetTexture(tex raylib.Texture2D) {
+	if s == nil {
+		return
+	}
+
 	*s.tex = tex
 }
 
 func (s *Skybox) GetTexture() raylib.Texture2D {
+	if s == nil {
+		return raylib.Texture2D{}
+	}
+
 	return *s.tex
 }
 
 func (s *Skybox) Prerender(cam *camera.Cam) []func() {
 	cmds := []func(){}
+	if s == nil {
+		return cmds
+	}
+
 	return cmds
 }
 
 func (s *Skybox) Render(cam *camera.Cam) []func() {
 	cmds := []func(){}
+	if s == nil {
+		return cmds
+	}
 
 	raylib.DisableDepthMask()
 	raylib.DisableDepthTest()
@@ -269,28 +358,55 @@ func (s *Skybox) Render(cam *camera.Cam) []func() {
 
 func (s *Skybox) Postrender(cam *camera.Cam) []func() {
 	cmds := []func(){}
+	if s == nil {
+		return cmds
+	}
+
 	return cmds
 }
 
 func (s *Skybox) Update(dt float32) {
+	if s == nil {
+		return
+	}
 }
 
 func (s *Skybox) GetCollider() pub_object.Collider {
+	if s == nil {
+		return nil
+	}
+
 	return nil
 }
 
 func (s *Skybox) OnAdd() {
+	if s == nil {
+		return
+	}
 }
 
 func (s *Skybox) OnRemove() {
+	if s == nil {
+		return
+	}
 }
 
 func (s *Skybox) AddChild(obj pub_object.Object) {
+	if s == nil {
+		return
+	}
 }
 
 func (s *Skybox) RemChild(obj pub_object.Object) {
+	if s == nil {
+		return
+	}
 }
 
 func (s *Skybox) GetChilds() []pub_object.Object {
+	if s == nil {
+		return []pub_object.Object{}
+	}
+
 	return []pub_object.Object{}
 }

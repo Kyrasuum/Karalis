@@ -41,6 +41,10 @@ func NewPortal(scene *cell.Cell, exit *Portal, cam *camera.Cam, obj pub_object.O
 
 // initialize portal object
 func (p *Portal) Init(scene *cell.Cell, exit *Portal, cam *camera.Cam, obj pub_object.Object) error {
+	if p == nil {
+		return nil
+	}
+
 	if scene != nil {
 		p.scene = scene
 	} else {
@@ -90,21 +94,33 @@ func (p *Portal) Init(scene *cell.Cell, exit *Portal, cam *camera.Cam, obj pub_o
 
 // get exit scene
 func (p *Portal) GetScene() *cell.Cell {
+	if p == nil {
+		return nil
+	}
+
 	return p.scene
 }
 
 // get exit portal pair
 func (p *Portal) GetPair() *Portal {
+	if p == nil {
+		return nil
+	}
+
 	return p.exit
 }
 
 // set exit portal pair
 func (p *Portal) Pair(e *Portal) {
+	if p == nil {
+		return
+	}
+
 	if e.exit != nil {
-		e.exit.exit = nil
+		e.exit = nil
 	}
 	if p.exit != nil {
-		p.exit.exit = nil
+		p.exit = nil
 	}
 	e.exit = p
 	p.exit = e
@@ -112,6 +128,10 @@ func (p *Portal) Pair(e *Portal) {
 
 // retrieve the portal display objects vertices
 func (p *Portal) GetVertices() []raylib.Vector3 {
+	if p == nil {
+		return []raylib.Vector3{}
+	}
+
 	if p.obj != nil {
 		return p.obj.GetVertices()
 	} else {
@@ -120,31 +140,59 @@ func (p *Portal) GetVertices() []raylib.Vector3 {
 }
 
 func (p *Portal) SetColor(col color.Color) {
+	if p == nil {
+		return
+	}
+
 	p.obj.SetColor(col)
 }
 
 func (p *Portal) GetColor() color.Color {
+	if p == nil {
+		return nil
+	}
+
 	return p.obj.GetColor()
 }
 
 func (p *Portal) SetScale(sc raylib.Vector3) {
+	if p == nil {
+		return
+	}
+
 	p.obj.SetScale(sc)
 }
 
 func (p *Portal) GetScale() raylib.Vector3 {
+	if p == nil {
+		return raylib.Vector3{}
+	}
+
 	return p.obj.GetScale()
 }
 
 func (p *Portal) SetPos(pos raylib.Vector3) {
+	if p == nil {
+		return
+	}
+
 	p.obj.SetPos(pos)
 }
 
 func (p *Portal) GetPos() raylib.Vector3 {
+	if p == nil {
+		return raylib.Vector3{}
+	}
+
 	return p.obj.GetPos()
 }
 
 // retrieve the portal texture uvs for the display object
 func (p *Portal) GetUVs() []raylib.Vector2 {
+	if p == nil {
+		return []raylib.Vector2{}
+	}
+
 	if p.obj != nil {
 		return p.obj.GetUVs()
 	} else {
@@ -154,6 +202,10 @@ func (p *Portal) GetUVs() []raylib.Vector2 {
 
 // set the texture uvs for the portal display object
 func (p *Portal) SetUVs(uvs []raylib.Vector2) {
+	if p == nil {
+		return
+	}
+
 	if p.obj != nil {
 		p.obj.SetUVs(uvs)
 	}
@@ -161,6 +213,10 @@ func (p *Portal) SetUVs(uvs []raylib.Vector2) {
 
 // get the portal render objects model matrix
 func (p *Portal) GetModelMatrix() raylib.Matrix {
+	if p == nil {
+		return raylib.Matrix{}
+	}
+
 	if p.obj != nil {
 		return p.obj.GetModelMatrix()
 	} else {
@@ -169,35 +225,67 @@ func (p *Portal) GetModelMatrix() raylib.Matrix {
 }
 
 func (p *Portal) GetModel() *raylib.Model {
+	if p == nil {
+		return nil
+	}
+
 	return p.obj.GetModel()
 }
 
 func (p *Portal) GetPitch() float32 {
+	if p == nil {
+		return 0
+	}
+
 	return p.obj.GetPitch()
 }
 
 func (p *Portal) SetPitch(pi float32) {
+	if p == nil {
+		return
+	}
+
 	p.obj.SetPitch(pi)
 }
 
 func (p *Portal) GetYaw() float32 {
+	if p == nil {
+		return 0
+	}
+
 	return p.obj.GetYaw()
 }
 
 func (p *Portal) SetYaw(y float32) {
+	if p == nil {
+		return
+	}
+
 	p.obj.SetYaw(y)
 }
 
 func (p *Portal) GetRoll() float32 {
+	if p == nil {
+		return 0
+	}
+
 	return p.obj.GetRoll()
 }
 
 func (p *Portal) SetRoll(r float32) {
+	if p == nil {
+		return
+	}
+
 	p.obj.SetRoll(r)
 }
 
 // get portal render material
 func (p *Portal) GetMaterials() *raylib.Material {
+	if p == nil {
+		return nil
+	}
+
 	if p.obj != nil {
 		return p.obj.GetMaterials()
 	}
@@ -206,16 +294,28 @@ func (p *Portal) GetMaterials() *raylib.Material {
 
 // set portal render texture
 func (p *Portal) SetTexture(tex raylib.Texture2D) {
+	if p == nil {
+		return
+	}
+
 	p.target.Texture = tex
 }
 
 // get portal render texture
 func (p *Portal) GetTexture() raylib.Texture2D {
+	if p == nil {
+		return raylib.Texture2D{}
+	}
+
 	return p.target.Texture
 }
 
 // set portal render object
 func (p *Portal) SetPortal(obj pub_object.Object) {
+	if p == nil {
+		return
+	}
+
 	if p.obj != nil {
 		p.obj.OnRemove()
 	}
@@ -228,21 +328,37 @@ func (p *Portal) SetPortal(obj pub_object.Object) {
 
 // get portal render object
 func (p *Portal) GetPortal() pub_object.Object {
+	if p == nil {
+		return nil
+	}
+
 	return p.obj
 }
 
 // set camera for portal
 func (p *Portal) SetCam(obj *camera.Cam) {
+	if p == nil {
+		return
+	}
+
 	p.cam = obj
 }
 
 // return camera for portal
 func (p *Portal) GetCam() *camera.Cam {
+	if p == nil {
+		return nil
+	}
+
 	return p.cam
 }
 
 // return normal for portal plane
 func (p *Portal) GetNormal() raylib.Vector3 {
+	if p == nil {
+		return raylib.Vector3{}
+	}
+
 	norm := raylib.NewVector3(0, 0, 1)
 	Quat := lmath.Quat{}
 	Quat = *Quat.FromEuler(float64(p.obj.GetPitch()), float64(p.obj.GetYaw()), float64(p.obj.GetRoll()))
@@ -254,11 +370,15 @@ func (p *Portal) GetNormal() raylib.Vector3 {
 // prerender hook
 func (p *Portal) Prerender(cam *camera.Cam) []func() {
 	cmds := []func(){}
+	if p == nil {
+		return cmds
+	}
 
 	//guards to ensure we only render when we should be
 	if p.target != nil && p.scene != nil && !p.rendering && p.visible {
 		//prevent rerendering a portal a second time
 		p.rendering = true
+		p.visible = false
 		if p.exit != nil {
 			p.exit.visible = false
 		}
@@ -307,6 +427,9 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 
 		cmds = p.cam.Render()
 		cmds = append(cmds, p.scene.Render(p.cam)...)
+		for _, obj := range p.exit.touching {
+			cmds = append(cmds, obj.Render(p.cam)...)
+		}
 		for _, cmd := range cmds {
 			cmd()
 		}
@@ -325,6 +448,7 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 		raylib.EndTextureMode()
 
 		p.rendering = false
+		p.visible = true
 		if p.exit != nil {
 			p.exit.visible = true
 		}
@@ -336,6 +460,10 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 // render hook
 func (p *Portal) Render(cam *camera.Cam) []func() {
 	cmds := []func(){}
+	if p == nil {
+		return cmds
+	}
+
 	//avoid rendering if not visible
 	if p.visible {
 		//render portal surface
@@ -380,8 +508,7 @@ func (p *Portal) Render(cam *camera.Cam) []func() {
 				p.exit.visible = false
 			}
 
-			touching := col.GetTouching()
-			for _, obj := range touching {
+			for _, obj := range p.touching {
 				obj.Render(cam)
 			}
 
@@ -404,12 +531,19 @@ func (p *Portal) Render(cam *camera.Cam) []func() {
 // postrender hook
 func (p *Portal) Postrender(cam *camera.Cam) []func() {
 	cmds := []func(){}
+	if p == nil {
+		return cmds
+	}
 
 	return cmds
 }
 
 // handle update cycle
 func (p *Portal) Update(dt float32) {
+	if p == nil {
+		return
+	}
+
 	if p.obj != nil {
 		p.obj.Update(dt)
 	}
@@ -425,15 +559,33 @@ func (p *Portal) Update(dt float32) {
 	if p.exit != nil {
 		p.exit.scene = exit_scene
 	}
+	col := p.exit.obj.GetCollider()
+	if col != nil {
+		p.touching = col.GetTouching()
+	}
+	for _, obj := range p.touching {
+		if raylib.Vector3DotProduct(raylib.Vector3Subtract(obj.GetPos(), p.GetPos()), p.GetNormal()) > 0 {
+			p.GetScene().RemChild(obj)
+			p.exit.GetScene().AddChild(obj)
+		}
+	}
 }
 
 // retrieve the collider for collision detection
 func (p *Portal) GetCollider() pub_object.Collider {
+	if p == nil {
+		return nil
+	}
+
 	return p.obj.GetCollider()
 }
 
 // handle add event
 func (p *Portal) OnAdd() {
+	if p == nil {
+		return
+	}
+
 	if p.obj != nil {
 		p.obj.OnAdd()
 	}
@@ -441,6 +593,10 @@ func (p *Portal) OnAdd() {
 
 // handle remove event
 func (p *Portal) OnRemove() {
+	if p == nil {
+		return
+	}
+
 	if p.target != nil {
 		raylib.UnloadRenderTexture(*p.target)
 		p.target = nil
@@ -452,11 +608,19 @@ func (p *Portal) OnRemove() {
 
 // handle resize event
 func (p *Portal) OnResize(w int32, h int32) {
+	if p == nil {
+		return
+	}
+
 	p.cam.OnResize(w, h)
 }
 
 // add child to object
 func (p *Portal) AddChild(obj pub_object.Object) {
+	if p == nil {
+		return
+	}
+
 	if obj != nil {
 		p.obj.AddChild(obj.(pub_object.Object))
 	}
@@ -464,6 +628,10 @@ func (p *Portal) AddChild(obj pub_object.Object) {
 
 // removes child from object
 func (p *Portal) RemChild(obj pub_object.Object) {
+	if p == nil {
+		return
+	}
+
 	if obj != nil {
 		p.obj.RemChild(obj.(pub_object.Object))
 	}
@@ -471,6 +639,10 @@ func (p *Portal) RemChild(obj pub_object.Object) {
 
 // gets all childs recursively
 func (p *Portal) GetChilds() []pub_object.Object {
+	if p == nil {
+		return []pub_object.Object{}
+	}
+
 	if p.obj != nil {
 		return p.obj.GetChilds()
 	} else {

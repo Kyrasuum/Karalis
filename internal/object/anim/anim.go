@@ -35,6 +35,10 @@ func NewAnim(i interface{}) (a *Anim, err error) {
 }
 
 func (a *Anim) Init() error {
+	if a == nil {
+		return fmt.Errorf("Invalid anim")
+	}
+
 	a.pos = raylib.NewVector3(0, 0, 0)
 	a.rot = raylib.NewVector3(0, 0, 0)
 	a.scale = raylib.NewVector3(1, 1, 1)
@@ -45,6 +49,10 @@ func (a *Anim) Init() error {
 }
 
 func (a *Anim) GetModelMatrix() raylib.Matrix {
+	if a == nil {
+		return raylib.Matrix{}
+	}
+
 	matScale := raylib.MatrixScale(a.scale.X, a.scale.Y, a.scale.Z)
 	Quat := lmath.Quat{}
 	Quat = *Quat.FromEuler(float64(a.GetPitch()), float64(a.GetYaw()), float64(a.GetRoll()))
@@ -56,6 +64,10 @@ func (a *Anim) GetModelMatrix() raylib.Matrix {
 }
 
 func (a *Anim) SetColor(c color.Color) {
+	if a == nil {
+		return
+	}
+
 	switch color := c.(type) {
 	case color.RGBA:
 		a.color = color
@@ -63,50 +75,98 @@ func (a *Anim) SetColor(c color.Color) {
 }
 
 func (a *Anim) GetColor() color.Color {
+	if a == nil {
+		return color.Color{}
+	}
+
 	return a.color
 }
 
 func (a *Anim) SetScale(s raylib.Vector3) {
+	if a == nil {
+		return
+	}
+
 	a.scale = s
 }
 
 func (a *Anim) GetScale() raylib.Vector3 {
+	if a == nil {
+		return raylib.Vector3{}
+	}
+
 	return a.scale
 }
 
 func (a *Anim) SetPos(p raylib.Vector3) {
+	if a == nil {
+		return
+	}
+
 	a.pos = p
 }
 
 func (a *Anim) GetPos() raylib.Vector3 {
+	if a == nil {
+		return raylib.Vector3{}
+	}
+
 	return a.pos
 }
 
 func (a *Anim) GetPitch() float32 {
+	if a == nil {
+		return 0
+	}
+
 	return a.rot.X
 }
 
 func (a *Anim) SetPitch(p float32) {
+	if a == nil {
+		return
+	}
+
 	a.rot.X = p
 }
 
 func (a *Anim) GetYaw() float32 {
+	if a == nil {
+		return 0
+	}
+
 	return a.rot.Y
 }
 
 func (a *Anim) SetYaw(y float32) {
+	if a == nil {
+		return
+	}
+
 	a.rot.Y = y
 }
 
 func (a *Anim) GetRoll() float32 {
+	if a == nil {
+		return 0
+	}
+
 	return a.rot.Z
 }
 
 func (a *Anim) SetRoll(r float32) {
+	if a == nil {
+		return
+	}
+
 	a.rot.Z = r
 }
 
 func (a *Anim) GetVertices() []raylib.Vector3 {
+	if a == nil {
+		return []raylib.Vector3{}
+	}
+
 	verts := []raylib.Vector3{}
 	length := a.mdl.Meshes.VertexCount
 
@@ -124,6 +184,10 @@ func (a *Anim) GetVertices() []raylib.Vector3 {
 }
 
 func (a *Anim) GetUVs() []raylib.Vector2 {
+	if a == nil {
+		return []raylib.Vector2{}
+	}
+
 	uvs := []raylib.Vector2{}
 	length := a.mdl.Meshes.VertexCount
 	var mdluvs []float32
@@ -140,6 +204,10 @@ func (a *Anim) GetUVs() []raylib.Vector2 {
 }
 
 func (a *Anim) SetUVs(uvs []raylib.Vector2) {
+	if a == nil {
+		return
+	}
+
 	length := int(a.mdl.Meshes.VertexCount)
 	var mdluvs []float32
 
@@ -156,18 +224,34 @@ func (a *Anim) SetUVs(uvs []raylib.Vector2) {
 }
 
 func (a *Anim) GetMaterials() *raylib.Material {
+	if a == nil {
+		return nil
+	}
+
 	return a.mdl.Materials
 }
 
 func (a *Anim) SetTexture(mat *raylib.Material, tex raylib.Texture2D) {
+	if a == nil {
+		return
+	}
+
 	raylib.SetMaterialTexture(mat, raylib.MapDiffuse, tex)
 }
 
 func (a *Anim) GetTexture() raylib.Texture2D {
+	if a == nil {
+		return raylib.Texture2D{}
+	}
+
 	return a.mdl.Materials.Maps.Texture
 }
 
 func (a *Anim) LoadModel(name string) error {
+	if a == nil {
+		return fmt.Errorf("Invalid anim")
+	}
+
 	mdl, err := res.GetRes(name)
 	if err != nil {
 		return err
@@ -183,10 +267,18 @@ func (a *Anim) LoadModel(name string) error {
 }
 
 func (a *Anim) Prerender(cam *camera.Cam) []func() {
+	if a == nil {
+		return []func(){}
+	}
+
 	return []func(){}
 }
 
 func (a *Anim) Render(cam *camera.Cam) []func() {
+	if a == nil {
+		return []func(){}
+	}
+
 	matTransform := a.GetModelMatrix()
 	sh := app.CurApp.GetShader()
 	a.mdl.Materials.Shader = *sh.GetShader()
@@ -196,28 +288,68 @@ func (a *Anim) Render(cam *camera.Cam) []func() {
 }
 
 func (a *Anim) Postrender(cam *camera.Cam) []func() {
+	if a == nil {
+		return []func(){}
+	}
+
 	return []func(){}
 }
 
-func (a *Anim) Update(dt float32) {}
+func (a *Anim) Update(dt float32) {
+	if a == nil {
+		return
+	}
+}
 
-func (a *Anim) Collide(data pub_object.CollisionData) {}
+func (a *Anim) Collide(data pub_object.CollisionData) {
+	if a == nil {
+		return
+	}
+}
 
-func (a *Anim) RegCollideHandler(handler func(pub_object.CollisionData) bool) {}
+func (a *Anim) RegCollideHandler(handler func(pub_object.CollisionData) bool) {
+	if a == nil {
+		return false
+	}
+}
 
 func (a *Anim) GetCollidable() []pub_object.Object {
+	if a == nil {
+		return []pub_object.Object{}
+	}
+
 	return []pub_object.Object{}
 }
 
 func (a *Anim) GetCollider() pub_object.Collider {
+	if a == nil {
+		return nil
+	}
+
 	col := pub_object.Collider{}
 	return col
 }
 
-func (a *Anim) OnAdd() {}
+func (a *Anim) OnAdd() {
+	if a == nil {
+		return
+	}
+}
 
-func (a *Anim) OnRemove() {}
+func (a *Anim) OnRemove() {
+	if a == nil {
+		return
+	}
+}
 
-func (a *Anim) AddChild(obj pub_object.Object) {}
+func (a *Anim) AddChild(obj pub_object.Object) {
+	if a == nil {
+		return
+	}
+}
 
-func (a *Anim) RemChild(obj pub_object.Object) {}
+func (a *Anim) RemChild(obj pub_object.Object) {
+	if a == nil {
+		return
+	}
+}

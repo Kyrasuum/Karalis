@@ -19,6 +19,10 @@ type Shader struct {
 }
 
 func (s *Shader) Init(shader string) error {
+	if s == nil {
+		return nil
+	}
+
 	s.shaders = map[string]*raylib.Shader{}
 	s.defines = map[string]bool{}
 	s.uniforms = map[string]interface{}{}
@@ -32,6 +36,10 @@ func (s *Shader) Init(shader string) error {
 }
 
 func (s *Shader) shaderKey() string {
+	if s == nil {
+		return ""
+	}
+
 	keys := []string{}
 	for define, val := range s.defines {
 		if val {
@@ -43,6 +51,10 @@ func (s *Shader) shaderKey() string {
 }
 
 func (s *Shader) loadShader(name string) string {
+	if s == nil {
+		return ""
+	}
+
 	strss := ""
 
 	ss, err := res.GetRes(name)
@@ -60,6 +72,10 @@ func (s *Shader) loadShader(name string) string {
 }
 
 func (s *Shader) genShader() error {
+	if s == nil {
+		return fmt.Errorf("Invalid shader")
+	}
+
 	key := s.shaderKey()
 	if shader, ok := s.shaders[key]; ok {
 		s.shader = shader
@@ -83,18 +99,34 @@ func (s *Shader) genShader() error {
 }
 
 func (s *Shader) GetShader() *raylib.Shader {
+	if s == nil {
+		return nil
+	}
+
 	return s.shader
 }
 
 func (s *Shader) GetID() uint32 {
+	if s == nil {
+		return 0
+	}
+
 	return s.shader.ID
 }
 
 func (s *Shader) GetLocs() *int32 {
+	if s == nil {
+		return nil
+	}
+
 	return s.shader.Locs
 }
 
 func (s *Shader) GetLoc(uniform string) (loc int32, err error) {
+	if s == nil {
+		return 0, fmt.Errorf("Invalid shader")
+	}
+
 	loc = raylib.GetShaderLocation(*s.shader, uniform)
 	if loc == -1 {
 		return loc, fmt.Errorf("Invalid uniform")
@@ -103,6 +135,10 @@ func (s *Shader) GetLoc(uniform string) (loc int32, err error) {
 }
 
 func (s *Shader) SetDefine(define string, val bool) error {
+	if s == nil {
+		return fmt.Errorf("Invalid shader")
+	}
+
 	_, ok := s.defines[define]
 	if ok && !val {
 		delete(s.defines, define)
@@ -117,6 +153,10 @@ func (s *Shader) SetDefine(define string, val bool) error {
 }
 
 func (s *Shader) GetDefine(define string) bool {
+	if s == nil {
+		return false
+	}
+
 	if _, ok := s.defines[define]; ok {
 		return s.defines[define]
 	}
@@ -124,6 +164,10 @@ func (s *Shader) GetDefine(define string) bool {
 }
 
 func (s *Shader) SetUniform(uniform string, val interface{}) error {
+	if s == nil {
+		return fmt.Errorf("Invalid shader")
+	}
+
 	switch val.(type) {
 	case []float32, float64, float32, raylib.Vector2, raylib.Vector3, raylib.Vector4, *raylib.Vector2, *raylib.Vector3, *raylib.Vector4, raylib.Matrix, raylib.Texture2D:
 	default:
@@ -135,6 +179,10 @@ func (s *Shader) SetUniform(uniform string, val interface{}) error {
 }
 
 func (s *Shader) setUniform(uniform string, val interface{}) error {
+	if s == nil {
+		return fmt.Errorf("Invalid shader")
+	}
+
 	loc := raylib.GetShaderLocation(*s.shader, uniform)
 	if loc == -1 {
 		return fmt.Errorf("Invalid uniform")
@@ -170,6 +218,10 @@ func (s *Shader) setUniform(uniform string, val interface{}) error {
 }
 
 func (s *Shader) Begin() error {
+	if s == nil {
+		return fmt.Errorf("Invalid shader")
+	}
+
 	if s.shader == nil {
 		return fmt.Errorf("Invalid shader")
 	}
@@ -178,11 +230,19 @@ func (s *Shader) Begin() error {
 }
 
 func (s *Shader) End() error {
+	if s == nil {
+		return fmt.Errorf("Invalid shader")
+	}
+
 	raylib.EndShaderMode()
 	return nil
 }
 
 func (s *Shader) OnRemove() error {
+	if s == nil {
+		return fmt.Errorf("Invalid shader")
+	}
+
 	if s.shader != nil {
 		raylib.UnloadShader(*s.shader)
 		s.shader = nil

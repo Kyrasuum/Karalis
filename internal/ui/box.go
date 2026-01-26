@@ -27,47 +27,90 @@ func (b *Box) defaults() {
 }
 
 func (b *Box) Init() error {
+	if b == nil {
+		return fmt.Errorf("Invalid box")
+	}
+
 	b.defaults()
 
 	return nil
 }
 
 func (b *Box) SetPosition(p raylib.Rectangle) {
+	if b == nil {
+		return
+	}
+
 	b.pos = p
 }
 
 func (b *Box) SetInset(i raylib.Vector2) {
+	if b == nil {
+		return
+	}
+
 	b.inset = i
 }
 
 func (b *Box) SetBorder(bo float32) {
+	if b == nil {
+		return
+	}
+
 	b.border = bo
 }
 
 func (b *Box) SetBGColor(c color.RGBA) {
+	if b == nil {
+		return
+	}
+
 	b.bgCol = c
 }
 
 func (b *Box) SetBorderColor(c color.RGBA) {
+	if b == nil {
+		return
+	}
+
 	b.bordCol = c
 }
 
 func (b *Box) Render() {
 	raylib.DrawRectangleLinesEx(b.pos, b.border, b.bordCol)
+	if b == nil {
+		return
+	}
+
 	raylib.DrawRectangleRec(b.pos, b.bgCol)
 }
 
 func (b *Box) Update(dt float64) {
+	if b == nil {
+		return
+	}
 }
 
 func (b *Box) OnInput() {
+	if b == nil {
+		return
+	}
 }
 
 func (b *Box) OnResize(w int32, h int32) {
+	if b == nil {
+		return
+	}
 }
 
 func (b *Box) OnAdd() {
+	if b == nil {
+		return
+	}
 }
 
 func (b *Box) OnRemove() {
+	if b == nil {
+		return
+	}
 }

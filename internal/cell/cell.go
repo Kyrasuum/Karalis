@@ -1,6 +1,7 @@
 package cell
 
 import (
+	"errors"
 	"slices"
 
 	"karalis/internal/camera"
@@ -15,6 +16,10 @@ type Cell struct {
 }
 
 func (c *Cell) Init() error {
+	if c == nil {
+		return errors.New("Invalid cell")
+	}
+
 	c.childs = []pub_object.Object{}
 
 	sky, err := object.NewSkybox(nil)
@@ -27,6 +32,10 @@ func (c *Cell) Init() error {
 }
 
 func (c *Cell) Prerender(cam *camera.Cam) []func() {
+	if c == nil {
+		return []func(){}
+	}
+
 	cmds := []func(){}
 	for _, child := range c.childs {
 
@@ -44,6 +53,10 @@ func (c *Cell) Prerender(cam *camera.Cam) []func() {
 }
 
 func (c *Cell) Render(cam *camera.Cam) []func() {
+	if c == nil {
+		return []func(){}
+	}
+
 	cmds := []func(){}
 	for _, child := range c.childs {
 		switch child.(type) {
@@ -56,6 +69,10 @@ func (c *Cell) Render(cam *camera.Cam) []func() {
 }
 
 func (c *Cell) Postrender(cam *camera.Cam) []func() {
+	if c == nil {
+		return []func(){}
+	}
+
 	cmds := []func(){}
 	for _, child := range c.childs {
 		cmds = append(cmds, child.Postrender(cam)...)
@@ -64,22 +81,32 @@ func (c *Cell) Postrender(cam *camera.Cam) []func() {
 }
 
 func (c *Cell) Update(dt float32) {
+	if c == nil {
+		return
+	}
+
 	//check for collisions
 	collision_check := func(child pub_object.Object, pairs []pub_object.Object) {
 		for _, pair := range pairs {
 			//check if pair can collide with child
 			if pair.GetCollider() != nil {
+				if pair.GetCollider().GetObj() != pair {
+					pair = pair.GetCollider().GetObj()
+				}
 				collidable := pair.GetCollider().GetCollidable()
 				if collidable == nil || slices.Contains(collidable, child) {
 					//broad phase collision detection
-					if pub_object.CheckCollisionSpheres(child.GetCollider().GetBoundingSphere(), pair.GetCollider().GetBoundingSphere()) {
-						//handle collision
-						coldata := pub_object.CollisionData{
-							Obj1: child,
-							Obj2: pair,
+					if pub_object.CheckCollisionAABB(child.GetCollider().GetAABB(), pair.GetCollider().GetAABB()) {
+						//narrower phase collision detection
+						if pub_object.CheckCollisionOOBB(child.GetCollider().GetOOBB(), pair.GetCollider().GetOOBB()) {
+							//handle collision
+							coldata := pub_object.CollisionData{
+								Obj1: child,
+								Obj2: pair,
+							}
+							child.GetCollider().Collide(coldata)
+							pair.GetCollider().Collide(coldata)
 						}
-						child.GetCollider().Collide(coldata)
-						pair.GetCollider().Collide(coldata)
 					}
 				}
 			}
@@ -89,8 +116,12 @@ func (c *Cell) Update(dt float32) {
 	//collisions check loop
 	childs := c.GetChilds()
 	for i, child := range childs {
-		if child.GetCollider() != nil {
-			collidable := child.GetCollider().GetCollidable()
+		col := child.GetCollider()
+		if col != nil {
+			if col.GetObj() != child {
+				child = col.GetObj()
+			}
+			collidable := col.GetCollidable()
 			if collidable == nil {
 				//undefined collidable means all objects collidable
 				collision_check(child, childs[i+1:])
@@ -108,23 +139,38 @@ func (c *Cell) Update(dt float32) {
 }
 
 func (c *Cell) OnAdd() {
+	if c == nil {
+		return
+	}
+
 	for _, child := range c.childs {
 		child.OnAdd()
 	}
 }
 
 func (c *Cell) OnRemove() {
+	if c == nil {
+		return
+	}
+
 	for _, child := range c.childs {
 		child.OnRemove()
 	}
 }
 
 func (c *Cell) AddChild(obj pub_object.Object) {
+	if c == nil {
+		return
+	}
+
 	c.childs = append(c.childs, obj)
 	obj.OnAdd()
 }
 
 func (c *Cell) RemChild(obj pub_object.Object) {
+	if c == nil {
+		return
+	}
 	//find index of child
 	index := -1
 	for i, child := range c.childs {
@@ -143,6 +189,10 @@ func (c *Cell) RemChild(obj pub_object.Object) {
 }
 
 func (c *Cell) GetChilds() []pub_object.Object {
+	if c == nil {
+		return []pub_object.Object{}
+	}
+
 	childs := c.childs
 	grandchilds := []pub_object.Object{}
 	for _, child := range childs {

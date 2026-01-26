@@ -41,6 +41,10 @@ func NewTerrain(m string, i interface{}) (t *Terrain, err error) {
 }
 
 func (t *Terrain) Init() error {
+	if t == nil {
+		return fmt.Errorf("Invalid terrain")
+	}
+
 	t.pos = raylib.NewVector3(0, 0, 0)
 	t.rot = raylib.NewVector3(0, 0, 0)
 	t.scale = raylib.NewVector3(1, 1, 1)
@@ -55,6 +59,10 @@ func (t *Terrain) Init() error {
 }
 
 func (t *Terrain) LoadImage(i interface{}) {
+	if t == nil {
+		return
+	}
+
 	var img *raylib.Image
 	switch data := i.(type) {
 	case string:
@@ -120,6 +128,10 @@ func (t *Terrain) LoadImage(i interface{}) {
 }
 
 func (t *Terrain) LoadMap(m string) {
+	if t == nil {
+		return
+	}
+
 	tex, err := res.GetRes(m)
 	if err != nil {
 		fmt.Printf("Error retrieving image: %+v\n", err)
@@ -173,6 +185,10 @@ func (t *Terrain) LoadMap(m string) {
 }
 
 func (t *Terrain) GetModelMatrix() raylib.Matrix {
+	if t == nil {
+		return raylib.Matrix{}
+	}
+
 	matScale := raylib.MatrixScale(t.scale.X, t.scale.Y, t.scale.Z)
 	Quat := lmath.Quat{}
 	Quat = *Quat.FromEuler(float64(t.GetPitch()), float64(t.GetYaw()), float64(t.GetRoll()))
@@ -184,57 +200,112 @@ func (t *Terrain) GetModelMatrix() raylib.Matrix {
 }
 
 func (t *Terrain) GetModel() *raylib.Model {
+	if t == nil {
+		return nil
+	}
+
 	return t.mdl
 }
 
 func (t *Terrain) SetColor(col color.Color) {
+	if t == nil {
+		return
+	}
 }
 
 func (t *Terrain) GetColor() color.Color {
+	if t == nil {
+		return nil
+	}
+
 	return raylib.White
 }
 
 func (t *Terrain) GetScale() raylib.Vector3 {
+	if t == nil {
+		return raylib.Vector3{}
+	}
+
 	return t.scale
 }
 
 func (t *Terrain) SetScale(sc raylib.Vector3) {
+	if t == nil {
+		return
+	}
+
 	t.scale = sc
 }
 
 func (t *Terrain) SetPos(pos raylib.Vector3) {
+	if t == nil {
+		return
+	}
+
 	t.pos = pos
 }
 
 func (t *Terrain) GetPos() raylib.Vector3 {
+	if t == nil {
+		return raylib.Vector3{}
+	}
+
 	return t.pos
 }
 
 func (t *Terrain) GetPitch() float32 {
+	if t == nil {
+		return 0
+	}
+
 	return t.rot.X
 }
 
 func (t *Terrain) SetPitch(pitch float32) {
+	if t == nil {
+		return
+	}
+
 	t.rot.X = pitch
 }
 
 func (t *Terrain) GetYaw() float32 {
+	if t == nil {
+		return 0
+	}
+
 	return t.rot.Y
 }
 
 func (t *Terrain) SetYaw(yaw float32) {
+	if t == nil {
+		return
+	}
+
 	t.rot.Y = yaw
 }
 
 func (t *Terrain) GetRoll() float32 {
+	if t == nil {
+		return 0
+	}
+
 	return t.rot.Z
 }
 
 func (t *Terrain) SetRoll(roll float32) {
+	if t == nil {
+		return
+	}
+
 	t.rot.Z = roll
 }
 
 func (t *Terrain) GetVertices() []raylib.Vector3 {
+	if t == nil {
+		return []raylib.Vector3{}
+	}
+
 	verts := []raylib.Vector3{}
 	length := t.mdl.Meshes.VertexCount
 
@@ -252,6 +323,10 @@ func (t *Terrain) GetVertices() []raylib.Vector3 {
 }
 
 func (t *Terrain) GetUVs() []raylib.Vector2 {
+	if t == nil {
+		return []raylib.Vector2{}
+	}
+
 	uvs := []raylib.Vector2{}
 	length := t.mdl.Meshes.VertexCount
 	var mdluvs []float32
@@ -268,6 +343,10 @@ func (t *Terrain) GetUVs() []raylib.Vector2 {
 }
 
 func (t *Terrain) SetUVs(uvs []raylib.Vector2) {
+	if t == nil {
+		return
+	}
+
 	length := int(t.mdl.Meshes.VertexCount)
 	var mdluvs []float32
 
@@ -284,24 +363,43 @@ func (t *Terrain) SetUVs(uvs []raylib.Vector2) {
 }
 
 func (t *Terrain) GetMaterials() *raylib.Material {
+	if t == nil {
+		return nil
+	}
+
 	return t.mdl.Materials
 }
 
 func (t *Terrain) SetTexture(tex raylib.Texture2D) {
+	if t == nil {
+		return
+	}
+
 	*t.tex = tex
 }
 
 func (t *Terrain) GetTexture() raylib.Texture2D {
+	if t == nil {
+		return raylib.Texture2D{}
+	}
+
 	return *t.tex
 }
 
 func (t *Terrain) Prerender(cam *camera.Cam) []func() {
 	cmds := []func(){}
+	if t == nil {
+		return cmds
+	}
+
 	return cmds
 }
 
 func (t *Terrain) Render(cam *camera.Cam) []func() {
 	cmds := []func(){}
+	if t == nil {
+		return cmds
+	}
 
 	raylib.Color4ub(255, 255, 255, 255)
 	matTransform := t.GetModelMatrix()
@@ -313,28 +411,55 @@ func (t *Terrain) Render(cam *camera.Cam) []func() {
 
 func (t *Terrain) Postrender(cam *camera.Cam) []func() {
 	cmds := []func(){}
+	if t == nil {
+		return cmds
+	}
+
 	return cmds
 }
 
 func (t *Terrain) Update(dt float32) {
+	if t == nil {
+		return
+	}
 }
 
 func (t *Terrain) GetCollider() pub_object.Collider {
+	if t == nil {
+		return nil
+	}
+
 	return nil
 }
 
 func (t *Terrain) OnAdd() {
+	if t == nil {
+		return
+	}
 }
 
 func (t *Terrain) OnRemove() {
+	if t == nil {
+		return
+	}
 }
 
 func (t *Terrain) AddChild(obj pub_object.Object) {
+	if t == nil {
+		return
+	}
 }
 
 func (t *Terrain) RemChild(obj pub_object.Object) {
+	if t == nil {
+		return
+	}
 }
 
 func (t *Terrain) GetChilds() []pub_object.Object {
+	if t == nil {
+		return []pub_object.Object{}
+	}
+
 	return []pub_object.Object{}
 }

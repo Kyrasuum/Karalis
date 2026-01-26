@@ -37,6 +37,10 @@ func NewPlayer() (p *Player, err error) {
 }
 
 func (p *Player) Init() (err error) {
+	if p == nil {
+		return nil
+	}
+
 	p.pos = raylib.NewVector3(0, 0, 0)
 	p.rot = raylib.NewVector3(0, 0, 0)
 	p.scale = raylib.NewVector3(1, 1, 1)
@@ -72,11 +76,19 @@ func (p *Player) Init() (err error) {
 }
 
 func (p *Player) Prerender(cam *camera.Cam) []func() {
+	if p == nil {
+		return []func(){}
+	}
+
 	cmds := p.char.Prerender(cam)
 	return cmds
 }
 
 func (p *Player) Render(cam *camera.Cam) []func() {
+	if p == nil {
+		return []func(){}
+	}
+
 	cmds := p.char.Render(cam)
 
 	//update cant directly set mouse positions
@@ -90,39 +102,75 @@ func (p *Player) Render(cam *camera.Cam) []func() {
 }
 
 func (p *Player) Postrender(cam *camera.Cam) []func() {
+	if p == nil {
+		return []func(){}
+	}
+
 	cmds := p.char.Postrender(cam)
 	return cmds
 }
 
 func (p *Player) Update(dt float32) {
+	if p == nil {
+		return
+	}
+
 	p.char.Update(dt)
 }
 
 func (p *Player) GetCollider() object.Collider {
+	if p == nil {
+		return nil
+	}
+
 	return p.char.GetCollider()
 }
 
 func (p *Player) OnAdd() {
+	if p == nil {
+		return
+	}
+
 	p.char.OnAdd()
 }
 
 func (p *Player) OnRemove() {
+	if p == nil {
+		return
+	}
+
 	p.char.OnRemove()
 }
 
 func (p *Player) AddChild(obj object.Object) {
+	if p == nil {
+		return
+	}
+
 	p.char.AddChild(obj)
 }
 
 func (p *Player) RemChild(obj object.Object) {
+	if p == nil {
+		return
+	}
+
 	p.char.AddChild(obj)
 }
 
 func (p *Player) GetChilds() []object.Object {
+	if p == nil {
+		return []object.Object{}
+	}
+
 	return p.char.GetChilds()
 }
 
 func (p *Player) GetModelMatrix() raylib.Matrix {
+	if p == nil {
+		return raylib.Matrix{}
+	}
+
 	matScale := raylib.MatrixScale(p.scale.X, p.scale.Y, p.scale.Z)
 	Quat := lmath.Quat{}
 	Quat = *Quat.FromEuler(float64(p.GetPitch()), float64(p.GetYaw()), float64(p.GetRoll()))
@@ -133,103 +181,197 @@ func (p *Player) GetModelMatrix() raylib.Matrix {
 }
 
 func (p *Player) GetModel() *raylib.Model {
+	if p == nil {
+		return nil
+	}
+
 	return p.char.GetModel()
 }
 
 func (p *Player) SetColor(col color.Color) {
+	if p == nil {
+		return
+	}
 }
 
 func (p *Player) GetColor() color.Color {
+	if p == nil {
+		return nil
+	}
+
 	return raylib.White
 }
 
 func (p *Player) SetScale(sc raylib.Vector3) {
+	if p == nil {
+		return
+	}
 }
 
 func (p *Player) GetScale() raylib.Vector3 {
+	if p == nil {
+		return raylib.Vector3{}
+	}
+
 	return raylib.NewVector3(1, 1, 1)
 }
 
 func (p *Player) SetPos(pos raylib.Vector3) {
+	if p == nil {
+		return
+	}
+
 	p.pos = pos
 }
 
 func (p *Player) GetPos() raylib.Vector3 {
+	if p == nil {
+		return raylib.Vector3{}
+	}
+
 	return p.pos
 }
 
 func (p *Player) GetPitch() float32 {
+	if p == nil {
+		return 0
+	}
+
 	return p.rot.X
 }
 
 func (p *Player) SetPitch(pi float32) {
+	if p == nil {
+		return
+	}
+
 	p.rot.X = pi
 }
 
 func (p *Player) GetYaw() float32 {
+	if p == nil {
+		return 0
+	}
+
 	return p.rot.Y
 }
 
 func (p *Player) SetYaw(y float32) {
+	if p == nil {
+		return
+	}
+
 	p.rot.Y = y
 }
 
 func (p *Player) GetRoll() float32 {
+	if p == nil {
+		return 0
+	}
+
 	return p.rot.Z
 }
 
 func (p *Player) SetRoll(r float32) {
+	if p == nil {
+		return
+	}
+
 	p.rot.Z = r
 }
 
 // retrieve the portal display objects vertices
 func (p *Player) GetVertices() []raylib.Vector3 {
+	if p == nil {
+		return []raylib.Vector3{}
+	}
+
 	return p.char.GetVertices()
 }
 
 // retrieve the portal texture uvs for the display object
 func (p *Player) GetUVs() []raylib.Vector2 {
+	if p == nil {
+		return []raylib.Vector2{}
+	}
+
 	return p.char.GetUVs()
 }
 
 // set the texture uvs for the portal display object
 func (p *Player) SetUVs(uvs []raylib.Vector2) {
+	if p == nil {
+		return
+	}
+
 	p.char.SetUVs(uvs)
 }
 
 func (p *Player) GetMaterials() *raylib.Material {
+	if p == nil {
+		return nil
+	}
+
 	return p.char.GetMaterials()
 }
 
 func (p *Player) SetTexture(tex raylib.Texture2D) {
+	if p == nil {
+		return
+	}
+
 	p.char.SetTexture(tex)
 }
 
 func (p *Player) GetTexture() raylib.Texture2D {
+	if p == nil {
+		return raylib.Texture2D{}
+	}
+
 	return p.char.GetTexture()
 }
 
 func (p *Player) GetCam() *camera.Cam {
+	if p == nil {
+		return nil
+	}
+
 	return p.cam
 }
 
 func (p *Player) CaptureMouse() {
+	if p == nil {
+		return
+	}
+
 	p.rchan <- 1
 
 	p.capture = true
 }
 
 func (p *Player) ReleaseMouse() {
+	if p == nil {
+		return
+	}
+
 	p.capture = false
 	raylib.EnableCursor()
 	raylib.ShowCursor()
 }
 
 func (p *Player) MouseCaptured() bool {
+	if p == nil {
+		return false
+	}
+
 	return p.capture
 }
 
 func (p *Player) ToggleCapture() {
+	if p == nil {
+		return
+	}
+
 	if p.capture {
 		p.ReleaseMouse()
 	} else {
@@ -238,6 +380,10 @@ func (p *Player) ToggleCapture() {
 }
 
 func (p *Player) ToggleView() {
+	if p == nil {
+		return
+	}
+
 	if p.mode == 0 {
 		p.mode = 1
 		p.cam.SetDist(3)
@@ -248,6 +394,10 @@ func (p *Player) ToggleView() {
 }
 
 func (p *Player) OnInput(dt float32) {
+	if p == nil {
+		return
+	}
+
 	input.HandleInput("Character")
 
 	var zoom float32 = 0
@@ -295,6 +445,10 @@ func (p *Player) OnInput(dt float32) {
 }
 
 func (p *Player) updateCam(move lmath.Vec3, zoom, dx, dy float32) {
+	if p == nil {
+		return
+	}
+
 	dist := p.cam.GetDist() - zoom
 	if dist <= 0.01 || (dist < 1 && dist > 0.75) {
 		dist = 0.01
