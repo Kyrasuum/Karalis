@@ -122,7 +122,6 @@ ifeq ($(ARCH),arm64)
 dev-deps: .dev-deps-linux-arm64
 .PHONY: .dev-deps-linux-arm64
 .dev-deps-linux-arm64:
-	@sudo dpkg --add-architecture arm64
 	@sudo apt-get install -y libgl1-mesa-dev:arm64 libxi-dev:arm64 libxcursor-dev:arm64 libxrandr-dev:arm64 libxinerama-dev:arm64 libwayland-dev:arm64 libxkbcommon-dev:arm64
 	@sudo apt-get install -y libgl-dev:arm64 libx11-dev:arm64 xorg-dev:arm64 libxxf86vm-dev:arm64 mingw-w64
 endif
@@ -133,12 +132,12 @@ ifeq ($(DISTRO),windows)
 dev-deps: .dev-deps-windows
 .PHONY: .dev-deps-windows
 .dev-deps-windows:
-	@git clone https://github.com/raysan5/raylib.git
-	@cd raylib/src && make PLATFORM=PLATFORM_DESKTOP
+	@cd include/go-raylib/raylib/src && make PLATFORM=PLATFORM_DESKTOP
 endif
 
 #: Install dependencies for compiling targets in this makefile
 dev-deps: .deps
+	@git submodule update --init --recursive
 	@go mod tidy
 	@touch .dev-deps
 
