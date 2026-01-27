@@ -45,6 +45,18 @@ else
     endif
 endif
 
+ifeq ($(DISTRO),linux)
+	ifeq ($(ARCH),amd64)
+		DEPS ?=linux-amd64
+	endif
+	ifeq ($(ARCH),arm64)
+		DEPS ?=linux-arm64
+	endif
+endif
+ifeq ($(DISTRO),windows)
+	DEPS ?=windows
+endif
+
 .PHONY: run
 #: Starts the project
 run: build .deps
@@ -105,40 +117,31 @@ deps:
 	@touch .deps
 
 # dev-deps include target
-.PHONY: dev-deps
 .dev-deps:
 	@$(MAKE) --no-print-directory dev-deps
 
 # dev-deps for linux
-ifeq ($(DISTRO),linux)
-ifeq ($(ARCH),amd64)
-dev-deps: .dev-deps-linux-amd64
 .PHONY: .dev-deps-linux-amd64
 .dev-deps-linux-amd64:
 	@sudo apt-get install -y libgl1-mesa-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev libwayland-dev libxkbcommon-dev
 	@sudo apt-get install -y libgl-dev libx11-dev xorg-dev libxxf86vm-dev
-endif
-ifeq ($(ARCH),arm64)
-dev-deps: .dev-deps-linux-arm64
+
 .PHONY: .dev-deps-linux-arm64
 .dev-deps-linux-arm64:
 	@sudo apt-get install -y libgl1-mesa-dev:arm64 libxi-dev:arm64 libxcursor-dev:arm64 libxrandr-dev:arm64 libxinerama-dev:arm64 libwayland-dev:arm64 libxkbcommon-dev:arm64
 	@sudo apt-get install -y libgl-dev:arm64 libx11-dev:arm64 xorg-dev:arm64 libxxf86vm-dev:arm64 mingw-w64
-endif
-endif
 
 # dev-deps for windows
-ifeq ($(DISTRO),windows)
-dev-deps: .dev-deps-windows
 .PHONY: .dev-deps-windows
 .dev-deps-windows:
 	@cd include/go-raylib/raylib/src && make PLATFORM=PLATFORM_DESKTOP
-endif
 
+.PHONY: dev-deps
 #: Install dependencies for compiling targets in this makefile
 dev-deps: .deps
 	@git submodule update --init --recursive
 	@go mod tidy
+	@$(MAKE) --no-print-directory .dev-deps-$(DEPS)
 	@touch .dev-deps
 
 .PHONY: test
@@ -151,7 +154,7 @@ test:
 #: Lists available commands
 help:
 	@echo "Available Commands for project:"
-	@grep -B1 -E "^[a-zA-Z0-9_-]+\:([^\=]|$$)" Makefile \
+	@grep -B1 -E "^[a-zA-Z0-9_\.-]+\:" Makefile | grep -A1 -E "^#\: \w+" \
 	 | grep -v -- -- \
 	 | sed 'N;s/\n/###/' \
 	 | sed -n 's/^#: \(.*\)###\(.*\):.*/\2###\1/p' \
