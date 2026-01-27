@@ -21,7 +21,6 @@ jobs:
           - macos
           - ubuntu
           - windows
-          - wasm
 
     steps:
     - name: Setup

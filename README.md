@@ -12,10 +12,11 @@ Compiling requires resources file downloaded seperately and an install of golang
 Building is done via the makefile script
 
 ### Build Dependencies
-This project utilizes raylib so you will need to install this on the system.
+This project utilizes raylib that will install alongside through the dev-deps target.
+
 Raylib: https://github.com/raysan5/raylib
-Github Action for installing raylib: https://github.com/Kyrasuum/RaylibSetup/tree/main
-Any other dependencies are handled via the makefile target 'dep'
+
+Remaining rendering packages should also be installed via dev-deps.
 
 ## Design Goals
 IN PROGRESS
@@ -30,5 +31,5 @@ Releases will be versioned and packed into a zip for convenience each release wi
 This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details
 
 ## Contact Us
-You can contact us via email at plorentz7@gmail.com
+You can contact me via email at plorentz7@gmail.com
 

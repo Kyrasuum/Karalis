@@ -3,6 +3,7 @@ package portal
 import (
 	"fmt"
 	"image/color"
+	"slices"
 
 	"karalis/internal/camera"
 	"karalis/internal/cell"
@@ -367,6 +368,23 @@ func (p *Portal) GetNormal() raylib.Vector3 {
 	return norm
 }
 
+// calculate transform for exit portal to entry portal
+func (p *Portal) GetTransform() raylib.Matrix {
+	if p == nil {
+		return raylib.MatrixIdentity()
+	}
+
+	//calculate portal camera position based on calling render camera
+	wldToLcl := raylib.MatrixInvert(p.GetModelMatrix())
+	lclToWld := raylib.MatrixIdentity()
+	if p.exit != nil {
+		//need to flip to place camera looking out not in
+		flip := raylib.MatrixRotateY(raylib.Pi)
+		lclToWld = raylib.MatrixMultiply(flip, p.exit.GetModelMatrix())
+	}
+	return raylib.MatrixMultiply(lclToWld, wldToLcl)
+}
+
 // prerender hook
 func (p *Portal) Prerender(cam *camera.Cam) []func() {
 	cmds := []func(){}
@@ -383,21 +401,11 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 			p.exit.visible = false
 		}
 
-		//calculate portal camera position based on calling render camera
-		portalmdl := p.GetModelMatrix()
-		wldToLcl := raylib.MatrixInvert(portalmdl)
-		lclToWld := raylib.MatrixIdentity()
-		if p.exit != nil {
-			//need to flip to place camera looking out not in
-			Quat := lmath.Quat{}
-			Quat = *Quat.FromEuler(float64(0), float64(raylib.Pi), float64(0))
-			matFlip := raylib.QuaternionToMatrix(raylib.NewQuaternion(float32(Quat.X), float32(Quat.Y), float32(Quat.Z), float32(Quat.W)))
-			lclToWld = raylib.MatrixMultiply(matFlip, p.exit.GetModelMatrix())
-		}
-		transform := raylib.MatrixMultiply(lclToWld, wldToLcl)
-
-		p.cam.SetPos(raylib.Vector3Transform(cam.GetPos(), transform))
-		p.cam.SetTar(raylib.Vector3Transform(cam.GetTar(), transform))
+		mat := p.GetTransform()
+		pos := cam.GetPos()
+		tar := cam.GetTar()
+		p.cam.SetPos(raylib.Vector3Transform(pos, mat))
+		p.cam.SetTar(raylib.Vector3Transform(tar, mat))
 
 		//render from portals perspective
 		raylib.BeginTextureMode(*p.target)
@@ -426,10 +434,22 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 		}
 
 		cmds = p.cam.Render()
-		cmds = append(cmds, p.scene.Render(p.cam)...)
+
+		err = sh.SetUniform("portalMat", mat)
+		if err != nil {
+			fmt.Printf("%+v\n", err)
+			p.visible = false
+		}
 		for _, obj := range p.exit.touching {
 			cmds = append(cmds, obj.Render(p.cam)...)
 		}
+		err = sh.SetUniform("portalMat", raylib.MatrixIdentity())
+		if err != nil {
+			fmt.Printf("%+v\n", err)
+			p.visible = false
+		}
+
+		cmds = append(cmds, p.scene.Render(p.cam)...)
 		for _, cmd := range cmds {
 			cmd()
 		}
@@ -508,8 +528,19 @@ func (p *Portal) Render(cam *camera.Cam) []func() {
 				p.exit.visible = false
 			}
 
+			mat := raylib.MatrixInvert(p.GetTransform())
+			err = sh.SetUniform("portalMat", mat)
+			if err != nil {
+				fmt.Printf("%+v\n", err)
+				p.visible = false
+			}
 			for _, obj := range p.touching {
 				obj.Render(cam)
+			}
+			err = sh.SetUniform("portalMat", raylib.MatrixIdentity())
+			if err != nil {
+				fmt.Printf("%+v\n", err)
+				p.visible = false
 			}
 
 			p.rendering = false
@@ -565,8 +596,12 @@ func (p *Portal) Update(dt float32) {
 	}
 	for _, obj := range p.touching {
 		if raylib.Vector3DotProduct(raylib.Vector3Subtract(obj.GetPos(), p.GetPos()), p.GetNormal()) > 0 {
-			p.GetScene().RemChild(obj)
-			p.exit.GetScene().AddChild(obj)
+			if slices.Contains(p.GetScene().GetChilds(), obj) {
+				p.GetScene().RemChild(obj)
+				p.exit.GetScene().AddChild(obj)
+				mat := raylib.MatrixInvert(p.GetTransform())
+				obj.SetPos(obj.GetPos().Transform(mat))
+			}
 		}
 	}
 }

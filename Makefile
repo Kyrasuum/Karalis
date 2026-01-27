@@ -45,6 +45,7 @@ else
     endif
 endif
 
+DEPS ?=linux-amd64
 ifeq ($(DISTRO),linux)
 	ifeq ($(ARCH),amd64)
 		DEPS ?=linux-amd64
@@ -134,7 +135,7 @@ deps:
 # dev-deps for windows
 .PHONY: .dev-deps-windows
 .dev-deps-windows:
-	@cd include/go-raylib/raylib/src && make PLATFORM=PLATFORM_DESKTOP
+	@cd include/raylib-go/raylib/src && make PLATFORM=PLATFORM_DESKTOP
 
 .PHONY: dev-deps
 #: Install dependencies for compiling targets in this makefile

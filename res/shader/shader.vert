@@ -31,10 +31,11 @@ out float fragClip;
 // Custom Uniforms
 uniform vec3 portalPos = vec3(0,0,0);
 uniform vec3 portalNorm = vec3(0,0,0);
+uniform mat4 portalMat = mat4(1.0);
 
 void main() {
     // Calculate final vertex position
-    gl_Position = mvp*vec4(vertexPosition, 1.0);
+    gl_Position = mvp*portalMat*portalMat*vec4(vertexPosition, 1.0);
 
     // Send vertex attributes to fragment shader
     fragPosition = matModel*vec4(vertexPosition, 1.0);
