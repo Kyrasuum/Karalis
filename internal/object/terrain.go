@@ -23,8 +23,10 @@ import (
 
 type Terrain struct {
 	tex *raylib.Texture2D
-	shd pub_shader.Shader
+	hgt *raylib.Texture2D
 	mdl *raylib.Model
+
+	shd pub_shader.Shader
 
 	pos   raylib.Vector3
 	rot   raylib.Vector3
@@ -133,13 +135,13 @@ func (t *Terrain) LoadMap(m string) {
 	}
 
 	tex, err := res.GetRes(m)
-	if err != nil {
-		fmt.Printf("Error retrieving image: %+v\n", err)
+	if err != nil && strings.Compare(m, "") != 0 {
+		fmt.Printf("Error retrieving image (%s): %+v\n", m, err)
 		m = ""
 	}
 	var goimg image.Image
 
-	if m != "" {
+	if tex != nil {
 		pos := strings.Index(m, ".") + 1
 		ext := m[pos:]
 		switch ext {
@@ -175,12 +177,14 @@ func (t *Terrain) LoadMap(m string) {
 	}
 
 	img := raylib.NewImageFromImage(cube)
+	hmap := raylib.LoadTextureFromImage(img)
 	mesh := raylib.GenMeshHeightmap(*img, raylib.NewVector3(1, 1, 1))
 	mdl := raylib.LoadModelFromMesh(mesh)
 	t.mdl = &mdl
 	if t.tex == nil {
 		t.LoadImage(nil)
 	}
+	t.hgt = &hmap
 	raylib.SetMaterialTexture(t.mdl.Materials, raylib.MapDiffuse, *t.tex)
 }
 

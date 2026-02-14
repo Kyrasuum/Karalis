@@ -85,53 +85,6 @@ func (c *Cell) Update(dt float32) {
 		return
 	}
 
-	//check for collisions
-	collision_check := func(child pub_object.Object, pairs []pub_object.Object) {
-		for _, pair := range pairs {
-			//check if pair can collide with child
-			if pair.GetCollider() != nil {
-				if pair.GetCollider().GetObj() != pair {
-					pair = pair.GetCollider().GetObj()
-				}
-				collidable := pair.GetCollider().GetCollidable()
-				if collidable == nil || slices.Contains(collidable, child) {
-					//broad phase collision detection
-					if pub_object.CheckCollisionAABB(child.GetCollider().GetAABB(), pair.GetCollider().GetAABB()) {
-						//narrower phase collision detection
-						if pub_object.CheckCollisionOOBB(child.GetCollider().GetOOBB(), pair.GetCollider().GetOOBB()) {
-							//handle collision
-							coldata := pub_object.CollisionData{
-								Obj1: child,
-								Obj2: pair,
-							}
-							child.GetCollider().Collide(coldata)
-							pair.GetCollider().Collide(coldata)
-						}
-					}
-				}
-			}
-		}
-	}
-
-	//collisions check loop
-	childs := c.GetChilds()
-	for i, child := range childs {
-		col := child.GetCollider()
-		if col != nil {
-			if col.GetObj() != child {
-				child = col.GetObj()
-			}
-			collidable := col.GetCollidable()
-			if collidable == nil {
-				//undefined collidable means all objects collidable
-				collision_check(child, childs[i+1:])
-			} else {
-				//defined collidable means only collidable can collide with child
-				collision_check(child, collidable)
-			}
-		}
-	}
-
 	//perform update on objects
 	for _, child := range c.childs {
 		child.Update(dt)

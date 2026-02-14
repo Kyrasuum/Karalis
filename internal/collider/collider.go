@@ -2,7 +2,6 @@ package collider
 
 import (
 	"fmt"
-	"math"
 	"slices"
 
 	pub_object "karalis/pkg/object"
@@ -145,8 +144,8 @@ func (c *Collider) GetTouching() []pub_object.Object {
 	return c.touching
 }
 
-func (c *Collider) GetBoundingSphere() pub_object.BoundingSphere {
-	sp := pub_object.BoundingSphere{}
+func (c *Collider) GetBoundingSphere() pub_object.Sphere {
+	sp := pub_object.Sphere{}
 	if c == nil {
 		return sp
 	}
@@ -162,87 +161,19 @@ func (c *Collider) GetAABB() raylib.BoundingBox {
 		return raylib.BoundingBox{}
 	}
 
-	box := raylib.GetModelBoundingBox(*c.obj.GetModel())
+	mdl := *c.obj.GetModel()
 	mat := c.obj.GetModelMatrix()
 
-	corners := [8]raylib.Vector3{
-		{box.Min.X, box.Min.Y, box.Min.Z},
-		{box.Min.X, box.Min.Y, box.Max.Z},
-		{box.Min.X, box.Max.Y, box.Min.Z},
-		{box.Min.X, box.Max.Y, box.Max.Z},
-		{box.Max.X, box.Min.Y, box.Min.Z},
-		{box.Max.X, box.Min.Y, box.Max.Z},
-		{box.Max.X, box.Max.Y, box.Min.Z},
-		{box.Max.X, box.Max.Y, box.Max.Z},
-	}
-
-	min := raylib.Vector3Transform(corners[0], mat)
-	max := min
-	for i := 1; i < 8; i++ {
-		p := raylib.Vector3Transform(corners[i], mat)
-		min = raylib.NewVector3(
-			float32(math.Min(float64(min.X), float64(p.X))),
-			float32(math.Min(float64(min.Y), float64(p.Y))),
-			float32(math.Min(float64(min.Z), float64(p.Z))),
-		)
-		max = raylib.NewVector3(
-			float32(math.Max(float64(max.X), float64(p.X))),
-			float32(math.Max(float64(max.Y), float64(p.Y))),
-			float32(math.Max(float64(max.Z), float64(p.Z))),
-		)
-	}
-	box.Min = min
-	box.Max = max
-	return box
+	return pub_object.ComputeAABB(mdl, mat)
 }
 
-func (c *Collider) GetOOBB() pub_object.OBB {
+func (c *Collider) GetOOBB() pub_object.OrientedBox {
 	if c == nil {
-		return pub_object.OBB{}
+		return pub_object.OrientedBox{}
 	}
 
 	box := raylib.GetModelBoundingBox(*c.obj.GetModel())
 	mat := c.obj.GetModelMatrix()
-	// local center + half extents
-	localCenter := raylib.NewVector3(
-		(box.Min.X+box.Max.X)/2,
-		(box.Min.Y+box.Max.Y)/2,
-		(box.Min.Z+box.Max.Z)/2,
-	)
-	localHalf := raylib.NewVector3(
-		(box.Max.X-box.Min.X)/2,
-		(box.Max.Y-box.Min.Y)/2,
-		(box.Max.Z-box.Min.Z)/2,
-	)
 
-	// Extract basis vectors from matrix columns (raylib matrices are column-major in concept)
-	// In raylib.Matrix: M0 M4 M8  M12
-	//                  M1 M5 M9  M13
-	//                  M2 M6 M10 M14
-	//                  M3 M7 M11 M15
-	xCol := raylib.NewVector3(mat.M0, mat.M1, mat.M2)
-	yCol := raylib.NewVector3(mat.M4, mat.M5, mat.M6)
-	zCol := raylib.NewVector3(mat.M8, mat.M9, mat.M10)
-
-	// Axis directions (normalized)
-	ax := raylib.Vector3Normalize(xCol)
-	ay := raylib.Vector3Normalize(yCol)
-	az := raylib.Vector3Normalize(zCol)
-
-	// Scale magnitudes baked into columns
-	sx := raylib.Vector3Length(xCol)
-	sy := raylib.Vector3Length(yCol)
-	sz := raylib.Vector3Length(zCol)
-
-	// World half extents = local half * scale along each axis
-	worldHalf := raylib.NewVector3(localHalf.X*sx, localHalf.Y*sy, localHalf.Z*sz)
-
-	// World center: transform local center by m
-	worldCenter := raylib.Vector3Transform(localCenter, mat)
-
-	return pub_object.OBB{
-		Center: worldCenter,
-		Axis:   [3]raylib.Vector3{ax, ay, az},
-		Half:   worldHalf,
-	}
+	return pub_object.ComputeOBB(box, mat)
 }

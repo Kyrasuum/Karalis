@@ -5,9 +5,8 @@ import (
 
 	"karalis/internal/cell"
 	"karalis/internal/character"
-	// "karalis/internal/object"
+	"karalis/internal/object"
 	"karalis/internal/object/prim"
-	"karalis/internal/portal"
 	pub_object "karalis/pkg/object"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
@@ -44,6 +43,14 @@ func (g *Game) Init() error {
 	}
 	g.curcell.AddChild(grid)
 
+	ter, err := object.NewTerrain("tex/map/heightmap.png", "tex/map/heightmap.png")
+	if err != nil {
+		return err
+	}
+	ter.SetScale(raylib.NewVector3(20, 1, 20))
+	ter.SetPos(raylib.NewVector3(-10, 0, -10))
+	g.curcell.AddChild(ter)
+
 	return nil
 }
 
@@ -54,8 +61,6 @@ func (g *Game) OnResize(w int32, h int32) {
 	}
 
 	g.player.GetCam().OnResize(w, h)
-	g.portal1.OnResize(w, h)
-	g.portal2.OnResize(w, h)
 }
 
 // prerender hook

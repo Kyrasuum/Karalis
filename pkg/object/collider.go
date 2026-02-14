@@ -8,15 +8,48 @@ import (
 
 var ()
 
-type OBB struct {
-	Center raylib.Vector3
-	Axis   [3]raylib.Vector3 // normalized
-	Half   raylib.Vector3    // half sizes along each axis (x,y,z)
+//
+// ========================================
+// HELPER TYPES
+// ========================================
+//
+
+type Rect struct {
+	X, Y int
+	W, H int
 }
 
-type BoundingSphere struct {
+type OrientedBox struct {
+	Center      raylib.Vector3
+	AxisX       raylib.Vector3
+	AxisY       raylib.Vector3
+	AxisZ       raylib.Vector3
+	HalfExtents raylib.Vector3
+}
+
+type Capsule struct {
+	Start  raylib.Vector3
+	End    raylib.Vector3
+	Radius float32
+}
+
+type Sphere struct {
 	Center raylib.Vector3
 	Radius float32
+}
+
+type Penetration struct {
+	Collides bool
+	Depth    float32
+	Normal   raylib.Vector3
+	MTV      raylib.Vector3
+}
+
+type SweepCollision struct {
+	Hit    bool
+	Time   float32
+	Point  raylib.Vector3
+	Normal raylib.Vector3
 }
 
 type CollisionData struct {
@@ -26,9 +59,9 @@ type CollisionData struct {
 
 type Collider interface {
 	GetObj() Object
-	GetBoundingSphere() BoundingSphere
+	GetBoundingSphere() Sphere
 	GetAABB() raylib.BoundingBox
-	GetOOBB() OBB
+	GetOOBB() OrientedBox
 	GetCollidable() []Object
 	Collide(CollisionData)
 	Update(dt float32)
@@ -36,160 +69,96 @@ type Collider interface {
 	GetTouching() []Object
 }
 
-func CheckCollisionSpheres(sp1 BoundingSphere, sp2 BoundingSphere) bool {
-	return raylib.Vector3Length(raylib.Vector3Subtract(sp1.Center, sp2.Center)) < sp1.Radius+sp2.Radius
+func ComputeAABB(obj raylib.Model, mat raylib.Matrix) raylib.BoundingBox {
+	box := raylib.GetModelBoundingBox(obj)
+
+	corners := [8]raylib.Vector3{
+		{box.Min.X, box.Min.Y, box.Min.Z},
+		{box.Min.X, box.Min.Y, box.Max.Z},
+		{box.Min.X, box.Max.Y, box.Min.Z},
+		{box.Min.X, box.Max.Y, box.Max.Z},
+		{box.Max.X, box.Min.Y, box.Min.Z},
+		{box.Max.X, box.Min.Y, box.Max.Z},
+		{box.Max.X, box.Max.Y, box.Min.Z},
+		{box.Max.X, box.Max.Y, box.Max.Z},
+	}
+
+	min := raylib.Vector3Transform(corners[0], mat)
+	max := min
+	for i := 1; i < 8; i++ {
+		p := raylib.Vector3Transform(corners[i], mat)
+		min = raylib.NewVector3(
+			float32(math.Min(float64(min.X), float64(p.X))),
+			float32(math.Min(float64(min.Y), float64(p.Y))),
+			float32(math.Min(float64(min.Z), float64(p.Z))),
+		)
+		max = raylib.NewVector3(
+			float32(math.Max(float64(max.X), float64(p.X))),
+			float32(math.Max(float64(max.Y), float64(p.Y))),
+			float32(math.Max(float64(max.Z), float64(p.Z))),
+		)
+	}
+	box.Min = min
+	box.Max = max
+	return box
 }
 
-func CheckCollisionAABB(b1 raylib.BoundingBox, b2 raylib.BoundingBox) bool {
-	if b1.Max.X <= b2.Min.X || b1.Min.X >= b2.Max.X {
-		return false
+func ComputeOBB(aabb raylib.BoundingBox, transform raylib.Matrix) OrientedBox {
+	var obb OrientedBox
+
+	obb.HalfExtents = raylib.Vector3{
+		X: (aabb.Max.X - aabb.Min.X) * 0.5,
+		Y: (aabb.Max.Y - aabb.Min.Y) * 0.5,
+		Z: (aabb.Max.Z - aabb.Min.Z) * 0.5,
 	}
-	if b1.Max.Y <= b2.Min.Y || b1.Min.Y >= b2.Max.Y {
-		return false
+
+	localCenter := raylib.Vector3{
+		X: (aabb.Min.X + aabb.Max.X) * 0.5,
+		Y: (aabb.Min.Y + aabb.Max.Y) * 0.5,
+		Z: (aabb.Min.Z + aabb.Max.Z) * 0.5,
 	}
-	if b1.Max.Z <= b2.Min.Z || b1.Min.Z >= b2.Max.Z {
-		return false
+
+	obb.Center = raylib.Vector3{
+		X: transform.M0*localCenter.X + transform.M4*localCenter.Y + transform.M8*localCenter.Z + transform.M12,
+		Y: transform.M1*localCenter.X + transform.M5*localCenter.Y + transform.M9*localCenter.Z + transform.M13,
+		Z: transform.M2*localCenter.X + transform.M6*localCenter.Y + transform.M10*localCenter.Z + transform.M14,
 	}
-	return true
+
+	obb.AxisX = raylib.Vector3{X: transform.M0, Y: transform.M1, Z: transform.M2}
+	obb.AxisY = raylib.Vector3{X: transform.M4, Y: transform.M5, Z: transform.M6}
+	obb.AxisZ = raylib.Vector3{X: transform.M8, Y: transform.M9, Z: transform.M10}
+
+	return obb
 }
 
-func CheckCollisionOOBB(a OBB, b OBB) bool {
-	// Convenience
-	A := a.Axis
-	B := b.Axis
-	EA := a.Half
-	EB := b.Half
+// If your axes came from a transform matrix columns, they may include scale.
+// This normalizes axes and pushes scale into HalfExtents so later math is correct.
+func OrientedBoxNormalizeScale(obb OrientedBox) OrientedBox {
+	const eps = 1e-8
 
-	// Rotation matrix expressing B in A’s frame: R[i][j] = dot(Ai, Bj)
-	var R [3][3]float32
-	var AbsR [3][3]float32
-
-	const eps = 1e-6 // helps stability when axes are nearly parallel
-
-	for i := 0; i < 3; i++ {
-		for j := 0; j < 3; j++ {
-			R[i][j] = raylib.Vector3DotProduct(A[i], B[j])
-			AbsR[i][j] = float32(math.Abs(float64(R[i][j]))) + eps
-		}
+	// X
+	lx := raylib.Vector3Length(obb.AxisX)
+	if lx > eps {
+		inv := 1.0 / lx
+		obb.AxisX = raylib.Vector3Scale(obb.AxisX, float32(inv))
+		obb.HalfExtents.X *= lx
 	}
 
-	// Translation vector from A to B, in world, then expressed in A’s frame
-	tWorld := raylib.Vector3Subtract(b.Center, a.Center)
-	t := raylib.NewVector3(
-		raylib.Vector3DotProduct(tWorld, A[0]),
-		raylib.Vector3DotProduct(tWorld, A[1]),
-		raylib.Vector3DotProduct(tWorld, A[2]),
-	)
-
-	// Helper for extents
-	EAi := [3]float32{EA.X, EA.Y, EA.Z}
-	EBi := [3]float32{EB.X, EB.Y, EB.Z}
-	ti := [3]float32{t.X, t.Y, t.Z}
-
-	// 1) Test axes L = A0, A1, A2
-	for i := 0; i < 3; i++ {
-		ra := EAi[i]
-		rb := EBi[0]*AbsR[i][0] + EBi[1]*AbsR[i][1] + EBi[2]*AbsR[i][2]
-		if float32(math.Abs(float64(ti[i]))) > ra+rb {
-			return false
-		}
+	// Y
+	ly := raylib.Vector3Length(obb.AxisY)
+	if ly > eps {
+		inv := 1.0 / ly
+		obb.AxisY = raylib.Vector3Scale(obb.AxisY, float32(inv))
+		obb.HalfExtents.Y *= ly
 	}
 
-	// 2) Test axes L = B0, B1, B2
-	for j := 0; j < 3; j++ {
-		ra := EAi[0]*AbsR[0][j] + EAi[1]*AbsR[1][j] + EAi[2]*AbsR[2][j]
-		rb := EBi[j]
-		// projection of t onto Bj is dot(tWorld, Bj) = sum_i t_i * R[i][j]
-		tproj := ti[0]*R[0][j] + ti[1]*R[1][j] + ti[2]*R[2][j]
-		if float32(math.Abs(float64(tproj))) > ra+rb {
-			return false
-		}
+	// Z
+	lz := raylib.Vector3Length(obb.AxisZ)
+	if lz > eps {
+		inv := 1.0 / lz
+		obb.AxisZ = raylib.Vector3Scale(obb.AxisZ, float32(inv))
+		obb.HalfExtents.Z *= lz
 	}
 
-	// 3) Test axes L = Ai x Bj (9 tests)
-	// A0 x B0
-	{
-		ra := EAi[1]*AbsR[2][0] + EAi[2]*AbsR[1][0]
-		rb := EBi[1]*AbsR[0][2] + EBi[2]*AbsR[0][1]
-		val := float32(math.Abs(float64(ti[2]*R[1][0] - ti[1]*R[2][0])))
-		if val > ra+rb {
-			return false
-		}
-	}
-	// A0 x B1
-	{
-		ra := EAi[1]*AbsR[2][1] + EAi[2]*AbsR[1][1]
-		rb := EBi[0]*AbsR[0][2] + EBi[2]*AbsR[0][0]
-		val := float32(math.Abs(float64(ti[2]*R[1][1] - ti[1]*R[2][1])))
-		if val > ra+rb {
-			return false
-		}
-	}
-	// A0 x B2
-	{
-		ra := EAi[1]*AbsR[2][2] + EAi[2]*AbsR[1][2]
-		rb := EBi[0]*AbsR[0][1] + EBi[1]*AbsR[0][0]
-		val := float32(math.Abs(float64(ti[2]*R[1][2] - ti[1]*R[2][2])))
-		if val > ra+rb {
-			return false
-		}
-	}
-
-	// A1 x B0
-	{
-		ra := EAi[0]*AbsR[2][0] + EAi[2]*AbsR[0][0]
-		rb := EBi[1]*AbsR[1][2] + EBi[2]*AbsR[1][1]
-		val := float32(math.Abs(float64(ti[0]*R[2][0] - ti[2]*R[0][0])))
-		if val > ra+rb {
-			return false
-		}
-	}
-	// A1 x B1
-	{
-		ra := EAi[0]*AbsR[2][1] + EAi[2]*AbsR[0][1]
-		rb := EBi[0]*AbsR[1][2] + EBi[2]*AbsR[1][0]
-		val := float32(math.Abs(float64(ti[0]*R[2][1] - ti[2]*R[0][1])))
-		if val > ra+rb {
-			return false
-		}
-	}
-	// A1 x B2
-	{
-		ra := EAi[0]*AbsR[2][2] + EAi[2]*AbsR[0][2]
-		rb := EBi[0]*AbsR[1][1] + EBi[1]*AbsR[1][0]
-		val := float32(math.Abs(float64(ti[0]*R[2][2] - ti[2]*R[0][2])))
-		if val > ra+rb {
-			return false
-		}
-	}
-
-	// A2 x B0
-	{
-		ra := EAi[0]*AbsR[1][0] + EAi[1]*AbsR[0][0]
-		rb := EBi[1]*AbsR[2][2] + EBi[2]*AbsR[2][1]
-		val := float32(math.Abs(float64(ti[1]*R[0][0] - ti[0]*R[1][0])))
-		if val > ra+rb {
-			return false
-		}
-	}
-	// A2 x B1
-	{
-		ra := EAi[0]*AbsR[1][1] + EAi[1]*AbsR[0][1]
-		rb := EBi[0]*AbsR[2][2] + EBi[2]*AbsR[2][0]
-		val := float32(math.Abs(float64(ti[1]*R[0][1] - ti[0]*R[1][1])))
-		if val > ra+rb {
-			return false
-		}
-	}
-	// A2 x B2
-	{
-		ra := EAi[0]*AbsR[1][2] + EAi[1]*AbsR[0][2]
-		rb := EBi[0]*AbsR[2][1] + EBi[1]*AbsR[2][0]
-		val := float32(math.Abs(float64(ti[1]*R[0][2] - ti[0]*R[1][2])))
-		if val > ra+rb {
-			return false
-		}
-	}
-
-	return true
+	return obb
 }
