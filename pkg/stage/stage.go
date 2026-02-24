@@ -1,7 +1,6 @@
 package stage
 
 import (
-	"karalis/internal/cell"
 	"karalis/pkg/object"
 )
 
@@ -18,5 +17,5 @@ type Stage interface {
 	OnAdd()
 	OnRemove()
 	GetPlayer() object.Object
-	GetCurrentCell() *cell.Cell
+	GetCurrentCell() object.Cell
 }

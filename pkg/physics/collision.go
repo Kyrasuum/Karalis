@@ -1,16 +1,26 @@
-package object
+package physics
 
 import (
 	"math"
 
+	pub_object "karalis/pkg/object"
+
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
-//
-// ========================================
-// SMALL FLOAT HELPERS
-// ========================================
-//
+type Penetration struct {
+	Collides bool
+	Depth    float32
+	Normal   raylib.Vector3
+	MTV      raylib.Vector3
+}
+
+type SweepCollision struct {
+	Hit    bool
+	Time   float32
+	Point  raylib.Vector3
+	Normal raylib.Vector3
+}
 
 func fmin(a, b float32) float32 {
 	if a < b {
@@ -26,27 +36,13 @@ func fmax(a, b float32) float32 {
 	return b
 }
 
-func fclamp(x, lo, hi float32) float32 {
-	if x < lo {
-		return lo
-	}
-	if x > hi {
-		return hi
-	}
-	return x
-}
-
-func fabs(x float32) float32 {
-	return float32(math.Abs(float64(x)))
-}
-
 //
 // ========================================
 // COLLISION
 // ========================================
 //
 
-func CheckCollisionSpheres(sp1 Sphere, sp2 Sphere) bool {
+func CheckCollisionSpheres(sp1 pub_object.Sphere, sp2 pub_object.Sphere) bool {
 	return raylib.Vector3Length(raylib.Vector3Subtract(sp1.Center, sp2.Center)) < sp1.Radius+sp2.Radius
 }
 
@@ -65,9 +61,9 @@ func CheckCollisionAABB(b1 raylib.BoundingBox, b2 raylib.BoundingBox) bool {
 
 // CheckCollisionOBB performs OBB-OBB overlap using the standard Separating Axis Theorem.
 // Fast, robust, and the usual go-to for oriented boxes.
-func CheckCollisionOBB(a, b OrientedBox) bool {
-	a = OrientedBoxNormalizeScale(a)
-	b = OrientedBoxNormalizeScale(b)
+func CheckCollisionOBB(a, b pub_object.OrientedBox) bool {
+	a = pub_object.OrientedBoxNormalizeScale(a)
+	b = pub_object.OrientedBoxNormalizeScale(b)
 
 	A := [3]raylib.Vector3{a.AxisX, a.AxisY, a.AxisZ}
 	B := [3]raylib.Vector3{b.AxisX, b.AxisY, b.AxisZ}
@@ -83,7 +79,7 @@ func CheckCollisionOBB(a, b OrientedBox) bool {
 	for i := 0; i < 3; i++ {
 		for j := 0; j < 3; j++ {
 			R[i][j] = raylib.Vector3DotProduct(A[i], B[j])
-			AbsR[i][j] = fabs(R[i][j]) + eps
+			AbsR[i][j] = float32(math.Abs(float64(R[i][j]))) + eps
 		}
 	}
 
@@ -99,7 +95,7 @@ func CheckCollisionOBB(a, b OrientedBox) bool {
 	for i := 0; i < 3; i++ {
 		ra := ae[i]
 		rb := be[0]*AbsR[i][0] + be[1]*AbsR[i][1] + be[2]*AbsR[i][2]
-		if fabs(t[i]) > ra+rb {
+		if float32(math.Abs(float64(t[i]))) > ra+rb {
 			return false
 		}
 	}
@@ -110,7 +106,7 @@ func CheckCollisionOBB(a, b OrientedBox) bool {
 		rb := be[j]
 		// t in B basis: tB = [t·B0, t·B1, t·B2] = [tA·Rcol]
 		tB := t[0]*R[0][j] + t[1]*R[1][j] + t[2]*R[2][j]
-		if fabs(tB) > ra+rb {
+		if float32(math.Abs(float64(tB))) > ra+rb {
 			return false
 		}
 	}
@@ -129,7 +125,7 @@ func CheckCollisionOBB(a, b OrientedBox) bool {
 
 			// |t · (Ai x Bj)| in A basis:
 			// = | t[ip2]*R[ip1][j] - t[ip1]*R[ip2][j] |
-			val := fabs(t[ip2]*R[ip1][j] - t[ip1]*R[ip2][j])
+			val := float32(math.Abs(float64(t[ip2]*R[ip1][j] - t[ip1]*R[ip2][j])))
 
 			if val > ra+rb {
 				return false
@@ -140,8 +136,8 @@ func CheckCollisionOBB(a, b OrientedBox) bool {
 	return true
 }
 
-func CheckCollisionCapsuleOBB(capsule Capsule, obb OrientedBox) bool {
-	obb = OrientedBoxNormalizeScale(obb)
+func CheckCollisionCapsuleOBB(capsule pub_object.Capsule, obb pub_object.OrientedBox) bool {
+	obb = pub_object.OrientedBoxNormalizeScale(obb)
 
 	closestOnSegment := ClosestPointOnSegment(
 		ClosestPointOnOBB(capsule.Start, obb),
@@ -153,7 +149,7 @@ func CheckCollisionCapsuleOBB(capsule Capsule, obb OrientedBox) bool {
 	return distSq <= capsule.Radius*capsule.Radius
 }
 
-func CheckCollisionCapsuleBox(capsule Capsule, box raylib.BoundingBox) bool {
+func CheckCollisionCapsuleBox(capsule pub_object.Capsule, box raylib.BoundingBox) bool {
 	closestOnSegment := ClosestPointOnSegment(
 		ClosestPointOnBox(capsule.Start, box),
 		capsule.Start,
@@ -164,14 +160,14 @@ func CheckCollisionCapsuleBox(capsule Capsule, box raylib.BoundingBox) bool {
 	return distSq <= (capsule.Radius * capsule.Radius)
 }
 
-func CheckCollisionCapsuleSphere(capsule Capsule, center raylib.Vector3, radius float32) bool {
+func CheckCollisionCapsuleSphere(capsule pub_object.Capsule, center raylib.Vector3, radius float32) bool {
 	closestPoint := ClosestPointOnSegment(center, capsule.Start, capsule.End)
 	distSq := raylib.Vector3DistanceSqr(center, closestPoint)
 	radiusSum := capsule.Radius + radius
 	return distSq <= (radiusSum * radiusSum)
 }
 
-func CheckCollisionCapsules(a, b Capsule) bool {
+func CheckCollisionCapsules(a, b pub_object.Capsule) bool {
 	dirA := raylib.Vector3Subtract(a.End, a.Start)
 	dirB := raylib.Vector3Subtract(b.End, b.Start)
 	r := raylib.Vector3Subtract(a.Start, b.Start)
@@ -210,7 +206,7 @@ func CheckCollisionCapsules(a, b Capsule) bool {
 	return distSq <= (radiusSum * radiusSum)
 }
 
-func CheckCollisionCapsuleMesh(capsule Capsule, mesh *raylib.Mesh, transform raylib.Matrix) bool {
+func CheckCollisionCapsuleMesh(capsule pub_object.Capsule, mesh *raylib.Mesh, transform raylib.Matrix) bool {
 	if mesh == nil || mesh.Vertices == nil || mesh.VertexCount <= 0 || mesh.TriangleCount <= 0 {
 		return false
 	}
@@ -241,7 +237,7 @@ func CheckCollisionCapsuleMesh(capsule Capsule, mesh *raylib.Mesh, transform ray
 	return false
 }
 
-func CheckPenetrationCapsuleBox(capsule Capsule, box raylib.BoundingBox) Penetration {
+func CheckPenetrationCapsuleBox(capsule pub_object.Capsule, box raylib.BoundingBox) Penetration {
 	var result Penetration
 
 	closestOnSegment := ClosestPointOnSegment(
@@ -302,7 +298,7 @@ func CheckPenetrationCapsuleBox(capsule Capsule, box raylib.BoundingBox) Penetra
 	return result
 }
 
-func CheckPenetrationCapsuleSphere(capsule Capsule, center raylib.Vector3, radius float32) Penetration {
+func CheckPenetrationCapsuleSphere(capsule pub_object.Capsule, center raylib.Vector3, radius float32) Penetration {
 	var result Penetration
 
 	closestOnSegment := ClosestPointOnSegment(center, capsule.Start, capsule.End)
@@ -350,7 +346,7 @@ func CheckPenetrationCapsuleSphere(capsule Capsule, center raylib.Vector3, radiu
 	return result
 }
 
-func CheckPenetrationCapsules(a, b Capsule) Penetration {
+func CheckPenetrationCapsules(a, b pub_object.Capsule) Penetration {
 	var result Penetration
 
 	dirA := raylib.Vector3Subtract(a.End, a.Start)
@@ -425,363 +421,6 @@ func CheckPenetrationCapsules(a, b Capsule) Penetration {
 
 	result.MTV = raylib.Vector3Scale(result.Normal, result.Depth)
 	return result
-}
-
-func SlideVelocity(velocity, normal raylib.Vector3) raylib.Vector3 {
-	dot := raylib.Vector3DotProduct(velocity, normal)
-	return raylib.Vector3Subtract(velocity, raylib.Vector3Scale(normal, dot))
-}
-
-func BounceVelocity(velocity, normal raylib.Vector3, bounciness float32) raylib.Vector3 {
-	dot := raylib.Vector3DotProduct(velocity, normal)
-	reflection := raylib.Vector3Subtract(velocity, raylib.Vector3Scale(normal, 2*dot))
-	return raylib.Vector3Scale(reflection, bounciness)
-}
-
-func SlideSphereBox(center raylib.Vector3, radius float32, velocity raylib.Vector3, box raylib.BoundingBox, outNormal *raylib.Vector3) raylib.Vector3 {
-	collision := SweepSphereBox(center, radius, velocity, box)
-	if !collision.Hit {
-		if outNormal != nil {
-			*outNormal = raylib.Vector3{}
-		}
-		return velocity
-	}
-
-	if outNormal != nil {
-		*outNormal = collision.Normal
-	}
-
-	safeTime := fmax(0, collision.Time-0.001)
-	safeVelocity := raylib.Vector3Scale(velocity, safeTime)
-	remainingVelocity := raylib.Vector3Scale(velocity, 1-safeTime)
-	slidedRemaining := SlideVelocity(remainingVelocity, collision.Normal)
-
-	return raylib.Vector3Add(safeVelocity, slidedRemaining)
-}
-
-func SlideSphereMesh(center raylib.Vector3, radius float32, velocity raylib.Vector3, mesh *raylib.Mesh, transform raylib.Matrix, outNormal *raylib.Vector3) raylib.Vector3 {
-	collision := SweepSphereMesh(center, radius, velocity, mesh, transform)
-	if !collision.Hit {
-		if outNormal != nil {
-			*outNormal = raylib.Vector3{}
-		}
-		return velocity
-	}
-
-	if outNormal != nil {
-		*outNormal = collision.Normal
-	}
-
-	safeTime := fmax(0, collision.Time-0.001)
-	safeVelocity := raylib.Vector3Scale(velocity, safeTime)
-	remainingVelocity := raylib.Vector3Scale(velocity, 1-safeTime)
-	slidedRemaining := SlideVelocity(remainingVelocity, collision.Normal)
-
-	return raylib.Vector3Add(safeVelocity, slidedRemaining)
-}
-
-func SlideCapsuleBox(capsule Capsule, velocity raylib.Vector3, box raylib.BoundingBox, outNormal *raylib.Vector3) raylib.Vector3 {
-	collision := SweepCapsuleBox(capsule, velocity, box)
-	if !collision.Hit {
-		if outNormal != nil {
-			*outNormal = raylib.Vector3{}
-		}
-		return velocity
-	}
-
-	if outNormal != nil {
-		*outNormal = collision.Normal
-	}
-
-	safeTime := fmax(0, collision.Time-0.001)
-	safeVelocity := raylib.Vector3Scale(velocity, safeTime)
-	remainingVelocity := raylib.Vector3Scale(velocity, 1-safeTime)
-	slidedRemaining := SlideVelocity(remainingVelocity, collision.Normal)
-
-	return raylib.Vector3Add(safeVelocity, slidedRemaining)
-}
-
-func SlideCapsuleMesh(capsule Capsule, velocity raylib.Vector3, mesh *raylib.Mesh, transform raylib.Matrix, outNormal *raylib.Vector3) raylib.Vector3 {
-	collision := SweepCapsuleMesh(capsule, velocity, mesh, transform)
-	if !collision.Hit {
-		if outNormal != nil {
-			*outNormal = raylib.Vector3{}
-		}
-		return velocity
-	}
-
-	if outNormal != nil {
-		*outNormal = collision.Normal
-	}
-
-	safeTime := fmax(0, collision.Time-0.001)
-	safeVelocity := raylib.Vector3Scale(velocity, safeTime)
-	remainingVelocity := raylib.Vector3Scale(velocity, 1-safeTime)
-	slidedRemaining := SlideVelocity(remainingVelocity, collision.Normal)
-
-	return raylib.Vector3Add(safeVelocity, slidedRemaining)
-}
-
-//
-// ========================================
-// RESOLUTION
-// ========================================
-//
-
-func DepenetrateSphereBox(center *raylib.Vector3, radius float32, box raylib.BoundingBox, outPenetration *float32) bool {
-	closestPoint := ClosestPointOnBox(*center, box)
-	delta := raylib.Vector3Subtract(*center, closestPoint)
-	distSq := raylib.Vector3LengthSqr(delta)
-	radiusSq := radius * radius
-
-	if distSq >= radiusSq {
-		return false
-	}
-
-	dist := float32(math.Sqrt(float64(distSq)))
-	penetration := radius - dist
-
-	var direction raylib.Vector3
-	if dist > 1e-6 {
-		direction = raylib.Vector3Scale(delta, 1.0/dist)
-	} else {
-		direction = raylib.Vector3{X: 0, Y: 1, Z: 0}
-	}
-
-	*center = raylib.Vector3Add(*center, raylib.Vector3Scale(direction, penetration))
-	if outPenetration != nil {
-		*outPenetration = penetration
-	}
-	return true
-}
-
-func DepenetrateCapsuleBox(capsule *Capsule, box raylib.BoundingBox, outPenetration *float32) bool {
-	closestOnSegment := ClosestPointOnSegment(
-		ClosestPointOnBox(capsule.Start, box),
-		capsule.Start,
-		capsule.End,
-	)
-
-	closestOnBox := ClosestPointOnBox(closestOnSegment, box)
-	delta := raylib.Vector3Subtract(closestOnSegment, closestOnBox)
-	distSq := raylib.Vector3LengthSqr(delta)
-	radiusSq := capsule.Radius * capsule.Radius
-
-	if distSq >= radiusSq {
-		return false
-	}
-
-	dist := float32(math.Sqrt(float64(distSq)))
-	penetration := capsule.Radius - dist
-
-	var direction raylib.Vector3
-	if dist > 1e-6 {
-		direction = raylib.Vector3Scale(delta, 1.0/dist)
-	} else {
-		direction = raylib.Vector3{X: 0, Y: 1, Z: 0}
-	}
-
-	correction := raylib.Vector3Scale(direction, penetration)
-	capsule.Start = raylib.Vector3Add(capsule.Start, correction)
-	capsule.End = raylib.Vector3Add(capsule.End, correction)
-
-	if outPenetration != nil {
-		*outPenetration = penetration
-	}
-	return true
-}
-
-//
-// ========================================
-// RAYCAST
-// ========================================
-//
-
-// Möller-Trumbore intersection
-func RaycastTriangle(outT *float32, outEdge1, outEdge2 *raylib.Vector3,
-	localOrigin, localDirection, v0, v1, v2 raylib.Vector3,
-) bool {
-	edge1 := raylib.Vector3Subtract(v1, v0)
-	edge2 := raylib.Vector3Subtract(v2, v0)
-
-	h := raylib.Vector3CrossProduct(localDirection, edge2)
-	a := raylib.Vector3DotProduct(edge1, h)
-	if a < 1e-5 {
-		return false
-	}
-
-	f := 1 / a
-	s := raylib.Vector3Subtract(localOrigin, v0)
-	u := f * raylib.Vector3DotProduct(s, h)
-	if u < 0 || u > 1 {
-		return false
-	}
-
-	q := raylib.Vector3CrossProduct(s, edge1)
-	v := f * raylib.Vector3DotProduct(localDirection, q)
-	if v < 0 || u+v > 1 {
-		return false
-	}
-
-	t := f * raylib.Vector3DotProduct(edge2, q)
-	if t < 1e-5 {
-		return false
-	}
-
-	*outT = t
-	*outEdge1 = edge1
-	*outEdge2 = edge2
-	return true
-}
-
-func RaycastMeshVertices(closestT *float32, closestEdge1, closestEdge2 *raylib.Vector3,
-	vertices []raylib.Vector3, triangleCount int,
-	localOrigin, localDirection raylib.Vector3,
-) {
-	for i := 0; i < triangleCount; i++ {
-		base := i * 3
-		v0 := vertices[base]
-		v1 := vertices[base+1]
-		v2 := vertices[base+2]
-
-		var t float32
-		var e1, e2 raylib.Vector3
-		if RaycastTriangle(&t, &e1, &e2, localOrigin, localDirection, v0, v1, v2) {
-			if t < *closestT {
-				*closestT = t
-				*closestEdge1 = e1
-				*closestEdge2 = e2
-			}
-		}
-	}
-}
-
-func RaycastMeshIndexed(closestT *float32, closestEdge1, closestEdge2 *raylib.Vector3,
-	vertices []raylib.Vector3, indices []uint32, triangleCount int,
-	localOrigin, localDirection raylib.Vector3,
-) {
-	for i := 0; i < triangleCount; i++ {
-		base := i * 3
-		v0 := vertices[indices[base]]
-		v1 := vertices[indices[base+1]]
-		v2 := vertices[indices[base+2]]
-
-		var t float32
-		var e1, e2 raylib.Vector3
-		if RaycastTriangle(&t, &e1, &e2, localOrigin, localDirection, v0, v1, v2) {
-			if t < *closestT {
-				*closestT = t
-				*closestEdge1 = e1
-				*closestEdge2 = e2
-			}
-		}
-	}
-}
-
-func RaycastMesh(ray raylib.Ray, mesh *raylib.Mesh, transform raylib.Matrix) raylib.RayCollision {
-	collision := raylib.RayCollision{Distance: float32(math.Inf(1))}
-
-	if mesh == nil || mesh.Vertices == nil || mesh.VertexCount <= 0 || mesh.TriangleCount <= 0 {
-		return collision
-	}
-
-	invTransform := raylib.MatrixInvert(transform)
-	localOrigin := ray.Position.Transform(invTransform)
-	localDirection := raylib.Vector3Normalize(ray.Direction.Transform(invTransform))
-
-	closestT := float32(math.Inf(1))
-	var closestEdge1, closestEdge2 raylib.Vector3
-
-	triCount := meshTriangleCount(mesh)
-	for i := 0; i < triCount; i++ {
-		v0, v1, v2 := meshTrianglePositions(mesh, i)
-
-		var t float32
-		var e1, e2 raylib.Vector3
-		if RaycastTriangle(&t, &e1, &e2, localOrigin, localDirection, v0, v1, v2) {
-			if t < closestT {
-				closestT = t
-				closestEdge1 = e1
-				closestEdge2 = e2
-			}
-		}
-	}
-
-	if closestT < float32(math.Inf(1)) {
-		closestHitLocal := raylib.Vector3Add(localOrigin, raylib.Vector3Scale(localDirection, closestT))
-		normalLocal := raylib.Vector3Normalize(raylib.Vector3CrossProduct(closestEdge1, closestEdge2))
-		normalMatrix := raylib.MatrixTranspose(invTransform)
-
-		collision.Hit = true
-		collision.Point = closestHitLocal.Transform(transform)
-		collision.Distance = raylib.Vector3Distance(ray.Position, collision.Point)
-		collision.Normal = raylib.Vector3Normalize(normalLocal.Transform(normalMatrix))
-	}
-
-	return collision
-}
-
-func RaycastModel(ray raylib.Ray, model raylib.Model, transform raylib.Matrix) raylib.RayCollision {
-	collision := raylib.RayCollision{Distance: float32(math.Inf(1))}
-
-	if model.MeshCount <= 0 || model.Meshes == nil {
-		return collision
-	}
-
-	invTransform := raylib.MatrixInvert(transform)
-	localOrigin := ray.Position.Transform(invTransform)
-	localDirection := raylib.Vector3Normalize(ray.Direction.Transform(invTransform))
-
-	closestT := float32(math.Inf(1))
-	var closestEdge1, closestEdge2 raylib.Vector3
-
-	for meshIdx := int32(0); meshIdx < model.MeshCount; meshIdx++ {
-		// In raylib-go, model.Meshes is a pointer to an array of raylib.Mesh.
-		// Usually you'd access it via unsafe.Slice; many projects already wrap this.
-		// If you already have per-mesh access elsewhere, plug it in here.
-		mesh := &model.GetMeshes()[0]
-		if mesh == nil || mesh.Vertices == nil || mesh.TriangleCount <= 0 {
-			continue
-		}
-
-		// Per-mesh AABB culling:
-		// If you have an AABB stored somewhere per mesh, use it.
-		// raylib base Model does not carry mesh AABBs; many engines store them externally.
-		// If you don't have AABBs, remove this culling block.
-		aabb := ComputeAABB(model, transform)
-		meshBoxCol := raylib.GetRayCollisionBox(ray, aabb)
-		if !meshBoxCol.Hit {
-			continue
-		}
-
-		triCount := meshTriangleCount(mesh)
-		for i := 0; i < triCount; i++ {
-			v0, v1, v2 := meshTrianglePositions(mesh, i)
-
-			var t float32
-			var e1, e2 raylib.Vector3
-			if RaycastTriangle(&t, &e1, &e2, localOrigin, localDirection, v0, v1, v2) {
-				if t < closestT {
-					closestT = t
-					closestEdge1 = e1
-					closestEdge2 = e2
-				}
-			}
-		}
-	}
-
-	if closestT < float32(math.Inf(1)) {
-		closestHitLocal := raylib.Vector3Add(localOrigin, raylib.Vector3Scale(localDirection, closestT))
-		normalLocal := raylib.Vector3Normalize(raylib.Vector3CrossProduct(closestEdge1, closestEdge2))
-		normalMatrix := raylib.MatrixTranspose(invTransform)
-
-		collision.Hit = true
-		collision.Point = closestHitLocal.Transform(transform)
-		collision.Distance = raylib.Vector3Distance(ray.Position, collision.Point)
-		collision.Normal = raylib.Vector3Normalize(normalLocal.Transform(normalMatrix))
-	}
-
-	return collision
 }
 
 //
@@ -987,7 +626,7 @@ func SweepSphereMesh(center raylib.Vector3, radius float32, velocity raylib.Vect
 	return result
 }
 
-func SweepCapsuleBox(capsule Capsule, velocity raylib.Vector3, box raylib.BoundingBox) SweepCollision {
+func SweepCapsuleBox(capsule pub_object.Capsule, velocity raylib.Vector3, box raylib.BoundingBox) SweepCollision {
 	var collision SweepCollision
 
 	velocityLength := raylib.Vector3Length(velocity)
@@ -1034,7 +673,7 @@ func SweepCapsuleBox(capsule Capsule, velocity raylib.Vector3, box raylib.Boundi
 //
 // Note: the original C assumes indexed mesh (loop i += 3 over indices).
 // This Go port supports both indexed and non-indexed by using meshTrianglePositions.
-func SweepCapsuleMesh(capsule Capsule, velocity raylib.Vector3, mesh *raylib.Mesh, transform raylib.Matrix) SweepCollision {
+func SweepCapsuleMesh(capsule pub_object.Capsule, velocity raylib.Vector3, mesh *raylib.Mesh, transform raylib.Matrix) SweepCollision {
 	var result SweepCollision
 	result.Time = 1
 
@@ -1103,166 +742,4 @@ func SweepCapsuleMesh(capsule Capsule, velocity raylib.Vector3, mesh *raylib.Mes
 	}
 
 	return result
-}
-
-//
-// ========================================
-// GROUNDED TESTS
-// ========================================
-//
-
-func IsSphereGroundedBox(center raylib.Vector3, radius, checkDistance float32, ground raylib.BoundingBox, outGround *raylib.RayCollision) bool {
-	ray := raylib.Ray{
-		Position:  center,
-		Direction: raylib.Vector3{X: 0, Y: -1, Z: 0},
-	}
-	collision := raylib.GetRayCollisionBox(ray, ground)
-	grounded := collision.Hit && collision.Distance <= (radius+checkDistance)
-
-	if outGround != nil {
-		*outGround = collision
-	}
-	return grounded
-}
-
-func IsSphereGroundedMesh(center raylib.Vector3, radius, checkDistance float32, mesh *raylib.Mesh, transform raylib.Matrix, outGround *raylib.RayCollision) bool {
-	ray := raylib.Ray{
-		Position:  center,
-		Direction: raylib.Vector3{X: 0, Y: -1, Z: 0},
-	}
-	collision := RaycastMesh(ray, mesh, transform)
-	grounded := collision.Hit && collision.Distance <= (radius+checkDistance)
-
-	if outGround != nil {
-		*outGround = collision
-	}
-	return grounded
-}
-
-func IsCapsuleGroundedBox(capsule Capsule, checkDistance float32, ground raylib.BoundingBox, outGround *raylib.RayCollision) bool {
-	ray := raylib.Ray{
-		Position:  capsule.Start,
-		Direction: raylib.Vector3{X: 0, Y: -1, Z: 0},
-	}
-	collision := raylib.GetRayCollisionBox(ray, ground)
-	grounded := collision.Hit && collision.Distance <= (capsule.Radius+checkDistance)
-
-	if outGround != nil {
-		*outGround = collision
-	}
-	return grounded
-}
-
-func IsCapsuleGroundedMesh(capsule Capsule, checkDistance float32, mesh *raylib.Mesh, transform raylib.Matrix, outGround *raylib.RayCollision) bool {
-	ray := raylib.Ray{
-		Position:  capsule.Start,
-		Direction: raylib.Vector3{X: 0, Y: -1, Z: 0},
-	}
-	collision := RaycastMesh(ray, mesh, transform)
-	grounded := collision.Hit && collision.Distance <= (capsule.Radius+checkDistance)
-
-	if outGround != nil {
-		*outGround = collision
-	}
-	return grounded
-}
-
-//
-// ========================================
-// CLOSEST POINTS
-// ========================================
-//
-
-func ClosestPointOnOBB(p raylib.Vector3, obb OrientedBox) raylib.Vector3 {
-	// Assumes obb.AxisX/Y/Z are unit length and HalfExtents are in those units.
-	d := raylib.Vector3Subtract(p, obb.Center)
-
-	// Project d onto each axis to get local coordinates.
-	x := raylib.Vector3DotProduct(d, obb.AxisX)
-	y := raylib.Vector3DotProduct(d, obb.AxisY)
-	z := raylib.Vector3DotProduct(d, obb.AxisZ)
-
-	// Clamp to box extents.
-	x = fclamp(x, -obb.HalfExtents.X, obb.HalfExtents.X)
-	y = fclamp(y, -obb.HalfExtents.Y, obb.HalfExtents.Y)
-	z = fclamp(z, -obb.HalfExtents.Z, obb.HalfExtents.Z)
-
-	// Convert back to world.
-	q := obb.Center
-	q = raylib.Vector3Add(q, raylib.Vector3Scale(obb.AxisX, x))
-	q = raylib.Vector3Add(q, raylib.Vector3Scale(obb.AxisY, y))
-	q = raylib.Vector3Add(q, raylib.Vector3Scale(obb.AxisZ, z))
-	return q
-}
-
-func ClosestPointOnSegment(point, start, end raylib.Vector3) raylib.Vector3 {
-	dir := raylib.Vector3Subtract(end, start)
-	lenSq := raylib.Vector3LengthSqr(dir)
-
-	if lenSq < 1e-10 {
-		return start
-	}
-
-	t := raylib.Vector3DotProduct(raylib.Vector3Subtract(point, start), dir) / lenSq
-	t = fmax(0, fmin(1, t))
-
-	return raylib.Vector3Add(start, raylib.Vector3Scale(dir, t))
-}
-
-func ClosestPointOnTriangle(p, a, b, c raylib.Vector3) raylib.Vector3 {
-	ab := raylib.Vector3Subtract(b, a)
-	ac := raylib.Vector3Subtract(c, a)
-	ap := raylib.Vector3Subtract(p, a)
-
-	d1 := raylib.Vector3DotProduct(ab, ap)
-	d2 := raylib.Vector3DotProduct(ac, ap)
-	if d1 <= 0 && d2 <= 0 {
-		return a
-	}
-
-	bp := raylib.Vector3Subtract(p, b)
-	d3 := raylib.Vector3DotProduct(ab, bp)
-	d4 := raylib.Vector3DotProduct(ac, bp)
-	if d3 >= 0 && d4 <= d3 {
-		return b
-	}
-
-	cp := raylib.Vector3Subtract(p, c)
-	d5 := raylib.Vector3DotProduct(ab, cp)
-	d6 := raylib.Vector3DotProduct(ac, cp)
-	if d6 >= 0 && d5 <= d6 {
-		return c
-	}
-
-	vc := d1*d4 - d3*d2
-	if vc <= 0 && d1 >= 0 && d3 <= 0 {
-		v := d1 / (d1 - d3)
-		return raylib.Vector3Add(a, raylib.Vector3Scale(ab, v))
-	}
-
-	vb := d5*d2 - d1*d6
-	if vb <= 0 && d2 >= 0 && d6 <= 0 {
-		v := d2 / (d2 - d6)
-		return raylib.Vector3Add(a, raylib.Vector3Scale(ac, v))
-	}
-
-	va := d3*d6 - d5*d4
-	if va <= 0 && (d4-d3) >= 0 && (d5-d6) >= 0 {
-		v := (d4 - d3) / ((d4 - d3) + (d5 - d6))
-		return raylib.Vector3Add(b, raylib.Vector3Scale(raylib.Vector3Subtract(c, b), v))
-	}
-
-	denom := 1 / (va + vb + vc)
-	v := vb * denom
-	w := vc * denom
-
-	return raylib.Vector3Add(a, raylib.Vector3Add(raylib.Vector3Scale(ab, v), raylib.Vector3Scale(ac, w)))
-}
-
-func ClosestPointOnBox(point raylib.Vector3, box raylib.BoundingBox) raylib.Vector3 {
-	return raylib.Vector3{
-		X: fmax(box.Min.X, fmin(point.X, box.Max.X)),
-		Y: fmax(box.Min.Y, fmin(point.Y, box.Max.Y)),
-		Z: fmax(box.Min.Z, fmin(point.Z, box.Max.Z)),
-	}
 }

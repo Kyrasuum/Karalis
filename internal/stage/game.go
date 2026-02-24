@@ -143,7 +143,7 @@ func (g *Game) GetPlayer() pub_object.Object {
 }
 
 // get currently active cell (where player is at)
-func (g *Game) GetCurrentCell() *cell.Cell {
+func (g *Game) GetCurrentCell() pub_object.Cell {
 	if g == nil {
 		return nil
 	}

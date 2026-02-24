@@ -5,6 +5,7 @@ import (
 	"slices"
 	"strings"
 
+	"karalis/pkg/shader"
 	"karalis/res"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
@@ -16,6 +17,12 @@ type Shader struct {
 	shaders  map[string]*raylib.Shader
 	defines  map[string]bool
 	uniforms map[string]interface{}
+
+	gsname string
+	csname string
+	esname string
+	vsname string
+	fsname string
 }
 
 func (s *Shader) Init(shader string) error {
@@ -23,6 +30,11 @@ func (s *Shader) Init(shader string) error {
 		return nil
 	}
 
+	s.gsname = ""
+	s.csname = ""
+	s.esname = ""
+	s.vsname = ""
+	s.fsname = ""
 	s.shaders = map[string]*raylib.Shader{}
 	s.defines = map[string]bool{}
 	s.uniforms = map[string]interface{}{}
@@ -33,6 +45,23 @@ func (s *Shader) Init(shader string) error {
 	}
 
 	return nil
+}
+
+func (s *Shader) Extend(shader string) shader.Shader {
+	if s == nil {
+		return nil
+	}
+
+	ns := &Shader{}
+	ns.Init(s.name)
+	ns.shaders = map[string]*raylib.Shader{}
+	ns.name = shader
+	err := ns.genShader()
+	if err != nil {
+		return nil
+	}
+
+	return ns
 }
 
 func (s *Shader) shaderKey() string {
@@ -81,10 +110,49 @@ func (s *Shader) genShader() error {
 		s.shader = shader
 	} else {
 		strgs := s.loadShader("shader/" + s.name + ".geom")
+		if len(strgs) > 0 {
+			s.gsname = "shader/" + s.name + ".geom"
+		} else if len(s.gsname) > 0 {
+			strgs = s.loadShader(s.gsname)
+		}
+
 		strcs := s.loadShader("shader/" + s.name + ".ctrl")
+		if len(strgs) > 0 {
+			s.csname = "shader/" + s.name + ".ctrl"
+		} else if len(s.csname) > 0 {
+			strcs = s.loadShader(s.csname)
+		}
+
 		stres := s.loadShader("shader/" + s.name + ".eval")
+		if len(stres) > 0 {
+			s.esname = "shader/" + s.name + ".eval"
+		} else if len(s.esname) > 0 {
+			stres = s.loadShader(s.esname)
+		}
+
 		strvs := s.loadShader("shader/" + s.name + ".vert")
+		if len(strvs) > 0 {
+			s.vsname = "shader/" + s.name + ".vert"
+		} else if len(s.vsname) > 0 {
+			strvs = s.loadShader(s.vsname)
+		}
+
 		strfs := s.loadShader("shader/" + s.name + ".frag")
+		if len(strfs) > 0 {
+			s.fsname = "shader/" + s.name + ".frag"
+		} else if len(s.fsname) > 0 {
+			strfs = s.loadShader(s.fsname)
+		}
+
+		if len(strgs) > 0 && !s.GetDefine("GEOM_SHADER") {
+			return s.SetDefine("GEOM_SHADER", true)
+		}
+		if len(strcs) > 0 && !s.GetDefine("CTRL_SHADER") {
+			return s.SetDefine("CTRL_SHADER", true)
+		}
+		if len(stres) > 0 && !s.GetDefine("EVAL_SHADER") {
+			return s.SetDefine("EVAL_SHADER", true)
+		}
 
 		shader := raylib.LoadShaderFromMemory(strvs, strcs, stres, strgs, strfs)
 		s.shader = &shader

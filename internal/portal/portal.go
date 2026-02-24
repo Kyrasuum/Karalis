@@ -33,7 +33,7 @@ type Portal struct {
 }
 
 // Constuctor
-func NewPortal(scene *cell.Cell, exit *Portal, cam *camera.Cam, obj pub_object.Object) (p *Portal, err error) {
+func NewPortal(scene pub_object.Cell, exit *Portal, cam *camera.Cam, obj pub_object.Object) (p *Portal, err error) {
 	p = &Portal{}
 	err = p.Init(scene, exit, cam, obj)
 
@@ -41,7 +41,7 @@ func NewPortal(scene *cell.Cell, exit *Portal, cam *camera.Cam, obj pub_object.O
 }
 
 // initialize portal object
-func (p *Portal) Init(scene *cell.Cell, exit *Portal, cam *camera.Cam, obj pub_object.Object) error {
+func (p *Portal) Init(scene pub_object.Cell, exit *Portal, cam *camera.Cam, obj pub_object.Object) error {
 	if p == nil {
 		return nil
 	}
@@ -103,7 +103,7 @@ func (p *Portal) GetScene() *cell.Cell {
 }
 
 // get exit portal pair
-func (p *Portal) GetPair() *Portal {
+func (p *Portal) GetPair() pub_object.Portal {
 	if p == nil {
 		return nil
 	}
@@ -112,7 +112,7 @@ func (p *Portal) GetPair() *Portal {
 }
 
 // set exit portal pair
-func (p *Portal) Pair(e *Portal) {
+func (p *Portal) Pair(e pub_object.Portal) {
 	if p == nil {
 		return
 	}
@@ -141,7 +141,7 @@ func (p *Portal) GetVertices() []raylib.Vector3 {
 }
 
 func (p *Portal) SetColor(col color.Color) {
-	if p == nil {
+	if p == nil || p.obj == nil {
 		return
 	}
 
@@ -149,7 +149,7 @@ func (p *Portal) SetColor(col color.Color) {
 }
 
 func (p *Portal) GetColor() color.Color {
-	if p == nil {
+	if p == nil || p.obj == nil {
 		return nil
 	}
 
@@ -157,7 +157,7 @@ func (p *Portal) GetColor() color.Color {
 }
 
 func (p *Portal) SetScale(sc raylib.Vector3) {
-	if p == nil {
+	if p == nil || p.obj == nil {
 		return
 	}
 
@@ -165,7 +165,7 @@ func (p *Portal) SetScale(sc raylib.Vector3) {
 }
 
 func (p *Portal) GetScale() raylib.Vector3 {
-	if p == nil {
+	if p == nil || p.obj == nil {
 		return raylib.Vector3{}
 	}
 
@@ -173,7 +173,7 @@ func (p *Portal) GetScale() raylib.Vector3 {
 }
 
 func (p *Portal) SetPos(pos raylib.Vector3) {
-	if p == nil {
+	if p == nil || p.obj == nil {
 		return
 	}
 
@@ -181,7 +181,7 @@ func (p *Portal) SetPos(pos raylib.Vector3) {
 }
 
 func (p *Portal) GetPos() raylib.Vector3 {
-	if p == nil {
+	if p == nil || p.obj == nil {
 		return raylib.Vector3{}
 	}
 
@@ -226,7 +226,7 @@ func (p *Portal) GetModelMatrix() raylib.Matrix {
 }
 
 func (p *Portal) GetModel() *raylib.Model {
-	if p == nil {
+	if p == nil || p.obj == nil {
 		return nil
 	}
 
@@ -234,7 +234,7 @@ func (p *Portal) GetModel() *raylib.Model {
 }
 
 func (p *Portal) GetPitch() float32 {
-	if p == nil {
+	if p == nil || p.obj == nil {
 		return 0
 	}
 
@@ -242,7 +242,7 @@ func (p *Portal) GetPitch() float32 {
 }
 
 func (p *Portal) SetPitch(pi float32) {
-	if p == nil {
+	if p == nil || p.obj == nil {
 		return
 	}
 
@@ -250,7 +250,7 @@ func (p *Portal) SetPitch(pi float32) {
 }
 
 func (p *Portal) GetYaw() float32 {
-	if p == nil {
+	if p == nil || p.obj == nil {
 		return 0
 	}
 
@@ -258,7 +258,7 @@ func (p *Portal) GetYaw() float32 {
 }
 
 func (p *Portal) SetYaw(y float32) {
-	if p == nil {
+	if p == nil || p.obj == nil {
 		return
 	}
 
@@ -266,7 +266,7 @@ func (p *Portal) SetYaw(y float32) {
 }
 
 func (p *Portal) GetRoll() float32 {
-	if p == nil {
+	if p == nil || p.obj == nil {
 		return 0
 	}
 
@@ -274,7 +274,7 @@ func (p *Portal) GetRoll() float32 {
 }
 
 func (p *Portal) SetRoll(r float32) {
-	if p == nil {
+	if p == nil || p.obj == nil {
 		return
 	}
 
@@ -312,7 +312,7 @@ func (p *Portal) GetTexture() raylib.Texture2D {
 }
 
 // set portal render object
-func (p *Portal) SetPortal(obj pub_object.Object) {
+func (p *Portal) SetPortal(obj pub_object.Portal) {
 	if p == nil {
 		return
 	}
@@ -328,7 +328,7 @@ func (p *Portal) SetPortal(obj pub_object.Object) {
 }
 
 // get portal render object
-func (p *Portal) GetPortal() pub_object.Object {
+func (p *Portal) GetPortal() pub_object.Portal {
 	if p == nil {
 		return nil
 	}
@@ -356,7 +356,7 @@ func (p *Portal) GetCam() *camera.Cam {
 
 // return normal for portal plane
 func (p *Portal) GetNormal() raylib.Vector3 {
-	if p == nil {
+	if p == nil || p.obj == nil {
 		return raylib.Vector3{}
 	}
 
@@ -503,7 +503,7 @@ func (p *Portal) Render(cam *camera.Cam) []func() {
 		}
 
 		col := p.exit.obj.GetCollider()
-		if col != nil {
+		if col != nil && p.obj != nil {
 			//render objects exiting portal
 			sh := app.CurApp.GetShader()
 			err := sh.SetDefine("PORTAL_SCN", true)
@@ -608,7 +608,7 @@ func (p *Portal) Update(dt float32) {
 
 // retrieve the collider for collision detection
 func (p *Portal) GetCollider() pub_object.Collider {
-	if p == nil {
+	if p == nil || p.obj == nil {
 		return nil
 	}
 

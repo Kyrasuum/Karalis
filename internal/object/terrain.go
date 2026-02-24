@@ -14,6 +14,7 @@ import (
 	"karalis/internal/camera"
 	"karalis/internal/shader"
 	pub_object "karalis/pkg/object"
+	_ "karalis/pkg/rng"
 	pub_shader "karalis/pkg/shader"
 	"karalis/res"
 
@@ -27,6 +28,7 @@ type Terrain struct {
 	mdl *raylib.Model
 
 	shd pub_shader.Shader
+	grs pub_shader.Shader
 
 	pos   raylib.Vector3
 	rot   raylib.Vector3
@@ -56,6 +58,7 @@ func (t *Terrain) Init() error {
 
 	t.shd = &shader.Shader{}
 	t.shd.Init("shader")
+	t.grs = t.shd.Extend("grass")
 
 	return nil
 }
@@ -407,7 +410,11 @@ func (t *Terrain) Render(cam *camera.Cam) []func() {
 
 	raylib.Color4ub(255, 255, 255, 255)
 	matTransform := t.GetModelMatrix()
+
 	t.mdl.Materials.Shader = *t.shd.GetShader()
+	raylib.DrawMesh(*t.mdl.Meshes, *t.mdl.Materials, matTransform)
+
+	t.mdl.Materials.Shader = *t.grs.GetShader()
 	raylib.DrawMesh(*t.mdl.Meshes, *t.mdl.Materials, matTransform)
 
 	return cmds

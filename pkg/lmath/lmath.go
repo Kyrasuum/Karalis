@@ -10,6 +10,64 @@ const (
 	epsilon = 0.000000001
 )
 
+// Signed matches all built-in signed integer + float types.
+type Signed interface {
+	~int | ~int8 | ~int16 | ~int32 | ~int64 |
+		~float32 | ~float64
+}
+
+// Ordered matches all built-in ordered numeric types (no complex).
+type Ordered interface {
+	Signed |
+		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr
+}
+
+// Float matches all built-in float types.
+type Float interface {
+	~float32 | ~float64
+}
+
+func Ceil[T Float](v T) int {
+	return int(math.Ceil(float64(v)))
+}
+
+func Floor[T Float](v T) int {
+	return int(math.Floor(float64(v)))
+}
+
+func Round[T Float](v T) int {
+	return int(math.Round(float64(v)))
+}
+
+func Exp[T Ordered](v T) T {
+	return T(math.Exp(float64(v)))
+}
+
+func Sqrt[T Ordered](v T) T {
+	return T(math.Sqrt(float64(v)))
+}
+
+// RoundTo rounds to N decimal places.
+func RoundTo[T Float](v T, places int) T {
+	pow := math.Pow(10, float64(places))
+	return T(math.Round(float64(v)*pow) / pow)
+}
+
+func Mod[T Float](a, b T) T {
+	return T(math.Mod(float64(a), float64(b)))
+}
+
+func Filter[T any](a []T, keep func(i int, b T) bool) []T {
+	n := 0
+	for i, x := range a {
+		if keep(i, x) {
+			a[n] = x
+			n++
+		}
+	}
+	return a[:n]
+}
+
 // Checks if two floats are equal. Doing a comparision using a small epsilon value
 func closeEq(a, b, eps float64) bool {
 	if a > b {
@@ -46,15 +104,38 @@ func Degrees(a float64) float64 {
 	return a * 180.0 / math.Pi
 }
 
-// Clamp the a value between the lower and upper.
-// Therefore the value returned is between the range [lower,upper] (inclusive)
-func Clamp(a, lower, upper float64) float64 {
-	if a < lower {
-		return lower
-	} else if a > upper {
-		return upper
+func Min[T Ordered](a, b T) T {
+	if a < b {
+		return a
 	}
-	return a
+	return b
+}
+
+func Max[T Ordered](a, b T) T {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func Clamp[T Ordered](v, lo, hi T) T {
+	if lo > hi {
+		lo, hi = hi, lo
+	}
+	if v < lo {
+		return lo
+	}
+	if v > hi {
+		return hi
+	}
+	return v
+}
+
+func Abs[T Signed](v T) T {
+	if v < 0 {
+		return -v
+	}
+	return v
 }
 
 // Linearly interpolates between the start and end values.

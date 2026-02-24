@@ -3,7 +3,6 @@ package stage
 import (
 	"fmt"
 
-	"karalis/internal/cell"
 	"karalis/pkg/object"
 )
 
@@ -80,7 +79,7 @@ func (s *MainMenu) GetPlayer() object.Object {
 
 	return nil
 }
-func (s *MainMenu) GetCurrentCell() *cell.Cell {
+func (s *MainMenu) GetCurrentCell() object.Cell {
 	if s == nil {
 		return nil
 	}

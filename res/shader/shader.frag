@@ -4,6 +4,14 @@ precision highp float;
 precision highp sampler2D;
 
 // Input vertex attributes (from vertex shader)
+#ifndef GEOM_SHADER
+#define fragPosition vertPosition
+#define fragTexCoord vertTexCoord
+#define fragColor vertColor
+#define fragNormal vertNormal
+#define fragScrPos vertScrPos
+#define fragClip vertClip
+#endif
 in vec4 fragPosition;
 in vec2 fragTexCoord;
 in vec4 fragColor;

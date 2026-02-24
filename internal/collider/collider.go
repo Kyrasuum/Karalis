@@ -2,9 +2,11 @@ package collider
 
 import (
 	"fmt"
+	"math"
 	"slices"
 
 	pub_object "karalis/pkg/object"
+	_ "karalis/pkg/physics"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
@@ -161,10 +163,38 @@ func (c *Collider) GetAABB() raylib.BoundingBox {
 		return raylib.BoundingBox{}
 	}
 
-	mdl := *c.obj.GetModel()
 	mat := c.obj.GetModelMatrix()
+	box := raylib.GetModelBoundingBox(*c.obj.GetModel())
 
-	return pub_object.ComputeAABB(mdl, mat)
+	corners := [8]raylib.Vector3{
+		{box.Min.X, box.Min.Y, box.Min.Z},
+		{box.Min.X, box.Min.Y, box.Max.Z},
+		{box.Min.X, box.Max.Y, box.Min.Z},
+		{box.Min.X, box.Max.Y, box.Max.Z},
+		{box.Max.X, box.Min.Y, box.Min.Z},
+		{box.Max.X, box.Min.Y, box.Max.Z},
+		{box.Max.X, box.Max.Y, box.Min.Z},
+		{box.Max.X, box.Max.Y, box.Max.Z},
+	}
+
+	min := raylib.Vector3Transform(corners[0], mat)
+	max := min
+	for i := 1; i < 8; i++ {
+		p := raylib.Vector3Transform(corners[i], mat)
+		min = raylib.NewVector3(
+			float32(math.Min(float64(min.X), float64(p.X))),
+			float32(math.Min(float64(min.Y), float64(p.Y))),
+			float32(math.Min(float64(min.Z), float64(p.Z))),
+		)
+		max = raylib.NewVector3(
+			float32(math.Max(float64(max.X), float64(p.X))),
+			float32(math.Max(float64(max.Y), float64(p.Y))),
+			float32(math.Max(float64(max.Z), float64(p.Z))),
+		)
+	}
+	box.Min = min
+	box.Max = max
+	return box
 }
 
 func (c *Collider) GetOOBB() pub_object.OrientedBox {
@@ -172,8 +202,32 @@ func (c *Collider) GetOOBB() pub_object.OrientedBox {
 		return pub_object.OrientedBox{}
 	}
 
-	box := raylib.GetModelBoundingBox(*c.obj.GetModel())
-	mat := c.obj.GetModelMatrix()
+	aabb := raylib.GetModelBoundingBox(*c.obj.GetModel())
+	transform := c.obj.GetModelMatrix()
 
-	return pub_object.ComputeOBB(box, mat)
+	var obb pub_object.OrientedBox
+
+	obb.HalfExtents = raylib.Vector3{
+		X: (aabb.Max.X - aabb.Min.X) * 0.5,
+		Y: (aabb.Max.Y - aabb.Min.Y) * 0.5,
+		Z: (aabb.Max.Z - aabb.Min.Z) * 0.5,
+	}
+
+	localCenter := raylib.Vector3{
+		X: (aabb.Min.X + aabb.Max.X) * 0.5,
+		Y: (aabb.Min.Y + aabb.Max.Y) * 0.5,
+		Z: (aabb.Min.Z + aabb.Max.Z) * 0.5,
+	}
+
+	obb.Center = raylib.Vector3{
+		X: transform.M0*localCenter.X + transform.M4*localCenter.Y + transform.M8*localCenter.Z + transform.M12,
+		Y: transform.M1*localCenter.X + transform.M5*localCenter.Y + transform.M9*localCenter.Z + transform.M13,
+		Z: transform.M2*localCenter.X + transform.M6*localCenter.Y + transform.M10*localCenter.Z + transform.M14,
+	}
+
+	obb.AxisX = raylib.Vector3{X: transform.M0, Y: transform.M1, Z: transform.M2}
+	obb.AxisY = raylib.Vector3{X: transform.M4, Y: transform.M5, Z: transform.M6}
+	obb.AxisZ = raylib.Vector3{X: transform.M8, Y: transform.M9, Z: transform.M10}
+
+	return obb
 }
