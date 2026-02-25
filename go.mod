@@ -5,6 +5,7 @@ go 1.22
 replace github.com/gen2brain/raylib-go/raylib => ./include/raylib-go/raylib
 
 require (
+	github.com/crazy3lf/colorconv v1.2.0
 	github.com/gen2brain/raylib-go/raylib v0.0.0-20250215042252-db8e47f0e5c5
 	github.com/go-gl/gl v0.0.0-20231021071112-07e5d0ea2e71
 	github.com/mitchellh/go-homedir v1.1.0

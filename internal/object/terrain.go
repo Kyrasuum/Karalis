@@ -7,6 +7,7 @@ import (
 	"image/color"
 	"image/jpeg"
 	"image/png"
+	"math/rand"
 	"reflect"
 	"strings"
 	"unsafe"
@@ -14,7 +15,7 @@ import (
 	"karalis/internal/camera"
 	"karalis/internal/shader"
 	pub_object "karalis/pkg/object"
-	_ "karalis/pkg/rng"
+	"karalis/pkg/rng"
 	pub_shader "karalis/pkg/shader"
 	"karalis/res"
 
@@ -26,21 +27,39 @@ type Terrain struct {
 	tex *raylib.Texture2D
 	hgt *raylib.Texture2D
 	mdl *raylib.Model
-
 	shd pub_shader.Shader
+
+	hm  raylib.Texture2D
 	grs pub_shader.Shader
+	grd *raylib.Texture2D
 
 	pos   raylib.Vector3
 	rot   raylib.Vector3
 	scale raylib.Vector3
 }
 
+func RandTerrain() (t *Terrain, err error) {
+	t = &Terrain{}
+	err = t.Init()
+	if err != nil {
+		return nil, err
+	}
+	err = t.RandMap()
+
+	return t, err
+}
+
 func NewTerrain(m string, i interface{}) (t *Terrain, err error) {
 	t = &Terrain{}
 	err = t.Init()
-	t.LoadImage(i)
-	t.LoadMap(m)
-
+	if err != nil {
+		return nil, err
+	}
+	err = t.LoadImage(i)
+	if err != nil {
+		return nil, err
+	}
+	err = t.LoadMap(m)
 	return t, err
 }
 
@@ -53,19 +72,42 @@ func (t *Terrain) Init() error {
 	t.rot = raylib.NewVector3(0, 0, 0)
 	t.scale = raylib.NewVector3(1, 1, 1)
 
-	t.LoadImage(nil)
-	t.LoadMap("")
+	err := t.LoadImage(nil)
+	if err != nil {
+		return err
+	}
+	err = t.LoadMap("")
+	if err != nil {
+		return err
+	}
 
 	t.shd = &shader.Shader{}
 	t.shd.Init("shader")
 	t.grs = t.shd.Extend("grass")
+	t.LoadGrass()
 
 	return nil
 }
 
-func (t *Terrain) LoadImage(i interface{}) {
+func (t *Terrain) LoadGrass() error {
+	data, err := res.GetRes("tex/grass.png")
+	if err != nil {
+		return err
+	}
+
+	pic, err := png.Decode(bytes.NewReader(data.([]byte)))
+	if err != nil {
+		return err
+	}
+	img := raylib.NewImageFromImage(pic)
+	tex := raylib.LoadTextureFromImage(img)
+	t.grd = &tex
+	return nil
+}
+
+func (t *Terrain) LoadImage(i interface{}) error {
 	if t == nil {
-		return
+		return fmt.Errorf("Invalid terrain")
 	}
 
 	var img *raylib.Image
@@ -74,7 +116,7 @@ func (t *Terrain) LoadImage(i interface{}) {
 		tex, err := res.GetRes(data)
 		if err != nil {
 			t.LoadImage(nil)
-			return
+			return err
 		}
 		var pic image.Image
 
@@ -85,34 +127,34 @@ func (t *Terrain) LoadImage(i interface{}) {
 			pic, err = png.Decode(bytes.NewReader(tex.([]byte)))
 			if err != nil {
 				t.LoadImage(nil)
-				return
+				return err
 			}
 		case "jpeg":
 			pic, err = jpeg.Decode(bytes.NewReader(tex.([]byte)))
 			if err != nil {
 				t.LoadImage(nil)
-				return
+				return err
 			}
 		default:
 			pic, _, err = image.Decode(bytes.NewReader(tex.([]byte)))
 			if err != nil {
 				t.LoadImage(nil)
-				return
+				return err
 			}
 		}
 		if err != nil {
 			t.LoadImage(nil)
-			return
+			return err
 		}
 		t.LoadImage(pic)
-		return
+		return nil
 	case image.Image:
 		img = raylib.NewImageFromImage(data)
 	case raylib.Color:
 		img = raylib.GenImageColor(1536, 256, data)
 	default:
 		if t.tex != nil {
-			return
+			return nil
 		}
 		width := 256
 		height := 256
@@ -130,11 +172,42 @@ func (t *Terrain) LoadImage(i interface{}) {
 	if t.mdl != nil {
 		raylib.SetMaterialTexture(t.mdl.Materials, raylib.MapDiffuse, *t.tex)
 	}
+	return nil
 }
 
-func (t *Terrain) LoadMap(m string) {
+func (t *Terrain) RandMap() error {
 	if t == nil {
-		return
+		return fmt.Errorf("Invalid terrain")
+	}
+
+	width := 256
+	height := 256
+	h := rng.GenerateHeightmapTiledWorldSize(width, height, int64(12345), 0, 0, 10)
+	hm := image.NewRGBA(image.Rect(0, 0, width, height))
+	for y := range height {
+		for x := range width {
+			hm.Set(x, y, h[y*width+x])
+		}
+	}
+	himg := raylib.NewImageFromImage(hm)
+	t.LoadImage(hm)
+	t.GenTerrain(himg)
+
+	alb := rng.ColorizeHeightmapTiled(h, width, height, rand.Int63(), 0, 0, 10, width*8, height*8)
+	col := image.NewRGBA(image.Rect(0, 0, width*8, height*8))
+	for y := range height * 8 {
+		for x := range width * 8 {
+			col.Set(x, y, alb[y*width*8+x])
+		}
+	}
+	t.LoadImage(col)
+	t.hm = raylib.LoadTextureFromImage(himg)
+	return nil
+}
+
+func (t *Terrain) LoadMap(m string) error {
+	if t == nil {
+		return fmt.Errorf("Invalid terrain")
 	}
 
 	tex, err := res.GetRes(m)
@@ -151,20 +224,19 @@ func (t *Terrain) LoadMap(m string) {
 		case "png":
 			goimg, err = png.Decode(bytes.NewReader(tex.([]byte)))
 			if err != nil {
-				fmt.Printf("Error decoding image: %+v\n", err)
-				return
+				return fmt.Errorf("Error decoding image: %+v\n", err)
 			}
 		case "jpeg":
 			goimg, err = jpeg.Decode(bytes.NewReader(tex.([]byte)))
 			if err != nil {
-				fmt.Printf("Error decoding image: %+v\n", err)
-				return
+				return fmt.Errorf("Error decoding image: %+v\n", err)
+
 			}
 		default:
 			goimg, _, err = image.Decode(bytes.NewReader(tex.([]byte)))
 			if err != nil {
-				fmt.Printf("Error decoding image: %+v\n", err)
-				return
+				return fmt.Errorf("Error decoding image: %+v\n", err)
+
 			}
 		}
 	} else {
@@ -180,13 +252,18 @@ func (t *Terrain) LoadMap(m string) {
 	}
 
 	img := raylib.NewImageFromImage(cube)
-	hmap := raylib.LoadTextureFromImage(img)
+	t.GenTerrain(img)
+	return nil
+}
+
+func (t *Terrain) GenTerrain(img *raylib.Image) {
 	mesh := raylib.GenMeshHeightmap(*img, raylib.NewVector3(1, 1, 1))
 	mdl := raylib.LoadModelFromMesh(mesh)
 	t.mdl = &mdl
 	if t.tex == nil {
 		t.LoadImage(nil)
 	}
+	hmap := raylib.LoadTextureFromImage(img)
 	t.hgt = &hmap
 	raylib.SetMaterialTexture(t.mdl.Materials, raylib.MapDiffuse, *t.tex)
 }
@@ -414,8 +491,47 @@ func (t *Terrain) Render(cam *camera.Cam) []func() {
 	t.mdl.Materials.Shader = *t.shd.GetShader()
 	raylib.DrawMesh(*t.mdl.Meshes, *t.mdl.Materials, matTransform)
 
+	raylib.SetMaterialTexture(t.mdl.Materials, raylib.MapDiffuse, *t.grd)
+	raylib.SetMaterialTexture(t.mdl.Materials, raylib.MapDiffuse, t.hm)
+	err := t.grs.SetUniform("texture1", t.hm)
+	if err != nil {
+		fmt.Printf("%+v\n", err)
+	}
+	err = t.grs.SetUniform("uHeightmapTexelScale", raylib.Vector2{8, 8})
+	if err != nil {
+		fmt.Printf("%+v\n", err)
+	}
+	err = t.grs.SetUniform("uGrassMinHeight", rng.MinGrassHeight())
+	if err != nil {
+		fmt.Printf("%+v\n", err)
+	}
+	err = t.grs.SetUniform("uGrassMaxHeight", rng.MaxGrassHeight())
+	if err != nil {
+		fmt.Printf("%+v\n", err)
+	}
+	err = t.grs.SetUniform("uGrassDensity", 0.35*255)
+	if err != nil {
+		fmt.Printf("%+v\n", err)
+	}
+	err = t.grs.SetUniform("uMaxSlope", 0.99)
+	if err != nil {
+		fmt.Printf("%+v\n", err)
+	}
+	err = t.grs.SetUniform("uBladeHeight", 0.05)
+	if err != nil {
+		fmt.Printf("%+v\n", err)
+	}
+	err = t.grs.SetUniform("uBladeHalfWidth", 0.01)
+	if err != nil {
+		fmt.Printf("%+v\n", err)
+	}
+	err = t.grs.SetUniform("uSeed", float64(rand.Int63()))
+	if err != nil {
+		fmt.Printf("%+v\n", err)
+	}
 	t.mdl.Materials.Shader = *t.grs.GetShader()
 	raylib.DrawMesh(*t.mdl.Meshes, *t.mdl.Materials, matTransform)
+	raylib.SetMaterialTexture(t.mdl.Materials, raylib.MapDiffuse, *t.tex)
 
 	return cmds
 }

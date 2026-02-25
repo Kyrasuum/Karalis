@@ -43,12 +43,13 @@ func (g *Game) Init() error {
 	}
 	g.curcell.AddChild(grid)
 
-	ter, err := object.NewTerrain("tex/map/heightmap.png", "tex/map/heightmap.png")
+	// ter, err := object.NewTerrain("tex/map/heightmap.png", "tex/map/heightmap.png")
+	ter, err := object.RandTerrain()
 	if err != nil {
 		return err
 	}
-	ter.SetScale(raylib.NewVector3(20, 1, 20))
-	ter.SetPos(raylib.NewVector3(-10, 0, -10))
+	ter.SetScale(raylib.NewVector3(10, 5, 10))
+	ter.SetPos(raylib.NewVector3(-5, 0, -5))
 	g.curcell.AddChild(ter)
 
 	return nil

@@ -66,13 +66,13 @@ func (p *PityRng) ChanceNow() float64 {
 		return 1
 	}
 
+	expected := float64(lmath.Ceil(1 / p.target))
 	if p.fails < 0 {
-		fails := lmath.Abs(p.fails)
-		expected := lmath.Ceil(1 / p.target)
-		return p.target * (float64(expected) - fails) / float64(expected)
+		return p.target * (expected - lmath.Abs(p.fails)) / expected
 	}
 
-	return p.target * float64(p.fails+1)
+	// return p.target * float64(p.fails+1)
+	return 1 / (expected - p.fails)
 }
 
 func (p *PityRng) Reset() {
