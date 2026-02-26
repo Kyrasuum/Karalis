@@ -1,8 +1,9 @@
 package camera
 
 import (
+	"karalis/pkg/lmath"
+
 	raylib "github.com/gen2brain/raylib-go/raylib"
-	lmath "karalis/pkg/lmath"
 )
 
 var ()
@@ -154,6 +155,17 @@ func (s *Cam) GetProjMatrix(width int32, height int32) raylib.Matrix {
 	}
 
 	return raylib.GetCameraProjectionMatrix(&s.camera, float32(width)/float32(height))
+}
+
+func (s *Cam) GetViewProjMatrix() raylib.Matrix {
+	if s == nil {
+		return raylib.Matrix{}
+	}
+
+	aspect := float32(raylib.GetScreenWidth()) / float32(raylib.GetScreenHeight())
+	view := raylib.GetCameraViewMatrix(&s.camera)
+	proj := raylib.GetCameraProjectionMatrix(&s.camera, aspect)
+	return raylib.MatrixMultiply(view, proj)
 }
 
 func (s *Cam) GetDist() float32 {

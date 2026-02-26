@@ -72,7 +72,7 @@ build: .dev-deps $(PRI_DIR)** $(PUB_DIR)**
 	CGO_CFLAGS=$(CFLAGS) \
 	CGO_CPPFLAGS=$(CFLAGS) \
 	CGO_LDFLAGS=$(LDFLAGS) \
-	go build -tags x11 -o $(BIN_DIR)$(EXEC) cmd/main.go
+	go build -tags x11,opengl43 -o $(BIN_DIR)$(EXEC) cmd/main.go
 
 build-wasm:
 	@DISTRO=js \

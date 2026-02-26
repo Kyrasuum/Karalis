@@ -30,8 +30,7 @@ type Terrain struct {
 	shd pub_shader.Shader
 
 	hm  raylib.Texture2D
-	grs pub_shader.Shader
-	grd *raylib.Texture2D
+	grs *Grass
 
 	pos   raylib.Vector3
 	rot   raylib.Vector3
@@ -82,26 +81,16 @@ func (t *Terrain) Init() error {
 	}
 
 	t.shd = &shader.Shader{}
-	t.shd.Init("shader")
-	t.grs = t.shd.Extend("grass")
-	t.LoadGrass()
-
-	return nil
-}
-
-func (t *Terrain) LoadGrass() error {
-	data, err := res.GetRes("tex/grass.png")
+	err = t.shd.Init("shader")
 	if err != nil {
 		return err
 	}
 
-	pic, err := png.Decode(bytes.NewReader(data.([]byte)))
+	t.grs, err = NewGrass(t)
 	if err != nil {
 		return err
 	}
-	img := raylib.NewImageFromImage(pic)
-	tex := raylib.LoadTextureFromImage(img)
-	t.grd = &tex
+
 	return nil
 }
 
@@ -266,6 +255,90 @@ func (t *Terrain) GenTerrain(img *raylib.Image) {
 	hmap := raylib.LoadTextureFromImage(img)
 	t.hgt = &hmap
 	raylib.SetMaterialTexture(t.mdl.Materials, raylib.MapDiffuse, *t.tex)
+}
+
+func (t *Terrain) Prerender(cam *camera.Cam) []func() {
+	cmds := []func(){}
+	if t == nil {
+		return cmds
+	}
+	cmds = append(cmds, t.grs.Prerender(cam)...)
+
+	return cmds
+}
+
+func (t *Terrain) Render(cam *camera.Cam) []func() {
+	cmds := []func(){}
+	if t == nil {
+		return cmds
+	}
+
+	raylib.Color4ub(255, 255, 255, 255)
+	matTransform := t.GetModelMatrix()
+
+	t.mdl.Materials.Shader = *t.shd.GetShader()
+	raylib.DrawMesh(*t.mdl.Meshes, *t.mdl.Materials, matTransform)
+	cmds = append(cmds, t.grs.Render(cam)...)
+
+	return cmds
+}
+
+func (t *Terrain) Postrender(cam *camera.Cam) []func() {
+	cmds := []func(){}
+	if t == nil {
+		return cmds
+	}
+	cmds = append(cmds, t.grs.Postrender(cam)...)
+
+	return cmds
+}
+
+func (t *Terrain) Update(dt float32) {
+	if t == nil {
+		return
+	}
+}
+
+func (t *Terrain) GetCollider() pub_object.Collider {
+	if t == nil {
+		return nil
+	}
+
+	return nil
+}
+
+func (t *Terrain) OnAdd() {
+	if t == nil {
+		return
+	}
+	t.grs.OnAdd()
+}
+
+func (t *Terrain) OnRemove() {
+	if t == nil {
+		return
+	}
+	t.grs.OnRemove()
+}
+
+func (t *Terrain) AddChild(obj pub_object.Object) {
+	if t == nil {
+		return
+	}
+}
+
+func (t *Terrain) RemChild(obj pub_object.Object) {
+	if t == nil {
+		return
+	}
+}
+
+func (t *Terrain) GetChilds() []pub_object.Object {
+	if t == nil {
+		return []pub_object.Object{}
+	}
+
+	return []pub_object.Object{}
 }
 
 func (t *Terrain) GetModelMatrix() raylib.Matrix {
@@ -468,125 +541,4 @@ func (t *Terrain) GetTexture() raylib.Texture2D {
 	}
 
 	return *t.tex
-}
-
-func (t *Terrain) Prerender(cam *camera.Cam) []func() {
-	cmds := []func(){}
-	if t == nil {
-		return cmds
-	}
-
-	return cmds
-}
-
-func (t *Terrain) Render(cam *camera.Cam) []func() {
-	cmds := []func(){}
-	if t == nil {
-		return cmds
-	}
-
-	raylib.Color4ub(255, 255, 255, 255)
-	matTransform := t.GetModelMatrix()
-
-	t.mdl.Materials.Shader = *t.shd.GetShader()
-	raylib.DrawMesh(*t.mdl.Meshes, *t.mdl.Materials, matTransform)
-
-	raylib.SetMaterialTexture(t.mdl.Materials, raylib.MapDiffuse, *t.grd)
-	raylib.SetMaterialTexture(t.mdl.Materials, raylib.MapDiffuse, t.hm)
-	err := t.grs.SetUniform("texture1", t.hm)
-	if err != nil {
-		fmt.Printf("%+v\n", err)
-	}
-	err = t.grs.SetUniform("uHeightmapTexelScale", raylib.Vector2{8, 8})
-	if err != nil {
-		fmt.Printf("%+v\n", err)
-	}
-	err = t.grs.SetUniform("uGrassMinHeight", rng.MinGrassHeight())
-	if err != nil {
-		fmt.Printf("%+v\n", err)
-	}
-	err = t.grs.SetUniform("uGrassMaxHeight", rng.MaxGrassHeight())
-	if err != nil {
-		fmt.Printf("%+v\n", err)
-	}
-	err = t.grs.SetUniform("uGrassDensity", 0.35*255)
-	if err != nil {
-		fmt.Printf("%+v\n", err)
-	}
-	err = t.grs.SetUniform("uMaxSlope", 0.99)
-	if err != nil {
-		fmt.Printf("%+v\n", err)
-	}
-	err = t.grs.SetUniform("uBladeHeight", 0.05)
-	if err != nil {
-		fmt.Printf("%+v\n", err)
-	}
-	err = t.grs.SetUniform("uBladeHalfWidth", 0.01)
-	if err != nil {
-		fmt.Printf("%+v\n", err)
-	}
-	err = t.grs.SetUniform("uSeed", float64(rand.Int63()))
-	if err != nil {
-		fmt.Printf("%+v\n", err)
-	}
-	t.mdl.Materials.Shader = *t.grs.GetShader()
-	raylib.DrawMesh(*t.mdl.Meshes, *t.mdl.Materials, matTransform)
-	raylib.SetMaterialTexture(t.mdl.Materials, raylib.MapDiffuse, *t.tex)
-
-	return cmds
-}
-
-func (t *Terrain) Postrender(cam *camera.Cam) []func() {
-	cmds := []func(){}
-	if t == nil {
-		return cmds
-	}
-
-	return cmds
-}
-
-func (t *Terrain) Update(dt float32) {
-	if t == nil {
-		return
-	}
-}
-
-func (t *Terrain) GetCollider() pub_object.Collider {
-	if t == nil {
-		return nil
-	}
-
-	return nil
-}
-
-func (t *Terrain) OnAdd() {
-	if t == nil {
-		return
-	}
-}
-
-func (t *Terrain) OnRemove() {
-	if t == nil {
-		return
-	}
-}
-
-func (t *Terrain) AddChild(obj pub_object.Object) {
-	if t == nil {
-		return
-	}
-}
-
-func (t *Terrain) RemChild(obj pub_object.Object) {
-	if t == nil {
-		return
-	}
-}
-
-func (t *Terrain) GetChilds() []pub_object.Object {
-	if t == nil {
-		return []pub_object.Object{}
-	}
-
-	return []pub_object.Object{}
 }

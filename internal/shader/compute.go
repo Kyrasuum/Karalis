@@ -33,12 +33,12 @@ func (c *Compute) genShader() error {
 		return fmt.Errorf("nil ComputeProgram")
 	}
 
-	code, err := res.GetRes(c.name)
+	code, err := res.GetRes("shader/" + c.name + ".comp")
 	if err != nil {
 		return fmt.Errorf("invalid source code")
 	}
 
-	shaderID := raylib.CompileShader(code.(string), raylib.ComputeShader)
+	shaderID := raylib.CompileShader(fmt.Sprintf("%s", code), raylib.ComputeShader)
 	if shaderID == 0 {
 		return fmt.Errorf("compute shader compile failed")
 	}
@@ -65,13 +65,8 @@ func (c *Compute) SetUniform(uniform string, val interface{}) error {
 		return fmt.Errorf("Invalid shader")
 	}
 
-	switch val.(type) {
-	case []float32, float64, float32, raylib.Vector2, raylib.Vector3, raylib.Vector4, *raylib.Vector2, *raylib.Vector3, *raylib.Vector4, raylib.Matrix, raylib.Texture2D:
-	default:
-		return fmt.Errorf("Invalid uniform type %t", val)
-	}
-	c.setUniform(uniform, val)
-	return nil
+	raylib.EnableShader(c.id)
+	return c.setUniform(uniform, val)
 }
 
 func (c *Compute) setUniform(uniform string, val interface{}) error {
@@ -86,10 +81,14 @@ func (c *Compute) setUniform(uniform string, val interface{}) error {
 	switch tval := val.(type) {
 	case []float32:
 		raylib.SetUniform(loc, tval, int32(raylib.ShaderUniformFloat), 1)
+	case []int32:
+		raylib.SetUniform(loc, tval, int32(raylib.ShaderUniformInt), 1)
 	case float64:
 		raylib.SetUniform(loc, []float32{float32(tval)}, int32(raylib.ShaderUniformFloat), 1)
 	case float32:
 		raylib.SetUniform(loc, []float32{tval}, int32(raylib.ShaderUniformFloat), 1)
+	case int32:
+		raylib.SetUniform(loc, []int32{tval}, int32(raylib.ShaderUniformInt), 1)
 	case raylib.Vector2:
 		raylib.SetUniform(loc, []float32{tval.X, tval.Y}, int32(raylib.ShaderUniformVec2), 1)
 	case *raylib.Vector2:
