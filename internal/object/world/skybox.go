@@ -1,4 +1,4 @@
-package object
+package world
 
 import (
 	"bytes"
@@ -306,12 +306,12 @@ func (s *Skybox) SetTexture(tex raylib.Texture2D) {
 	*s.tex = tex
 }
 
-func (s *Skybox) GetTexture() raylib.Texture2D {
+func (s *Skybox) GetTexture() *raylib.Texture2D {
 	if s == nil {
-		return raylib.Texture2D{}
+		return nil
 	}
 
-	return *s.tex
+	return s.tex
 }
 
 func (s *Skybox) Prerender(cam *camera.Cam) []func() {

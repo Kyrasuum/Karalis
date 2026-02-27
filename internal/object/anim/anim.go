@@ -239,12 +239,12 @@ func (a *Anim) SetTexture(mat *raylib.Material, tex raylib.Texture2D) {
 	raylib.SetMaterialTexture(mat, raylib.MapDiffuse, tex)
 }
 
-func (a *Anim) GetTexture() raylib.Texture2D {
+func (a *Anim) GetTexture() *raylib.Texture2D {
 	if a == nil {
-		return raylib.Texture2D{}
+		return nil
 	}
 
-	return a.mdl.Materials.Maps.Texture
+	return &a.mdl.Materials.Maps.Texture
 }
 
 func (a *Anim) LoadModel(name string) error {

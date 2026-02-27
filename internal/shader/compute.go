@@ -76,19 +76,31 @@ func (c *Compute) setUniform(uniform string, val interface{}) error {
 
 	loc := raylib.GetLocationUniform(c.id, uniform)
 	if loc == -1 {
-		return fmt.Errorf("Invalid uniform")
+		return fmt.Errorf("(%s)Invalid uniform: %s", c.name, uniform)
 	}
 	switch tval := val.(type) {
 	case []float32:
-		raylib.SetUniform(loc, tval, int32(raylib.ShaderUniformFloat), 1)
+		raylib.SetUniform(loc, tval, int32(raylib.ShaderUniformFloat), int32(len(tval)))
 	case []int32:
-		raylib.SetUniform(loc, tval, int32(raylib.ShaderUniformInt), 1)
+		raylib.SetUniform(loc, tval, int32(raylib.ShaderUniformInt), int32(len(tval)))
+	case []int:
+		raylib.SetUniform(loc, tval, int32(raylib.ShaderUniformInt), int32(len(tval)))
+	case []uint32:
+		raylib.SetUniform(loc, tval, int32(raylib.ShaderUniformUint), int32(len(tval)))
+	case []uint:
+		raylib.SetUniform(loc, tval, int32(raylib.ShaderUniformUint), int32(len(tval)))
 	case float64:
 		raylib.SetUniform(loc, []float32{float32(tval)}, int32(raylib.ShaderUniformFloat), 1)
 	case float32:
 		raylib.SetUniform(loc, []float32{tval}, int32(raylib.ShaderUniformFloat), 1)
 	case int32:
 		raylib.SetUniform(loc, []int32{tval}, int32(raylib.ShaderUniformInt), 1)
+	case int:
+		raylib.SetUniform(loc, []int32{int32(tval)}, int32(raylib.ShaderUniformInt), 1)
+	case uint32:
+		raylib.SetUniform(loc, []uint32{tval}, int32(raylib.ShaderUniformUint), 1)
+	case uint:
+		raylib.SetUniform(loc, []uint32{uint32(tval)}, int32(raylib.ShaderUniformUint), 1)
 	case raylib.Vector2:
 		raylib.SetUniform(loc, []float32{tval.X, tval.Y}, int32(raylib.ShaderUniformVec2), 1)
 	case *raylib.Vector2:
@@ -106,7 +118,7 @@ func (c *Compute) setUniform(uniform string, val interface{}) error {
 	case raylib.Texture2D:
 		raylib.SetUniformSampler(loc, tval.ID)
 	default:
-		return fmt.Errorf("Invalid uniform type %t", val)
+		return fmt.Errorf("(%s)Invalid uniform type: %t", c.name, val)
 	}
 
 	return nil

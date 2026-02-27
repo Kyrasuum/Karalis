@@ -54,7 +54,7 @@ type Object interface {
 	SetUVs(uvs []raylib.Vector2)
 	GetMaterials() *raylib.Material
 	SetTexture(tex raylib.Texture2D)
-	GetTexture() raylib.Texture2D
+	GetTexture() *raylib.Texture2D
 	Prerender(cam *camera.Cam) []func()
 	Render(cam *camera.Cam) []func()
 	Postrender(cam *camera.Cam) []func()
@@ -91,7 +91,7 @@ type Portal interface {
 	SetUVs(uvs []raylib.Vector2)
 	GetMaterials() *raylib.Material
 	SetTexture(tex raylib.Texture2D)
-	GetTexture() raylib.Texture2D
+	GetTexture() *raylib.Texture2D
 	SetPortal(obj Portal)
 	GetPortal() Portal
 	SetCam(cam *camera.Cam)

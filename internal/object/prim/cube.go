@@ -18,7 +18,6 @@ func NewCube() (p *Prim, err error) {
 	mdl, err := res.GetRes("mdl/cube.obj")
 	if err != nil {
 		return nil, err
-
 	}
 
 	switch model := mdl.(type) {

@@ -5,8 +5,8 @@ import (
 
 	"karalis/internal/cell"
 	"karalis/internal/character"
-	"karalis/internal/object"
 	"karalis/internal/object/prim"
+	"karalis/internal/object/world"
 	pub_object "karalis/pkg/object"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
@@ -43,13 +43,12 @@ func (g *Game) Init() error {
 	}
 	g.curcell.AddChild(grid)
 
-	// ter, err := object.NewTerrain("tex/map/heightmap.png", "tex/map/heightmap.png")
-	ter, err := object.RandTerrain()
+	ter, err := world.RandTerrain(256, 256, 1234567)
 	if err != nil {
 		return err
 	}
-	ter.SetScale(raylib.NewVector3(10, 5, 10))
-	ter.SetPos(raylib.NewVector3(-5, -1.5, -5))
+	ter.SetScale(raylib.NewVector3(100, 50, 100))
+	ter.SetPos(raylib.NewVector3(-50, -12.5, -50))
 	g.curcell.AddChild(ter)
 
 	return nil

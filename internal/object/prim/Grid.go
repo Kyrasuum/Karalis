@@ -174,12 +174,12 @@ func (g *Grid) SetTexture(tex raylib.Texture2D) {
 	}
 }
 
-func (g *Grid) GetTexture() raylib.Texture2D {
+func (g *Grid) GetTexture() *raylib.Texture2D {
 	if g == nil {
-		return raylib.Texture2D{}
+		return nil
 	}
 
-	return raylib.Texture2D{}
+	return &raylib.Texture2D{}
 }
 
 func (g *Grid) Prerender(cam *camera.Cam) []func() {

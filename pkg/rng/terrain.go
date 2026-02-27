@@ -8,21 +8,14 @@ import (
 
 // --- Tuning knobs (safe defaults) ---
 var (
-	seaLevel      = 0.30 // 0..1, raise to create more water
-	sandBand      = 0.03 // 0..1, raise to create more sand
-	mountainStart = 0.70 // 0..1, start of rocky
-	snowStart     = 0.86 // 0..1, start of snowy peaks
-	warpStrength  = 0.85 // domain warp magnitude
-	warpFrequency = 0.10 // domain warp noise frequency
-	baseFrequency = 0.20 // overall terrain scale (bigger => more detail)
+	SeaLevel      = 0.30 // 0..1, raise to create more water
+	SandBand      = 0.03 // 0..1, raise to create more sand
+	MountainStart = 0.70 // 0..1, start of rocky
+	SnowStart     = 0.86 // 0..1, start of snowy peaks
+	WarpStrength  = 0.85 // domain warp magnitude
+	WarpFrequency = 0.10 // domain warp noise frequency
+	BaseFrequency = 0.20 // overall terrain scale (bigger => more detail)
 )
-
-func MinGrassHeight() float64 {
-	return seaLevel + sandBand
-}
-func MaxGrassHeight() float64 {
-	return mountainStart
-}
 
 // GenerateHeightmap returns a grayscale heightmap image (R=G=B).
 func GenerateHeightmap(width, height int, seed int64) []raylib.Color {
@@ -69,24 +62,24 @@ func GenerateHeightmapTiled(width, height int, seed int64, worldOriginX, worldOr
 			wxWorld := worldOriginX + float64(x)*worldUnitsPerPixel
 			wyWorld := worldOriginY + float64(y)*worldUnitsPerPixel
 
-			// --- Domain warp (band-limited by using warpFrequency in world units) ---
-			wx := perlin2D(wxWorld*warpFrequency, wyWorld*warpFrequency, seed+101)
-			wy := perlin2D(wxWorld*warpFrequency, wyWorld*warpFrequency, seed+202)
+			// --- Domain warp (band-limited by using WarpFrequency in world units) ---
+			wx := perlin2D(wxWorld*WarpFrequency, wyWorld*WarpFrequency, seed+101)
+			wy := perlin2D(wxWorld*WarpFrequency, wyWorld*WarpFrequency, seed+202)
 
 			// Warp offsets are dimensionless; scale by a world-space amount so it "means" something.
-			// This keeps warp effect stable as you change baseFrequency.
-			warpWorldScale := 1.0 / baseFrequency // ~ feature size in world units
-			sxWorld := wxWorld + wx*warpStrength*warpWorldScale*0.15
-			syWorld := wyWorld + wy*warpStrength*warpWorldScale*0.15
+			// This keeps warp effect stable as you change BaseFrequency.
+			warpWorldScale := 1.0 / BaseFrequency // ~ feature size in world units
+			sxWorld := wxWorld + wx*WarpStrength*warpWorldScale*0.15
+			syWorld := wyWorld + wy*WarpStrength*warpWorldScale*0.15
 
-			// Convert world coords to noise coords using baseFrequency (cycles/worldUnit)
-			sx := sxWorld * baseFrequency
-			sy := syWorld * baseFrequency
+			// Convert world coords to noise coords using BaseFrequency (cycles/worldUnit)
+			sx := sxWorld * BaseFrequency
+			sy := syWorld * BaseFrequency
 
 			// Compute how many octaves we are allowed, relative to each base multiplier.
 			// Example: cont uses (base*0.20), so allowable octave multiplier is maxFreq/(base*0.20).
 			allow := func(mult float64) float64 {
-				f := baseFrequency * mult
+				f := BaseFrequency * mult
 				if f <= 0 {
 					return 0
 				}
@@ -120,12 +113,12 @@ func GenerateHeightmapTiled(width, height int, seed int64, worldOriginX, worldOr
 			h = math.Pow(h, 1.30)
 
 			// Sea shaping
-			if h < seaLevel {
-				t := h / seaLevel
-				h = seaLevel * math.Pow(t, 1.55)
+			if h < SeaLevel {
+				t := h / SeaLevel
+				h = SeaLevel * math.Pow(t, 1.55)
 			} else {
-				t := (h - seaLevel) / (1.0 - seaLevel)
-				h = seaLevel + (1.0-seaLevel)*math.Pow(t, 1.08)
+				t := (h - SeaLevel) / (1.0 - SeaLevel)
+				h = SeaLevel + (1.0-SeaLevel)*math.Pow(t, 1.08)
 			}
 
 			h = clamp01(h)
@@ -280,29 +273,29 @@ func ColorizeHeightmapTiled(
 			var c raylib.Color
 
 			// Water
-			if h <= seaLevel {
-				t := smoothstep(0.0, seaLevel, h)
+			if h <= SeaLevel {
+				t := smoothstep(0.0, SeaLevel, h)
 				c = lerpColor(deepWater, shallowWater, t)
-			} else if h <= seaLevel+sandBand {
+			} else if h <= SeaLevel+SandBand {
 				// Beach blend water->sand
-				t := smoothstep(seaLevel, seaLevel+sandBand, h)
+				t := smoothstep(SeaLevel, SeaLevel+SandBand, h)
 				c = lerpColor(shallowWater, sand, t)
-			} else if h < mountainStart {
+			} else if h < MountainStart {
 				// Grass zone
-				t := smoothstep(seaLevel+sandBand, mountainStart, h)
+				t := smoothstep(SeaLevel+SandBand, MountainStart, h)
 				c = lerpColor(grassLow, grassHigh, t)
-			} else if h < snowStart {
+			} else if h < SnowStart {
 				// Rock zone
-				t := smoothstep(mountainStart, snowStart, h)
+				t := smoothstep(MountainStart, SnowStart, h)
 				c = lerpColor(rockLow, rockHigh, t)
 			} else {
 				// Snow zone
-				t := smoothstep(snowStart, 1.0, h)
+				t := smoothstep(SnowStart, 1.0, h)
 				c = lerpColor(snowLow, snowHigh, t)
 			}
 
 			// Apply subtle brightness variation mostly to land (and lightly to sand)
-			if h > seaLevel*0.98 {
+			if h > SeaLevel*0.98 {
 				r := clamp01(float64(c.R)/255.0 + v)
 				g := clamp01(float64(c.G)/255.0 + v)
 				b := clamp01(float64(c.B)/255.0 + v)

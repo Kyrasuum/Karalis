@@ -5,7 +5,7 @@ import (
 	"slices"
 
 	"karalis/internal/camera"
-	"karalis/internal/object"
+	"karalis/internal/object/world"
 	pub_object "karalis/pkg/object"
 )
 
@@ -22,7 +22,7 @@ func (c *Cell) Init() error {
 
 	c.childs = []pub_object.Object{}
 
-	sky, err := object.NewSkybox(nil)
+	sky, err := world.NewSkybox(nil)
 	if err != nil {
 		return err
 	}
@@ -40,7 +40,7 @@ func (c *Cell) Prerender(cam *camera.Cam) []func() {
 	for _, child := range c.childs {
 
 		switch child.(type) {
-		case *object.Skybox:
+		case *world.Skybox:
 			cmds = append(cmds, child.Prerender(cam)...)
 			cmds = append(cmds, cam.Render()...)
 			cmds = append(cmds, child.Render(cam)...)
@@ -60,7 +60,7 @@ func (c *Cell) Render(cam *camera.Cam) []func() {
 	cmds := []func(){}
 	for _, child := range c.childs {
 		switch child.(type) {
-		case *object.Skybox:
+		case *world.Skybox:
 		default:
 			cmds = append(cmds, child.Render(cam)...)
 		}

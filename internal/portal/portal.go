@@ -303,12 +303,12 @@ func (p *Portal) SetTexture(tex raylib.Texture2D) {
 }
 
 // get portal render texture
-func (p *Portal) GetTexture() raylib.Texture2D {
+func (p *Portal) GetTexture() *raylib.Texture2D {
 	if p == nil {
-		return raylib.Texture2D{}
+		return nil
 	}
 
-	return p.target.Texture
+	return &p.target.Texture
 }
 
 // set portal render object

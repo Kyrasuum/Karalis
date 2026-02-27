@@ -1,4 +1,4 @@
-package object
+package world
 
 import (
 	"bytes"
@@ -25,34 +25,44 @@ import (
 
 type Terrain struct {
 	tex *raylib.Texture2D
-	hgt *raylib.Texture2D
 	mdl *raylib.Model
 	shd pub_shader.Shader
 
-	hm  raylib.Texture2D
-	grs *Grass
+	hm   *image.RGBA
+	grs  *Grass
+	seed int64
 
 	pos   raylib.Vector3
 	rot   raylib.Vector3
 	scale raylib.Vector3
 }
 
-func RandTerrain() (t *Terrain, err error) {
+func RandTerrain(width, height int, seed int64) (t *Terrain, err error) {
+	t = &Terrain{}
+	if seed == int64(0) {
+		t.seed = rand.Int63()
+	} else {
+		t.seed = seed
+	}
+	err = t.Init()
+	if err != nil {
+		return nil, err
+	}
+	err = t.RandMap(width, height)
+
+	return t, err
+}
+
+func NewTerrain(m string, i interface{}, seed int64) (t *Terrain, err error) {
 	t = &Terrain{}
 	err = t.Init()
 	if err != nil {
 		return nil, err
 	}
-	err = t.RandMap()
-
-	return t, err
-}
-
-func NewTerrain(m string, i interface{}) (t *Terrain, err error) {
-	t = &Terrain{}
-	err = t.Init()
-	if err != nil {
-		return nil, err
+	if seed == int64(0) {
+		t.seed = rand.Int63()
+	} else {
+		t.seed = seed
 	}
 	err = t.LoadImage(i)
 	if err != nil {
@@ -86,7 +96,7 @@ func (t *Terrain) Init() error {
 		return err
 	}
 
-	t.grs, err = NewGrass(t)
+	t.grs, err = NewGrass(t, uint32(t.seed))
 	if err != nil {
 		return err
 	}
@@ -132,11 +142,9 @@ func (t *Terrain) LoadImage(i interface{}) error {
 			}
 		}
 		if err != nil {
-			t.LoadImage(nil)
 			return err
 		}
-		t.LoadImage(pic)
-		return nil
+		return t.LoadImage(pic)
 	case image.Image:
 		img = raylib.NewImageFromImage(data)
 	case raylib.Color:
@@ -164,23 +172,20 @@ func (t *Terrain) LoadImage(i interface{}) error {
 	return nil
 }
 
-func (t *Terrain) RandMap() error {
+func (t *Terrain) RandMap(width, height int) error {
 	if t == nil {
 		return fmt.Errorf("Invalid terrain")
 	}
 
-	width := 256
-	height := 256
-	h := rng.GenerateHeightmapTiledWorldSize(width, height, int64(12345), 0, 0, 10)
+	h := rng.GenerateHeightmapTiledWorldSize(width, height, t.seed, 0, 0, 10)
 	hm := image.NewRGBA(image.Rect(0, 0, width, height))
 	for y := range height {
 		for x := range width {
 			hm.Set(x, y, h[y*width+x])
 		}
 	}
-	himg := raylib.NewImageFromImage(hm)
 	t.LoadImage(hm)
-	t.GenTerrain(himg)
+	t.GenTerrain(hm)
 
 	alb := rng.ColorizeHeightmapTiled(h, width, height, rand.Int63(), 0, 0, 10, width*8, height*8)
 	col := image.NewRGBA(image.Rect(0, 0, width*8, height*8))
@@ -190,7 +195,6 @@ func (t *Terrain) RandMap() error {
 		}
 	}
 	t.LoadImage(col)
-	t.hm = raylib.LoadTextureFromImage(himg)
 	return nil
 }
 
@@ -239,21 +243,25 @@ func (t *Terrain) LoadMap(m string) error {
 			cube.Set(i, j, goimg.At(i, j))
 		}
 	}
-
-	img := raylib.NewImageFromImage(cube)
-	t.GenTerrain(img)
+	t.GenTerrain(cube)
 	return nil
 }
 
-func (t *Terrain) GenTerrain(img *raylib.Image) {
-	mesh := raylib.GenMeshHeightmap(*img, raylib.NewVector3(1, 1, 1))
+func (t *Terrain) GenTerrain(img *image.RGBA) {
+	t.hm = img
+	hm := raylib.NewImageFromImage(img)
+	mesh := raylib.GenMeshHeightmap(*hm, raylib.NewVector3(1, 1, 1))
 	mdl := raylib.LoadModelFromMesh(mesh)
+
 	t.mdl = &mdl
 	if t.tex == nil {
 		t.LoadImage(nil)
 	}
-	hmap := raylib.LoadTextureFromImage(img)
-	t.hgt = &hmap
+
+	if t.grs != nil {
+		t.grs.Update(0.0)
+	}
+
 	raylib.SetMaterialTexture(t.mdl.Materials, raylib.MapDiffuse, *t.tex)
 }
 
@@ -392,6 +400,9 @@ func (t *Terrain) SetScale(sc raylib.Vector3) {
 	}
 
 	t.scale = sc
+	if t.grs != nil {
+		t.grs.Update(0.0)
+	}
 }
 
 func (t *Terrain) SetPos(pos raylib.Vector3) {
@@ -400,6 +411,9 @@ func (t *Terrain) SetPos(pos raylib.Vector3) {
 	}
 
 	t.pos = pos
+	if t.grs != nil {
+		t.grs.Update(0.0)
+	}
 }
 
 func (t *Terrain) GetPos() raylib.Vector3 {
@@ -424,6 +438,9 @@ func (t *Terrain) SetPitch(pitch float32) {
 	}
 
 	t.rot.X = pitch
+	if t.grs != nil {
+		t.grs.Update(0.0)
+	}
 }
 
 func (t *Terrain) GetYaw() float32 {
@@ -440,6 +457,9 @@ func (t *Terrain) SetYaw(yaw float32) {
 	}
 
 	t.rot.Y = yaw
+	if t.grs != nil {
+		t.grs.Update(0.0)
+	}
 }
 
 func (t *Terrain) GetRoll() float32 {
@@ -456,6 +476,9 @@ func (t *Terrain) SetRoll(roll float32) {
 	}
 
 	t.rot.Z = roll
+	if t.grs != nil {
+		t.grs.Update(0.0)
+	}
 }
 
 func (t *Terrain) GetVertices() []raylib.Vector3 {
@@ -535,10 +558,18 @@ func (t *Terrain) SetTexture(tex raylib.Texture2D) {
 	*t.tex = tex
 }
 
-func (t *Terrain) GetTexture() raylib.Texture2D {
+func (t *Terrain) GetTexture() *raylib.Texture2D {
 	if t == nil {
-		return raylib.Texture2D{}
+		return nil
 	}
 
-	return *t.tex
+	return t.tex
+}
+
+func (t *Terrain) GetHeightMap() *image.RGBA {
+	if t == nil {
+		return nil
+	}
+
+	return t.hm
 }

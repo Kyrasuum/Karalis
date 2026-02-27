@@ -244,12 +244,12 @@ func (p *Prim) SetTexture(tex raylib.Texture2D) {
 	raylib.SetMaterialTexture(p.mdl.Materials, raylib.MapDiffuse, tex)
 }
 
-func (p *Prim) GetTexture() raylib.Texture2D {
+func (p *Prim) GetTexture() *raylib.Texture2D {
 	if p == nil {
-		return raylib.Texture2D{}
+		return nil
 	}
 
-	return p.mdl.Materials.Maps.Texture
+	return &p.mdl.Materials.Maps.Texture
 }
 
 func (p *Prim) Prerender(cam *camera.Cam) []func() {

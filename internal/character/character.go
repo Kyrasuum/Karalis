@@ -134,12 +134,12 @@ func (c *Character) SetTexture(tex raylib.Texture2D) {
 	}
 }
 
-func (c *Character) GetTexture() raylib.Texture2D {
+func (c *Character) GetTexture() *raylib.Texture2D {
 	if c == nil {
-		return raylib.Texture2D{}
+		return nil
 	}
 
-	return raylib.Texture2D{}
+	return &raylib.Texture2D{}
 }
 
 func (c *Character) GetModel() *raylib.Model {

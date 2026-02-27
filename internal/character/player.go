@@ -323,9 +323,9 @@ func (p *Player) SetTexture(tex raylib.Texture2D) {
 	p.char.SetTexture(tex)
 }
 
-func (p *Player) GetTexture() raylib.Texture2D {
+func (p *Player) GetTexture() *raylib.Texture2D {
 	if p == nil {
-		return raylib.Texture2D{}
+		return nil
 	}
 
 	return p.char.GetTexture()
