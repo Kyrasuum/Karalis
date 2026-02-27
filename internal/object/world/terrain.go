@@ -37,7 +37,7 @@ type Terrain struct {
 	scale raylib.Vector3
 }
 
-func RandTerrain(width, height int, seed int64) (t *Terrain, err error) {
+func RandTerrain(offx, offy float64, width, height int, seed int64) (t *Terrain, err error) {
 	t = &Terrain{}
 	if seed == int64(0) {
 		t.seed = rand.Int63()
@@ -48,7 +48,7 @@ func RandTerrain(width, height int, seed int64) (t *Terrain, err error) {
 	if err != nil {
 		return nil, err
 	}
-	err = t.RandMap(width, height)
+	err = t.RandMap(offx, offy, width, height)
 
 	return t, err
 }
@@ -172,12 +172,12 @@ func (t *Terrain) LoadImage(i interface{}) error {
 	return nil
 }
 
-func (t *Terrain) RandMap(width, height int) error {
+func (t *Terrain) RandMap(offx, offy float64, width, height int) error {
 	if t == nil {
 		return fmt.Errorf("Invalid terrain")
 	}
 
-	h := rng.GenerateHeightmapTiledWorldSize(width, height, t.seed, 0, 0, 10)
+	h := rng.GenerateHeightmapTiledWorldSize(width, height, t.seed, offx, offy, 10)
 	hm := image.NewRGBA(image.Rect(0, 0, width, height))
 	for y := range height {
 		for x := range width {

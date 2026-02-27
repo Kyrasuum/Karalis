@@ -43,7 +43,7 @@ func (g *Game) Init() error {
 	}
 	g.curcell.AddChild(grid)
 
-	ter, err := world.RandTerrain(256, 256, 1234567)
+	ter, err := world.RandTerrain(0.0, 0.0, 256, 256, 1234567)
 	if err != nil {
 		return err
 	}
