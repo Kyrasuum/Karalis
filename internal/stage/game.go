@@ -47,8 +47,8 @@ func (g *Game) Init() error {
 	if err != nil {
 		return err
 	}
-	ter.SetScale(raylib.NewVector3(100, 50, 100))
-	ter.SetPos(raylib.NewVector3(-50, -12.5, -50))
+	ter.SetScale(raylib.NewVector3(10, 5, 10))
+	ter.SetPos(raylib.NewVector3(-5, 0, -5))
 	g.curcell.AddChild(ter)
 
 	return nil
