@@ -3,7 +3,7 @@ package world
 import (
 	"fmt"
 	"image/color"
-	_ "math"
+	"log"
 	"reflect"
 	"unsafe"
 
@@ -81,35 +81,35 @@ func (w *Water) Render(cam *camera.Cam) []func() {
 
 	err := w.shader.SetUniform("uCameraPos", cam.GetPos())
 	if err != nil {
-		fmt.Printf("%+v\n", err)
+		log.Printf("%+v\n", err)
 	}
 	err = w.shader.SetUniform("uTime", float32(raylib.GetTime()))
 	if err != nil {
-		fmt.Printf("%+v\n", err)
+		log.Printf("%+v\n", err)
 	}
 	err = w.shader.SetUniform("uWaterColor", w.waterColor)
 	if err != nil {
-		fmt.Printf("%+v\n", err)
+		log.Printf("%+v\n", err)
 	}
 	err = w.shader.SetUniform("uWaveAmp", w.waveAmp)
 	if err != nil {
-		fmt.Printf("%+v\n", err)
+		log.Printf("%+v\n", err)
 	}
 	err = w.shader.SetUniform("uWaveFreq", w.waveFreq)
 	if err != nil {
-		fmt.Printf("%+v\n", err)
+		log.Printf("%+v\n", err)
 	}
 	err = w.shader.SetUniform("uWaveSpeed", w.waveSpeed)
 	if err != nil {
-		fmt.Printf("%+v\n", err)
+		log.Printf("%+v\n", err)
 	}
 	err = w.shader.SetUniform("uFresnelPower", w.fresPow)
 	if err != nil {
-		fmt.Printf("%+v\n", err)
+		log.Printf("%+v\n", err)
 	}
 	err = w.shader.SetUniform("uSpecPower", w.specPow)
 	if err != nil {
-		fmt.Printf("%+v\n", err)
+		log.Printf("%+v\n", err)
 	}
 
 	siz := w.GetScale()

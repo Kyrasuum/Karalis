@@ -1,7 +1,7 @@
 package client
 
 import (
-	"fmt"
+	"log"
 	"net"
 	"os"
 	"strings"
@@ -30,7 +30,7 @@ func register() {
 			panic(err)
 		}
 
-		fmt.Println(bytesWritten, " bytes written")
+		log.Println(bytesWritten, " bytes written")
 	}()
 
 	listen(conn, local.String())
@@ -38,15 +38,15 @@ func register() {
 
 func listen(conn *net.UDPConn, local string) {
 	for {
-		fmt.Println("listening")
+		log.Println("listening")
 		buffer := make([]byte, 1024)
 		bytesRead, err := conn.Read(buffer)
 		if err != nil {
-			fmt.Println("[ERROR]", err)
+			log.Println("[ERROR]", err)
 			continue
 		}
 
-		fmt.Println("[INCOMING]", string(buffer[0:bytesRead]))
+		log.Println("[INCOMING]", string(buffer[0:bytesRead]))
 		if string(buffer[0:bytesRead]) == "Hello!" {
 			continue
 		}
@@ -63,7 +63,7 @@ func chatter(conn *net.UDPConn, remote string) {
 	addr, _ := net.ResolveUDPAddr("udp", remote)
 	for {
 		conn.WriteTo([]byte("Hello!"), addr)
-		fmt.Println("sent Hello! to ", remote)
+		log.Println("sent Hello! to ", remote)
 		time.Sleep(5 * time.Second)
 	}
 }

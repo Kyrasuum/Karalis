@@ -7,16 +7,16 @@ import (
 	"image/color"
 	"image/jpeg"
 	"image/png"
+	"log"
 	"math/rand"
 	"reflect"
 	"strings"
 	"unsafe"
 
 	"karalis/internal/camera"
-	"karalis/internal/shader"
+	"karalis/pkg/app"
 	pub_object "karalis/pkg/object"
 	"karalis/pkg/rng"
-	pub_shader "karalis/pkg/shader"
 	"karalis/res"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
@@ -26,7 +26,6 @@ import (
 type Dungeon struct {
 	tex *raylib.Texture2D
 	mdl *raylib.Model
-	shd pub_shader.Shader
 
 	hm   *image.RGBA
 	seed int64
@@ -85,12 +84,6 @@ func (d *Dungeon) Init() error {
 		return err
 	}
 	err = d.LoadMap("")
-	if err != nil {
-		return err
-	}
-
-	d.shd = &shader.Shader{}
-	err = d.shd.Init("shader")
 	if err != nil {
 		return err
 	}
@@ -162,6 +155,7 @@ func (d *Dungeon) LoadImage(i interface{}) error {
 	d.tex = &tex
 	if d.mdl != nil {
 		raylib.SetMaterialTexture(d.mdl.Materials, raylib.MapDiffuse, *d.tex)
+		d.mdl.Materials.Shader = *app.CurApp.GetShader().GetShader()
 	}
 	return nil
 }
@@ -199,7 +193,7 @@ func (d *Dungeon) LoadMap(m string) error {
 
 	tex, err := res.GetRes(m)
 	if err != nil && strings.Compare(m, "") != 0 {
-		fmt.Printf("Error retrieving image (%s): %+v\n", m, err)
+		log.Printf("Error retrieving image (%s): %+v\n", m, err)
 		m = ""
 	}
 	var goimg image.Image
@@ -253,6 +247,7 @@ func (d *Dungeon) GenDungeon(img *image.RGBA) {
 	}
 
 	raylib.SetMaterialTexture(d.mdl.Materials, raylib.MapDiffuse, *d.tex)
+	d.mdl.Materials.Shader = *app.CurApp.GetShader().GetShader()
 }
 
 func (d *Dungeon) Prerender(cam *camera.Cam) []func() {
@@ -272,8 +267,6 @@ func (d *Dungeon) Render(cam *camera.Cam) []func() {
 
 	raylib.Color4ub(255, 255, 255, 255)
 	matTransform := d.GetModelMatrix()
-
-	d.mdl.Materials.Shader = *d.shd.GetShader()
 	raylib.DrawMesh(*d.mdl.Meshes, *d.mdl.Materials, matTransform)
 
 	return cmds

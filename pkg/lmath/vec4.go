@@ -1,7 +1,6 @@
 package lmath
 
 import (
-	//"fmt"
 	"math"
 )
 

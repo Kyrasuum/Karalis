@@ -1,7 +1,7 @@
 package server
 
 import (
-	"fmt"
+	"log"
 	"net"
 	"os"
 	"strings"
@@ -40,7 +40,7 @@ func Server() {
 		}
 
 		incoming := string(buffer[0:bytesRead])
-		fmt.Println("[INCOMING]", incoming)
+		log.Println("[INCOMING]", incoming)
 		if incoming != "register" {
 			continue
 		}
@@ -52,7 +52,7 @@ func Server() {
 			if len(resp) > 0 {
 				r, _ := net.ResolveUDPAddr("udp", client)
 				conn.WriteTo([]byte(resp), r)
-				fmt.Printf("[INFO] Responded to %s with %s\n", client, string(resp))
+				log.Printf("[INFO] Responded to %s with %s\n", client, string(resp))
 			}
 		}
 	}

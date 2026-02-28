@@ -3,6 +3,7 @@ package world
 import (
 	"fmt"
 	"image/color"
+	"log"
 	"math"
 	"unsafe"
 
@@ -116,19 +117,19 @@ func (g *Grass) Render(cam *camera.Cam) []func() {
 	// Upload uniforms to compute
 	err := g.compute.SetUniform("uCameraPos", cam.GetPos())
 	if err != nil {
-		fmt.Printf("%+v\n", err)
+		log.Printf("%+v\n", err)
 	}
 	err = g.compute.SetUniform("uMaxVisible", []uint32{g.maxVisible})
 	if err != nil {
-		fmt.Printf("%+v\n", err)
+		log.Printf("%+v\n", err)
 	}
 	err = g.compute.SetUniform("uSeed", []uint32{g.seed})
 	if err != nil {
-		fmt.Printf("%+v\n", err)
+		log.Printf("%+v\n", err)
 	}
 	err = g.compute.SetUniform("uRadius", []float32{g.radius})
 	if err != nil {
-		fmt.Printf("%+v\n", err)
+		log.Printf("%+v\n", err)
 	}
 	groups := uint32((g.blades + 256 - 1) / 256)
 	raylib.ComputeShaderDispatch(groups, 1, 1)
@@ -139,7 +140,7 @@ func (g *Grass) Render(cam *camera.Cam) []func() {
 	raylib.BindShaderBuffer(g.visibleSSBO, 1)
 	err = g.shader.SetUniform("uTime", float32(raylib.GetTime()))
 	if err != nil {
-		fmt.Printf("%+v\n", err)
+		log.Printf("%+v\n", err)
 	}
 
 	instances := int(visibleCount)

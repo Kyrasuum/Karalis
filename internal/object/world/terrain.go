@@ -7,16 +7,16 @@ import (
 	"image/color"
 	"image/jpeg"
 	"image/png"
+	"log"
 	"math/rand"
 	"reflect"
 	"strings"
 	"unsafe"
 
 	"karalis/internal/camera"
-	"karalis/internal/shader"
+	"karalis/pkg/app"
 	pub_object "karalis/pkg/object"
 	"karalis/pkg/rng"
-	pub_shader "karalis/pkg/shader"
 	"karalis/res"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
@@ -26,7 +26,6 @@ import (
 type Terrain struct {
 	tex *raylib.Texture2D
 	mdl *raylib.Model
-	shd pub_shader.Shader
 
 	hm   *image.RGBA
 	grs  *Grass
@@ -87,12 +86,6 @@ func (t *Terrain) Init() error {
 		return err
 	}
 	err = t.LoadMap("")
-	if err != nil {
-		return err
-	}
-
-	t.shd = &shader.Shader{}
-	err = t.shd.Init("shader")
 	if err != nil {
 		return err
 	}
@@ -174,6 +167,7 @@ func (t *Terrain) LoadImage(i interface{}) error {
 	t.tex = &tex
 	if t.mdl != nil {
 		raylib.SetMaterialTexture(t.mdl.Materials, raylib.MapDiffuse, *t.tex)
+		t.mdl.Materials.Shader = *app.CurApp.GetShader().GetShader()
 	}
 	t.wtr.Update(0.0)
 	return nil
@@ -212,7 +206,7 @@ func (t *Terrain) LoadMap(m string) error {
 
 	tex, err := res.GetRes(m)
 	if err != nil && strings.Compare(m, "") != 0 {
-		fmt.Printf("Error retrieving image (%s): %+v\n", m, err)
+		log.Printf("Error retrieving image (%s): %+v\n", m, err)
 		m = ""
 	}
 	var goimg image.Image
@@ -270,6 +264,7 @@ func (t *Terrain) GenTerrain(img *image.RGBA) {
 	}
 
 	raylib.SetMaterialTexture(t.mdl.Materials, raylib.MapDiffuse, *t.tex)
+	t.mdl.Materials.Shader = *app.CurApp.GetShader().GetShader()
 }
 
 func (t *Terrain) Prerender(cam *camera.Cam) []func() {
@@ -292,7 +287,6 @@ func (t *Terrain) Render(cam *camera.Cam) []func() {
 	raylib.Color4ub(255, 255, 255, 255)
 	matTransform := t.GetModelMatrix()
 
-	t.mdl.Materials.Shader = *t.shd.GetShader()
 	raylib.DrawMesh(*t.mdl.Meshes, *t.mdl.Materials, matTransform)
 	cmds = append(cmds, t.grs.Render(cam)...)
 	cmds = append(cmds, t.wtr.Render(cam)...)

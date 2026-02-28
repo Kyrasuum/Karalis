@@ -1,8 +1,9 @@
 package app
 
 import (
-	"fmt"
 	"image/color"
+	"log"
+	"os"
 	"time"
 
 	"karalis/internal/shader"
@@ -126,10 +127,20 @@ func (a *app) Running() bool {
 }
 
 // main run loop for the app while running
-func (a *app) run() error {
+func (a *app) run(debug bool) error {
 	raylib.SetConfigFlags(raylib.FlagWindowResizable)
 	raylib.InitWindow(a.width, a.height, config.AppName)
 	raylib.SetTargetFPS(int32(time.Second / (time.Duration(a.drawInterval) * time.Millisecond)))
+
+	if debug {
+		file, err := os.OpenFile("info.log", os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer file.Close()
+		log.SetOutput(file)
+	}
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	defer a.Exit()
 	err := input.InitBindings()
@@ -204,8 +215,8 @@ func (a *app) Exit() {
 }
 
 // start the application
-func (a *app) Start() error {
-	return a.run()
+func (a *app) Start(debug bool) error {
+	return a.run(debug)
 }
 
 // create a new app
@@ -213,7 +224,7 @@ func NewApp() *app {
 	a := &app{}
 	err := a.init()
 	if err != nil {
-		fmt.Printf("ERR: %+v\n", err)
+		log.Printf("ERR: %+v\n", err)
 		return nil
 	}
 	return a

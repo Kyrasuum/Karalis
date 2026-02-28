@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -241,7 +242,7 @@ func SearchCombos(scope string, key string, mods *map[string]bool, nextControls 
 		if action, ok := Bindings[scope][combo]; ok {
 			//handle action being pressed
 			if err := handleBindingPress(action); err != nil {
-				fmt.Printf("%+v\n", err)
+				log.Printf("%+v\n", err)
 			}
 			//store that this action is pressed for tracking
 			(*nextControls)[action] = true
@@ -274,7 +275,7 @@ func HandleInput(scope string) {
 	//handle button releases
 	for control, _ := range prevControls[scope] {
 		if err := handleBindingRelease(control); err != nil {
-			fmt.Printf("%+v\n", err)
+			log.Printf("%+v\n", err)
 		}
 	}
 	//update previous pressed

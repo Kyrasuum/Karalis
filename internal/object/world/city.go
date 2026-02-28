@@ -7,16 +7,16 @@ import (
 	"image/color"
 	"image/jpeg"
 	"image/png"
+	"log"
 	"math/rand"
 	"reflect"
 	"strings"
 	"unsafe"
 
 	"karalis/internal/camera"
-	"karalis/internal/shader"
+	"karalis/pkg/app"
 	pub_object "karalis/pkg/object"
 	"karalis/pkg/rng"
-	pub_shader "karalis/pkg/shader"
 	"karalis/res"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
@@ -26,7 +26,6 @@ import (
 type City struct {
 	tex *raylib.Texture2D
 	mdl *raylib.Model
-	shd pub_shader.Shader
 
 	hm   *image.RGBA
 	seed int64
@@ -85,12 +84,6 @@ func (c *City) Init() error {
 		return err
 	}
 	err = c.LoadMap("")
-	if err != nil {
-		return err
-	}
-
-	c.shd = &shader.Shader{}
-	err = c.shd.Init("shader")
 	if err != nil {
 		return err
 	}
@@ -162,6 +155,7 @@ func (c *City) LoadImage(i interface{}) error {
 	c.tex = &tex
 	if c.mdl != nil {
 		raylib.SetMaterialTexture(c.mdl.Materials, raylib.MapDiffuse, *c.tex)
+		c.mdl.Materials.Shader = *app.CurApp.GetShader().GetShader()
 	}
 	return nil
 }
@@ -190,7 +184,7 @@ func (c *City) LoadMap(m string) error {
 
 	tex, err := res.GetRes(m)
 	if err != nil && strings.Compare(m, "") != 0 {
-		fmt.Printf("Error retrieving image (%s): %+v\n", m, err)
+		log.Printf("Error retrieving image (%s): %+v\n", m, err)
 		m = ""
 	}
 	var goimg image.Image
@@ -244,6 +238,7 @@ func (c *City) GenCity(img *image.RGBA) {
 	}
 
 	raylib.SetMaterialTexture(c.mdl.Materials, raylib.MapDiffuse, *c.tex)
+	c.mdl.Materials.Shader = *app.CurApp.GetShader().GetShader()
 }
 
 func (c *City) Prerender(cam *camera.Cam) []func() {
@@ -263,8 +258,6 @@ func (c *City) Render(cam *camera.Cam) []func() {
 
 	raylib.Color4ub(255, 255, 255, 255)
 	matTransform := c.GetModelMatrix()
-
-	c.mdl.Materials.Shader = *c.shd.GetShader()
 	raylib.DrawMesh(*c.mdl.Meshes, *c.mdl.Materials, matTransform)
 
 	return cmds

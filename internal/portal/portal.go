@@ -1,8 +1,8 @@
 package portal
 
 import (
-	"fmt"
 	"image/color"
+	"log"
 	"slices"
 
 	"karalis/internal/camera"
@@ -413,17 +413,17 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 		sh := app.CurApp.GetShader()
 		err := sh.SetDefine("PORTAL_SCN", true)
 		if err != nil {
-			fmt.Printf("%+v\n", err)
+			log.Printf("%+v\n", err)
 			p.visible = false
 		}
 		err = sh.SetUniform("portalPos", p.exit.obj.GetPos())
 		if err != nil {
-			fmt.Printf("%+v\n", err)
+			log.Printf("%+v\n", err)
 			p.visible = false
 		}
 		err = sh.SetUniform("portalNorm", p.exit.GetNormal())
 		if err != nil {
-			fmt.Printf("%+v\n", err)
+			log.Printf("%+v\n", err)
 			p.visible = false
 		}
 
@@ -437,7 +437,7 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 
 		err = sh.SetUniform("portalMat", mat)
 		if err != nil {
-			fmt.Printf("%+v\n", err)
+			log.Printf("%+v\n", err)
 			p.visible = false
 		}
 		for _, obj := range p.exit.touching {
@@ -445,7 +445,7 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 		}
 		err = sh.SetUniform("portalMat", raylib.MatrixIdentity())
 		if err != nil {
-			fmt.Printf("%+v\n", err)
+			log.Printf("%+v\n", err)
 			p.visible = false
 		}
 
@@ -462,7 +462,7 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 
 		err = sh.SetDefine("PORTAL_SCN", false)
 		if err != nil {
-			fmt.Printf("%+v\n", err)
+			log.Printf("%+v\n", err)
 			p.visible = false
 		}
 		raylib.EndTextureMode()
@@ -491,13 +491,13 @@ func (p *Portal) Render(cam *camera.Cam) []func() {
 			sh := app.CurApp.GetShader()
 			err := sh.SetDefine("PORTAL_OBJ", true)
 			if err != nil {
-				fmt.Printf("%+v\n", err)
+				log.Printf("%+v\n", err)
 				p.visible = false
 			}
 			cmds = p.obj.Render(cam)
 			err = sh.SetDefine("PORTAL_OBJ", false)
 			if err != nil {
-				fmt.Printf("%+v\n", err)
+				log.Printf("%+v\n", err)
 				p.visible = false
 			}
 		}
@@ -508,17 +508,17 @@ func (p *Portal) Render(cam *camera.Cam) []func() {
 			sh := app.CurApp.GetShader()
 			err := sh.SetDefine("PORTAL_SCN", true)
 			if err != nil {
-				fmt.Printf("%+v\n", err)
+				log.Printf("%+v\n", err)
 				p.visible = false
 			}
 			err = sh.SetUniform("portalPos", p.obj.GetPos())
 			if err != nil {
-				fmt.Printf("%+v\n", err)
+				log.Printf("%+v\n", err)
 				p.visible = false
 			}
 			err = sh.SetUniform("portalNorm", p.GetNormal())
 			if err != nil {
-				fmt.Printf("%+v\n", err)
+				log.Printf("%+v\n", err)
 				p.visible = false
 			}
 
@@ -531,7 +531,7 @@ func (p *Portal) Render(cam *camera.Cam) []func() {
 			mat := raylib.MatrixInvert(p.GetTransform())
 			err = sh.SetUniform("portalMat", mat)
 			if err != nil {
-				fmt.Printf("%+v\n", err)
+				log.Printf("%+v\n", err)
 				p.visible = false
 			}
 			for _, obj := range p.touching {
@@ -539,7 +539,7 @@ func (p *Portal) Render(cam *camera.Cam) []func() {
 			}
 			err = sh.SetUniform("portalMat", raylib.MatrixIdentity())
 			if err != nil {
-				fmt.Printf("%+v\n", err)
+				log.Printf("%+v\n", err)
 				p.visible = false
 			}
 
@@ -550,7 +550,7 @@ func (p *Portal) Render(cam *camera.Cam) []func() {
 
 			err = sh.SetDefine("PORTAL_SCN", false)
 			if err != nil {
-				fmt.Printf("%+v\n", err)
+				log.Printf("%+v\n", err)
 				p.visible = false
 			}
 		}

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 
 	"karalis/internal/app"
 )
@@ -9,9 +9,9 @@ import (
 func main() {
 	a := app.NewApp()
 	if a != nil {
-		err := a.Start()
+		err := a.Start(false)
 		if err != nil {
-			fmt.Printf("ERR: %+v\n", err)
+			log.Printf("ERR: %+v\n", err)
 		}
 	}
 }

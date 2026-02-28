@@ -1,8 +1,11 @@
 package res
 
 import (
+	"archive/zip"
+	"bytes"
 	"embed"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -36,6 +39,16 @@ func Init() error {
 	err := LoadDir(".")
 	if err != nil {
 		return err
+	}
+	files, err := os.ReadDir("lib")
+	if err != nil {
+		return err
+	}
+	for _, entry := range files {
+		err = ReadArchive("lib/" + entry.Name())
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -107,6 +120,45 @@ func GetRes(path string) (interface{}, error) {
 	} else {
 		return nil, fmt.Errorf("Resource not found: %s\n", path)
 	}
+}
+
+func ReadArchive(path string) error {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	if strings.Contains(path, ".zip") {
+		return ReadZip(path, data)
+	}
+	return fmt.Errorf("Archive not supported: %s\n", path)
+}
+
+func ReadZip(path string, data []byte) error {
+	zr, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
+	if err != nil {
+		return err
+	}
+	for _, f := range zr.File {
+		data, err := readZipFile(f)
+		resources[path+"/"+f.Name] = resource{data, err}
+	}
+	return nil
+}
+
+func readZipFile(f *zip.File) (interface{}, error) {
+	rc, err := f.Open()
+	if err != nil {
+		return nil, err
+	}
+	b, readErr := io.ReadAll(rc)
+	closeErr := rc.Close()
+	if readErr != nil {
+		return nil, readErr
+	}
+	if closeErr != nil {
+		return nil, closeErr
+	}
+	return b, nil
 }
 
 //export GetData
