@@ -30,6 +30,7 @@ type Terrain struct {
 
 	hm   *image.RGBA
 	grs  *Grass
+	wtr  *Water
 	seed int64
 
 	pos   raylib.Vector3
@@ -97,6 +98,11 @@ func (t *Terrain) Init() error {
 	}
 
 	t.grs, err = NewGrass(t, uint32(t.seed))
+	if err != nil {
+		return err
+	}
+
+	t.wtr, err = NewWater(t, float32(rng.SeaLevel+rng.SandBand/2))
 	if err != nil {
 		return err
 	}
@@ -169,6 +175,7 @@ func (t *Terrain) LoadImage(i interface{}) error {
 	if t.mdl != nil {
 		raylib.SetMaterialTexture(t.mdl.Materials, raylib.MapDiffuse, *t.tex)
 	}
+	t.wtr.Update(0.0)
 	return nil
 }
 
@@ -271,6 +278,7 @@ func (t *Terrain) Prerender(cam *camera.Cam) []func() {
 		return cmds
 	}
 	cmds = append(cmds, t.grs.Prerender(cam)...)
+	cmds = append(cmds, t.wtr.Prerender(cam)...)
 
 	return cmds
 }
@@ -287,6 +295,7 @@ func (t *Terrain) Render(cam *camera.Cam) []func() {
 	t.mdl.Materials.Shader = *t.shd.GetShader()
 	raylib.DrawMesh(*t.mdl.Meshes, *t.mdl.Materials, matTransform)
 	cmds = append(cmds, t.grs.Render(cam)...)
+	cmds = append(cmds, t.wtr.Render(cam)...)
 
 	return cmds
 }
@@ -297,6 +306,7 @@ func (t *Terrain) Postrender(cam *camera.Cam) []func() {
 		return cmds
 	}
 	cmds = append(cmds, t.grs.Postrender(cam)...)
+	cmds = append(cmds, t.wtr.Postrender(cam)...)
 
 	return cmds
 }
@@ -402,6 +412,9 @@ func (t *Terrain) SetScale(sc raylib.Vector3) {
 	t.scale = sc
 	if t.grs != nil {
 		t.grs.Update(0.0)
+	}
+	if t.wtr != nil {
+		t.wtr.Update(0.0)
 	}
 }
 

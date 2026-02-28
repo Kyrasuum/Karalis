@@ -27,6 +27,7 @@ type Grass struct {
 	inSSBO      uint32
 	visibleSSBO uint32
 	counterSSBO uint32
+	transforms  []raylib.Matrix
 
 	maxVisible uint32
 	blades     uint32
@@ -70,9 +71,15 @@ func (g *Grass) Init(parent *Terrain, seed uint32) error {
 
 	// Shaders
 	g.compute = shader.Compute{}
-	g.compute.Init("grass")
+	err := g.compute.Init("grass")
+	if err != nil {
+		return err
+	}
 	g.shader = shader.Shader{}
-	g.shader.Init("grass")
+	err = g.shader.Init("grass")
+	if err != nil {
+		return err
+	}
 
 	// Grass model
 	mdl, err := res.GetRes("mdl/grass/grass_2.obj")
@@ -136,13 +143,7 @@ func (g *Grass) Render(cam *camera.Cam) []func() {
 	}
 
 	instances := int(visibleCount)
-	if instances > 0 {
-		transforms := make([]raylib.Matrix, instances)
-		for i := range transforms {
-			transforms[i] = raylib.MatrixIdentity()
-		}
-		raylib.DrawMeshInstanced(*g.mdl.Meshes, *g.mdl.Materials, transforms, instances)
-	}
+	raylib.DrawMeshInstanced(*g.mdl.Meshes, *g.mdl.Materials, g.transforms, instances)
 
 	return cmds
 }
@@ -236,6 +237,11 @@ func (g *Grass) Update(dt float32) {
 		unsafe.Pointer(&emptyVisible[0]),
 		int32(raylib.DynamicDraw),
 	)
+
+	g.transforms = make([]raylib.Matrix, g.blades)
+	for i := range g.transforms {
+		g.transforms[i] = raylib.MatrixIdentity()
+	}
 }
 
 func (g *Grass) GetCollider() pub_object.Collider {

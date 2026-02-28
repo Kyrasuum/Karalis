@@ -49,6 +49,45 @@ func (p *Prim) init() error {
 	return nil
 }
 
+func (p *Prim) Prerender(cam *camera.Cam) []func() {
+	if p == nil {
+		return []func(){}
+	}
+
+	return []func(){}
+}
+
+func (p *Prim) Render(cam *camera.Cam) []func() {
+	if p == nil {
+		return []func(){}
+	}
+
+	matTransform := p.GetModelMatrix()
+	sh := app.CurApp.GetShader()
+	p.mdl.Materials.Shader = *sh.GetShader()
+	raylib.DrawMesh(*p.mdl.Meshes, *p.mdl.Materials, matTransform)
+
+	return []func(){}
+}
+
+func (p *Prim) Postrender(cam *camera.Cam) []func() {
+	if p == nil {
+		return []func(){}
+	}
+
+	return []func(){}
+}
+
+func (p *Prim) Update(dt float32) {
+	if p == nil {
+		return
+	}
+
+	if p.col != nil {
+		p.col.Update(dt)
+	}
+}
+
 func (p *Prim) GetModelMatrix() raylib.Matrix {
 	if p == nil {
 		return raylib.Matrix{}
@@ -250,45 +289,6 @@ func (p *Prim) GetTexture() *raylib.Texture2D {
 	}
 
 	return &p.mdl.Materials.Maps.Texture
-}
-
-func (p *Prim) Prerender(cam *camera.Cam) []func() {
-	if p == nil {
-		return []func(){}
-	}
-
-	return []func(){}
-}
-
-func (p *Prim) Render(cam *camera.Cam) []func() {
-	if p == nil {
-		return []func(){}
-	}
-
-	matTransform := p.GetModelMatrix()
-	sh := app.CurApp.GetShader()
-	p.mdl.Materials.Shader = *sh.GetShader()
-	raylib.DrawMesh(*p.mdl.Meshes, *p.mdl.Materials, matTransform)
-
-	return []func(){}
-}
-
-func (p *Prim) Postrender(cam *camera.Cam) []func() {
-	if p == nil {
-		return []func(){}
-	}
-
-	return []func(){}
-}
-
-func (p *Prim) Update(dt float32) {
-	if p == nil {
-		return
-	}
-
-	if p.col != nil {
-		p.col.Update(dt)
-	}
 }
 
 func (p *Prim) GetCollider() pub_object.Collider {
