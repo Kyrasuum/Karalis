@@ -90,6 +90,13 @@ func (c *Collider) Collide(data pub_object.CollisionData) {
 		}
 	}
 }
+
+func (c *Collider) OnResize(w int32, h int32) {
+	if c == nil {
+		return
+	}
+}
+
 func (c *Collider) Update(dt float32) {
 	if c == nil {
 		return

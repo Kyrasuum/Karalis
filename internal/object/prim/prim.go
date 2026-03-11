@@ -9,7 +9,6 @@ import (
 
 	"karalis/internal/camera"
 	"karalis/internal/collider"
-	"karalis/pkg/app"
 	pub_object "karalis/pkg/object"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
@@ -63,8 +62,6 @@ func (p *Prim) Render(cam *camera.Cam) []func() {
 	}
 
 	matTransform := p.GetModelMatrix()
-	sh := app.CurApp.GetShader()
-	p.mdl.Materials.Shader = *sh.GetShader()
 	raylib.DrawMesh(*p.mdl.Meshes, *p.mdl.Materials, matTransform)
 
 	return []func(){}
@@ -76,6 +73,12 @@ func (p *Prim) Postrender(cam *camera.Cam) []func() {
 	}
 
 	return []func(){}
+}
+
+func (p *Prim) OnResize(w int32, h int32) {
+	if p == nil {
+		return
+	}
 }
 
 func (p *Prim) Update(dt float32) {

@@ -61,42 +61,38 @@ func (g *Game) OnResize(w int32, h int32) {
 	}
 
 	g.player.GetCam().OnResize(w, h)
-}
-
-// prerender hook
-func (g *Game) Prerender() []func() {
-	if g == nil {
-		return []func(){}
-	}
-
-	cam := g.player.GetCam()
-	cmds := cam.Prerender()
-	cmds = append(cmds, g.curcell.Prerender(cam)...)
-	return cmds
+	g.curcell.OnResize(w, h)
 }
 
 // render hook
-func (g *Game) Render() []func() {
+func (g *Game) Render() {
 	if g == nil {
-		return []func(){}
+		return
+	}
+	cam := g.player.GetCam()
+	if cam == nil {
+		return
 	}
 
-	cam := g.player.GetCam()
-	cmds := cam.Render()
-	cmds = append(cmds, g.curcell.Render(cam)...)
-	return cmds
-}
+	cmds := []func(){}
 
-// postrender hook
-func (g *Game) Postrender() []func() {
-	if g == nil {
-		return []func(){}
+	cmds = append(cam.Prerender(), g.curcell.Prerender(cam)...)
+	for _, cmd := range cmds {
+		cmd()
 	}
 
-	cam := g.player.GetCam()
-	cmds := cam.Postrender()
-	cmds = append(cmds, g.curcell.Postrender(cam)...)
-	return cmds
+	cmds = cam.Render()
+	cmds = append(g.curcell.Render(cam), cmds...)
+	for _, cmd := range cmds {
+		cmd()
+	}
+
+	cmds = append(cam.Postrender(), g.curcell.Postrender(cam)...)
+	for _, cmd := range cmds {
+		cmd()
+	}
+
+	return
 }
 
 // handle update cycle

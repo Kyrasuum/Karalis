@@ -5,6 +5,7 @@ in vec2 vertexTexCoord;
 in vec3 vertexNormal;
 
 out vec3 vWorldPos;
+out vec3 vVertPos;
 out vec2 vUv;
 out vec3 vWaveNormal;
 out float vWaveHeight;
@@ -18,6 +19,7 @@ uniform float uTime;
 uniform float uWaveAmp;      // deep-water amplitude (e.g. 0.10)
 uniform float uWaveFreq;     // base frequency (e.g. 0.18)
 uniform float uWaveSpeed;    // (e.g. 0.6)
+uniform float uWaterHeight;
 
 
 // Small helper: compute wave height + deriv given an amplitude scale
@@ -60,7 +62,7 @@ void main() {
 
     // Turn depth into an amplitude multiplier:
     float depth = texture(texture0, vUv).r;
-    float d = max(0.33 - depth, 0.0);
+    float d = max(uWaterHeight - depth, 0.0);
     float ampScale = pow(d, 0.9);
 
     // Optional: reduce wave frequency in shallow water too (looks nicer)
@@ -71,6 +73,9 @@ void main() {
 
     vec2 p = world.xz;
     vec3 wh = waveHeightAndDeriv(p, ampScale);
+    if (vertexPosition.y < 0.0) {
+        wh = vec3(0.0);
+    }
 
     // Displace
     vWaveHeight = wh.x;
@@ -79,6 +84,7 @@ void main() {
     // Normal from derivatives
     vWaveNormal = normalize(vec3(-wh.y, 1.0, -wh.z));
     vWorldPos = world.xyz;
+    vVertPos = vertexPosition;
 
     // Displace in model-y for mvp convenience (flat plane assumption)
     gl_Position = mvp * vec4(vertexPosition + vec3(0.0, wh.x, 0.0), 1.0);

@@ -272,6 +272,12 @@ func (c *City) Postrender(cam *camera.Cam) []func() {
 	return cmds
 }
 
+func (c *City) OnResize(w int32, h int32) {
+	if c == nil {
+		return
+	}
+}
+
 func (c *City) Update(dt float32) {
 	if c == nil {
 		return

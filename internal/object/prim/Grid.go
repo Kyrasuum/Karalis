@@ -210,6 +210,12 @@ func (g *Grid) Postrender(cam *camera.Cam) []func() {
 	return []func(){}
 }
 
+func (g *Grid) OnResize(w int32, h int32) {
+	if g == nil {
+		return
+	}
+}
+
 func (g *Grid) Update(dt float32) {
 	if g == nil {
 		return

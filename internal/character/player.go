@@ -110,6 +110,14 @@ func (p *Player) Postrender(cam *camera.Cam) []func() {
 	return cmds
 }
 
+func (p *Player) OnResize(w int32, h int32) {
+	if p == nil {
+		return
+	}
+
+	p.char.OnResize(w, h)
+}
+
 func (p *Player) Update(dt float32) {
 	if p == nil {
 		return

@@ -9,9 +9,7 @@ var ()
 type Stage interface {
 	Init() error
 	OnResize(w int32, h int32)
-	Prerender() []func()
-	Render() []func()
-	Postrender() []func()
+	Render()
 	Update(dt float32)
 	OnInput(dt float32)
 	OnAdd()

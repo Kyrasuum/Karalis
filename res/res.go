@@ -6,6 +6,7 @@ import (
 	"embed"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -38,16 +39,16 @@ func Init() error {
 
 	err := LoadDir(".")
 	if err != nil {
-		return err
+		log.Printf("%+v\n", err)
 	}
 	files, err := os.ReadDir("lib")
 	if err != nil {
-		return err
+		log.Printf("%+v\n", err)
 	}
 	for _, entry := range files {
 		err = ReadArchive("lib/" + entry.Name())
 		if err != nil {
-			return err
+			log.Printf("%+v\n", err)
 		}
 	}
 
@@ -128,19 +129,19 @@ func ReadArchive(path string) error {
 		return err
 	}
 	if strings.Contains(path, ".zip") {
-		return ReadZip(path, data)
+		return ReadZip(data)
 	}
 	return fmt.Errorf("Archive not supported: %s\n", path)
 }
 
-func ReadZip(path string, data []byte) error {
+func ReadZip(data []byte) error {
 	zr, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
 	if err != nil {
 		return err
 	}
 	for _, f := range zr.File {
 		data, err := readZipFile(f)
-		resources[path+"/"+f.Name] = resource{data, err}
+		resources[f.Name] = resource{data, err}
 	}
 	return nil
 }

@@ -24,28 +24,10 @@ func (s *MainMenu) OnResize(w int32, h int32) {
 	}
 }
 
-func (s *MainMenu) Prerender() []func() {
+func (s *MainMenu) Render() {
 	if s == nil {
-		return []func(){}
+		return
 	}
-
-	return []func(){}
-}
-
-func (s *MainMenu) Render() []func() {
-	if s == nil {
-		return []func(){}
-	}
-
-	return []func(){}
-}
-
-func (s *MainMenu) Postender() []func() {
-	if s == nil {
-		return []func(){}
-	}
-
-	return []func(){}
 }
 
 func (s *MainMenu) Update(dt float32) {

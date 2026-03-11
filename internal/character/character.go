@@ -50,6 +50,12 @@ func (c *Character) Postrender(cam *camera.Cam) []func() {
 	return []func(){}
 }
 
+func (c *Character) OnResize(w int32, h int32) {
+	if c == nil {
+		return
+	}
+}
+
 func (c *Character) Update(dt float32) {
 	if c == nil {
 		return

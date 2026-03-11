@@ -295,6 +295,12 @@ func (a *Anim) Postrender(cam *camera.Cam) []func() {
 	return []func(){}
 }
 
+func (a *Anim) OnResize(w int32, h int32) {
+	if a == nil {
+		return
+	}
+}
+
 func (a *Anim) Update(dt float32) {
 	if a == nil {
 		return

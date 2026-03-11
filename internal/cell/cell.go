@@ -38,13 +38,7 @@ func (c *Cell) Prerender(cam *camera.Cam) []func() {
 
 	cmds := []func(){}
 	for _, child := range c.childs {
-
 		switch child.(type) {
-		case *world.Skybox:
-			cmds = append(cmds, child.Prerender(cam)...)
-			cmds = append(cmds, cam.Render()...)
-			cmds = append(cmds, child.Render(cam)...)
-			cmds = append(cmds, cam.Prerender()...)
 		default:
 			cmds = append(cmds, child.Prerender(cam)...)
 		}
@@ -60,7 +54,6 @@ func (c *Cell) Render(cam *camera.Cam) []func() {
 	cmds := []func(){}
 	for _, child := range c.childs {
 		switch child.(type) {
-		case *world.Skybox:
 		default:
 			cmds = append(cmds, child.Render(cam)...)
 		}
@@ -78,6 +71,17 @@ func (c *Cell) Postrender(cam *camera.Cam) []func() {
 		cmds = append(cmds, child.Postrender(cam)...)
 	}
 	return cmds
+}
+
+func (c *Cell) OnResize(w int32, h int32) {
+	if c == nil {
+		return
+	}
+
+	//perform update on objects
+	for _, child := range c.childs {
+		child.OnResize(w, h)
+	}
 }
 
 func (c *Cell) Update(dt float32) {

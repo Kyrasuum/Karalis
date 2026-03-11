@@ -145,6 +145,7 @@ func (g *Grass) Render(cam *camera.Cam) []func() {
 
 	instances := int(visibleCount)
 	raylib.DrawMeshInstanced(*g.mdl.Meshes, *g.mdl.Materials, g.transforms, instances)
+	g.shader.End()
 
 	return cmds
 }
@@ -156,6 +157,12 @@ func (g *Grass) Postrender(cam *camera.Cam) []func() {
 	}
 
 	return cmds
+}
+
+func (g *Grass) OnResize(w int32, h int32) {
+	if g == nil {
+		return
+	}
 }
 
 func (g *Grass) Update(dt float32) {

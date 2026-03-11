@@ -67,24 +67,7 @@ func (a *app) render() {
 	raylib.BeginDrawing()
 	raylib.ClearBackground(color.RGBA{0, 0, 0, 255})
 	if a.curStage != nil {
-		cmds := a.curStage.Prerender()
-		for _, cmd := range cmds {
-			cmd()
-		}
-	}
-
-	if a.curStage != nil {
-		cmds := a.curStage.Render()
-		for _, cmd := range cmds {
-			cmd()
-		}
-	}
-
-	if a.curStage != nil {
-		cmds := a.curStage.Postrender()
-		for _, cmd := range cmds {
-			cmd()
-		}
+		a.curStage.Render()
 	}
 	raylib.EndDrawing()
 }

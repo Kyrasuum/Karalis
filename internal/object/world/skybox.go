@@ -365,6 +365,12 @@ func (s *Skybox) Postrender(cam *camera.Cam) []func() {
 	return cmds
 }
 
+func (s *Skybox) OnResize(w int32, h int32) {
+	if s == nil {
+		return
+	}
+}
+
 func (s *Skybox) Update(dt float32) {
 	if s == nil {
 		return

@@ -26,6 +26,7 @@ type Cell interface {
 	Render(cam *camera.Cam) []func()
 	Postrender(cam *camera.Cam) []func()
 	Update(dt float32)
+	OnResize(w int32, h int32)
 	OnAdd()
 	OnRemove()
 	AddChild(obj Object)
@@ -61,6 +62,7 @@ type Object interface {
 	Update(dt float32)
 	OnAdd()
 	OnRemove()
+	OnResize(w int32, h int32)
 	AddChild(obj Object)
 	RemChild(obj Object)
 	GetChilds() []Object
@@ -102,6 +104,7 @@ type Portal interface {
 	Update(dt float32)
 	OnAdd()
 	OnRemove()
+	OnResize(w int32, h int32)
 	AddChild(obj Object)
 	RemChild(obj Object)
 	GetChilds() []Object

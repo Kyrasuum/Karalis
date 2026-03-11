@@ -305,6 +305,14 @@ func (t *Terrain) Postrender(cam *camera.Cam) []func() {
 	return cmds
 }
 
+func (t *Terrain) OnResize(w int32, h int32) {
+	if t == nil {
+		return
+	}
+	t.grs.OnResize(w, h)
+	t.wtr.OnResize(w, h)
+}
+
 func (t *Terrain) Update(dt float32) {
 	if t == nil {
 		return

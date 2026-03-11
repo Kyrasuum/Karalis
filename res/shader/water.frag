@@ -1,6 +1,7 @@
 #version 330
 
 in vec3 vWorldPos;
+in vec3 vVertPos;
 in vec2 vUv;
 in vec3 vWaveNormal;
 in float vWaveHeight;
@@ -16,13 +17,14 @@ uniform vec4 uWaterColor;      // base tint
 uniform float uFresnelPower;   // 2..6 typical
 uniform float uSpecPower;      // 32..256 typical
 uniform float uDetailStrength; // 0..1
+uniform float uWaterHeight;
 // base look
 
 
 float clamp01(float x){ return clamp(x, 0.0, 1.0); }
 
 void main() {
-    if (texture(texture0, vUv).r > 0.33+vWaveHeight) {
+    if (vVertPos.y >= 0.0 && texture(texture0, vUv).r > uWaterHeight+vWaveHeight) {
         discard;
     }
 

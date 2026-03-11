@@ -281,6 +281,12 @@ func (d *Dungeon) Postrender(cam *camera.Cam) []func() {
 	return cmds
 }
 
+func (d *Dungeon) OnResize(w int32, h int32) {
+	if d == nil {
+		return
+	}
+}
+
 func (d *Dungeon) Update(dt float32) {
 	if d == nil {
 		return

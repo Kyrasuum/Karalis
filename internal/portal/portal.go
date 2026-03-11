@@ -569,6 +569,12 @@ func (p *Portal) Postrender(cam *camera.Cam) []func() {
 	return cmds
 }
 
+func (p *Portal) OnResize(w int32, h int32) {
+	if p == nil {
+		return
+	}
+}
+
 // handle update cycle
 func (p *Portal) Update(dt float32) {
 	if p == nil {
@@ -647,7 +653,14 @@ func (p *Portal) OnResize(w int32, h int32) {
 		return
 	}
 
-	p.cam.OnResize(w, h)
+	if p.target != nil {
+		raylib.UnloadRenderTexture(*p.target)
+		p.target = nil
+	}
+	text := raylib.LoadRenderTexture(app.CurApp.GetWidth(), app.CurApp.GetHeight())
+	raylib.SetTextureFilter(text.Texture, raylib.FilterBilinear)
+	raylib.SetTextureWrap(text.Texture, raylib.WrapRepeat)
+	p.target = &text
 }
 
 // add child to object
