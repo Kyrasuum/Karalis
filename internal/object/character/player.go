@@ -7,6 +7,7 @@ import (
 	"karalis/pkg/app"
 	"karalis/pkg/input"
 	"karalis/pkg/object"
+	pub_object "karalis/pkg/object"
 
 	lmath "karalis/pkg/lmath"
 
@@ -16,8 +17,10 @@ import (
 var ()
 
 type Player struct {
-	cam  *camera.Cam
+	cam  pub_object.Camera
 	char *Character
+
+	parent pub_object.Object
 
 	pos   raylib.Vector3
 	rot   raylib.Vector3
@@ -40,6 +43,7 @@ func (p *Player) Init() (err error) {
 	if p == nil {
 		return nil
 	}
+	p.parent = nil
 
 	p.pos = raylib.NewVector3(0, 0, 0)
 	p.rot = raylib.NewVector3(0, 0, 0)
@@ -51,11 +55,13 @@ func (p *Player) Init() (err error) {
 	if err != nil {
 		return err
 	}
+	p.char.OnAdd(p)
 
 	p.cam, err = camera.NewCam()
 	if err != nil {
 		return err
 	}
+	p.cam.OnAdd(p)
 
 	capt := p.ToggleCapture
 	err = input.RegisterAction("ToggleMouseCapture", &capt, nil, true)
@@ -75,7 +81,7 @@ func (p *Player) Init() (err error) {
 	return nil
 }
 
-func (p *Player) Prerender(cam *camera.Cam) []func() {
+func (p *Player) Prerender(cam pub_object.Camera) []func() {
 	if p == nil {
 		return []func(){}
 	}
@@ -84,7 +90,7 @@ func (p *Player) Prerender(cam *camera.Cam) []func() {
 	return cmds
 }
 
-func (p *Player) Render(cam *camera.Cam) []func() {
+func (p *Player) Render(cam pub_object.Camera) []func() {
 	if p == nil {
 		return []func(){}
 	}
@@ -101,7 +107,7 @@ func (p *Player) Render(cam *camera.Cam) []func() {
 	return cmds
 }
 
-func (p *Player) Postrender(cam *camera.Cam) []func() {
+func (p *Player) Postrender(cam pub_object.Camera) []func() {
 	if p == nil {
 		return []func(){}
 	}
@@ -134,20 +140,18 @@ func (p *Player) GetCollider() object.Collider {
 	return p.char.GetCollider()
 }
 
-func (p *Player) OnAdd() {
+func (p *Player) OnAdd(obj pub_object.Object) {
 	if p == nil {
 		return
 	}
-
-	p.char.OnAdd()
+	p.parent = obj
 }
 
 func (p *Player) OnRemove() {
 	if p == nil {
 		return
 	}
-
-	p.char.OnRemove()
+	p.parent = nil
 }
 
 func (p *Player) AddChild(obj object.Object) {
@@ -339,7 +343,7 @@ func (p *Player) GetTexture() *raylib.Texture2D {
 	return p.char.GetTexture()
 }
 
-func (p *Player) GetCam() *camera.Cam {
+func (p *Player) GetCam() pub_object.Camera {
 	if p == nil {
 		return nil
 	}
@@ -488,5 +492,12 @@ func (p *Player) updateCam(move lmath.Vec3, zoom, dx, dy float32) {
 	p.cam.SetDist(dist)
 	p.cam.RotateCam(dy, dx)
 	p.cam.MoveCam(move)
-	p.cam.UpdateCam()
+	p.SetPos(p.cam.GetTar())
+}
+
+func (p *Player) GetParent() pub_object.Object {
+	if p == nil {
+		return nil
+	}
+	return p.parent
 }

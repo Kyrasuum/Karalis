@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"image/color"
 
-	"karalis/internal/camera"
 	"karalis/pkg/app"
 	pub_object "karalis/pkg/object"
 
@@ -16,6 +15,8 @@ var ()
 type Grid struct {
 	spacing float32
 	size    int32
+
+	parent pub_object.Object
 }
 
 func NewGrid() (g *Grid, err error) {
@@ -30,6 +31,7 @@ func (g *Grid) Init() error {
 		return fmt.Errorf("Invalid grid")
 	}
 
+	g.parent = nil
 	g.spacing = 1
 	g.size = 10
 
@@ -182,7 +184,7 @@ func (g *Grid) GetTexture() *raylib.Texture2D {
 	return &raylib.Texture2D{}
 }
 
-func (g *Grid) Prerender(cam *camera.Cam) []func() {
+func (g *Grid) Prerender(cam pub_object.Camera) []func() {
 	if g == nil {
 		return []func(){}
 	}
@@ -190,7 +192,7 @@ func (g *Grid) Prerender(cam *camera.Cam) []func() {
 	return []func(){}
 }
 
-func (g *Grid) Render(cam *camera.Cam) []func() {
+func (g *Grid) Render(cam pub_object.Camera) []func() {
 	if g == nil {
 		return []func(){}
 	}
@@ -202,7 +204,7 @@ func (g *Grid) Render(cam *camera.Cam) []func() {
 	return []func(){}
 }
 
-func (g *Grid) Postrender(cam *camera.Cam) []func() {
+func (g *Grid) Postrender(cam pub_object.Camera) []func() {
 	if g == nil {
 		return []func(){}
 	}
@@ -230,16 +232,18 @@ func (g *Grid) GetCollider() pub_object.Collider {
 	return nil
 }
 
-func (g *Grid) OnAdd() {
+func (g *Grid) OnAdd(obj pub_object.Object) {
 	if g == nil {
 		return
 	}
+	g.parent = obj
 }
 
 func (g *Grid) OnRemove() {
 	if g == nil {
 		return
 	}
+	g.parent = nil
 }
 
 func (g *Grid) AddChild(obj pub_object.Object) {
@@ -260,4 +264,11 @@ func (g *Grid) GetChilds() []pub_object.Object {
 	}
 
 	return []pub_object.Object{}
+}
+
+func (g *Grid) GetParent() pub_object.Object {
+	if g == nil {
+		return nil
+	}
+	return g.parent
 }

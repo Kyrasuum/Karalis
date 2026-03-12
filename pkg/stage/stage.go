@@ -15,5 +15,5 @@ type Stage interface {
 	OnAdd()
 	OnRemove()
 	GetPlayer() object.Object
-	GetCurrentCell() object.Cell
+	GetCurrentScene() object.Object
 }

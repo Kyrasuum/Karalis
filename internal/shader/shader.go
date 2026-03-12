@@ -2,6 +2,7 @@ package shader
 
 import (
 	"fmt"
+	"runtime"
 	"slices"
 	"strings"
 
@@ -11,7 +12,12 @@ import (
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
+var (
+	shaders = map[string]shader.Shader{}
+)
+
 type Shader struct {
+	cleaner  *runtime.Cleanup
 	shader   *raylib.Shader
 	name     string
 	shaders  map[string]*raylib.Shader
@@ -25,7 +31,19 @@ type Shader struct {
 	fsname string
 }
 
-func (s *Shader) Init(shader string) error {
+func NewShader(shader string) (shader.Shader, error) {
+	if s, ok := shaders[shader]; ok {
+		return s, nil
+	}
+
+	s := &Shader{}
+	err := s.init(shader)
+	shaders[shader] = s
+
+	return s, err
+}
+
+func (s *Shader) init(shader string) error {
 	if s == nil {
 		return nil
 	}
@@ -48,18 +66,22 @@ func (s *Shader) Init(shader string) error {
 }
 
 func (s *Shader) Extend(shader string) shader.Shader {
+	if sh, ok := shaders[shader]; ok {
+		return sh
+	}
 	if s == nil {
 		return nil
 	}
 
 	ns := &Shader{}
-	ns.Init(s.name)
+	ns.init(s.name)
 	ns.shaders = map[string]*raylib.Shader{}
 	ns.name = shader
 	err := ns.genShader()
 	if err != nil {
 		return nil
 	}
+	shaders[shader] = ns
 
 	return ns
 }
@@ -157,6 +179,18 @@ func (s *Shader) genShader() error {
 		shader := raylib.LoadShaderFromMemory(strvs, strcs, stres, strgs, strfs)
 		s.shader = &shader
 		s.shaders[key] = s.shader
+
+		if s.cleaner != nil {
+			s.cleaner.Stop()
+		}
+		cleaner := runtime.AddCleanup(s, func(shaders map[string]*raylib.Shader) {
+			for _, shader := range shaders {
+				if shader != nil {
+					raylib.UnloadShader(*shader)
+				}
+			}
+		}, s.shaders)
+		s.cleaner = &cleaner
 	}
 
 	for uniform, val := range s.uniforms {

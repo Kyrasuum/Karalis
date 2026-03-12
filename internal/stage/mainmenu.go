@@ -61,7 +61,7 @@ func (s *MainMenu) GetPlayer() object.Object {
 
 	return nil
 }
-func (s *MainMenu) GetCurrentCell() object.Cell {
+func (s *MainMenu) GetCurrentScene() object.Object {
 	if s == nil {
 		return nil
 	}

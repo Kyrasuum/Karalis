@@ -3,11 +3,11 @@ package portal
 import (
 	"image/color"
 	"log"
+	"runtime"
 	"slices"
 
-	"karalis/internal/camera"
-	"karalis/internal/cell"
 	"karalis/internal/object/prim"
+	"karalis/internal/scene"
 	"karalis/pkg/app"
 	pub_object "karalis/pkg/object"
 
@@ -18,13 +18,15 @@ import (
 var ()
 
 type Portal struct {
-	scene *cell.Cell
+	parent pub_object.Object
+	scene  *scene.Scene
 
 	exit *Portal
 
-	target *raylib.RenderTexture2D
-	obj    pub_object.Object
-	cam    *camera.Cam
+	cleaner *runtime.Cleanup
+	target  *raylib.RenderTexture2D
+	obj     pub_object.Object
+	cam     pub_object.Camera
 
 	touching []pub_object.Object
 
@@ -33,7 +35,7 @@ type Portal struct {
 }
 
 // Constuctor
-func NewPortal(scene pub_object.Cell, exit *Portal, cam *camera.Cam, obj pub_object.Object) (p *Portal, err error) {
+func NewPortal(scene pub_object.Cell, exit *Portal, cam pub_object.Camera, obj pub_object.Object) (p *Portal, err error) {
 	p = &Portal{}
 	err = p.Init(scene, exit, cam, obj)
 
@@ -41,20 +43,22 @@ func NewPortal(scene pub_object.Cell, exit *Portal, cam *camera.Cam, obj pub_obj
 }
 
 // initialize portal object
-func (p *Portal) Init(scene pub_object.Cell, exit *Portal, cam *camera.Cam, obj pub_object.Object) error {
+func (p *Portal) Init(scene pub_object.Cell, exit *Portal, cam pub_object.Camera, obj pub_object.Object) error {
 	if p == nil {
 		return nil
 	}
+	p.parent = nil
 
 	if scene != nil {
 		p.scene = scene
 	} else {
-		p.scene = &cell.Cell{}
+		p.scene = &scene.Scene{}
 		err := p.scene.Init()
 		if err != nil {
 			return err
 		}
 	}
+	p.scene.OnAdd(p)
 
 	if exit != nil {
 		exit.Pair(p)
@@ -63,7 +67,7 @@ func (p *Portal) Init(scene pub_object.Cell, exit *Portal, cam *camera.Cam, obj 
 	if cam != nil {
 		p.cam = cam
 	} else {
-		p.cam = &camera.Cam{}
+		p.cam = &pub_object.Camera{}
 		err := p.cam.Init()
 		if err != nil {
 			return err
@@ -74,6 +78,13 @@ func (p *Portal) Init(scene pub_object.Cell, exit *Portal, cam *camera.Cam, obj 
 	raylib.SetTextureFilter(text.Texture, raylib.FilterBilinear)
 	raylib.SetTextureWrap(text.Texture, raylib.WrapRepeat)
 	p.target = &text
+	if p.cleaner != nil {
+		p.cleaner.Stop()
+	}
+	cleaner := runtime.AddCleanup(p, func(text raylib.RenderTexture2D) {
+		raylib.UnloadRenderTexture(text)
+	}, text)
+	p.cleaner = &cleaner
 
 	p.touching = []pub_object.Object{}
 
@@ -94,7 +105,7 @@ func (p *Portal) Init(scene pub_object.Cell, exit *Portal, cam *camera.Cam, obj 
 }
 
 // get exit scene
-func (p *Portal) GetScene() *cell.Cell {
+func (p *Portal) GetScene() *pub_object.Object {
 	if p == nil {
 		return nil
 	}
@@ -321,7 +332,7 @@ func (p *Portal) SetPortal(obj pub_object.Portal) {
 		p.obj.OnRemove()
 	}
 	p.obj = obj
-	p.obj.OnAdd()
+	p.obj.OnAdd(p)
 	p.obj.SetTexture(p.GetTexture())
 	raylib.SetTextureFilter(p.target.Texture, raylib.FilterBilinear)
 	raylib.SetTextureWrap(p.target.Texture, raylib.WrapRepeat)
@@ -337,7 +348,7 @@ func (p *Portal) GetPortal() pub_object.Portal {
 }
 
 // set camera for portal
-func (p *Portal) SetCam(obj *camera.Cam) {
+func (p *Portal) SetCam(obj pub_object.Camera) {
 	if p == nil {
 		return
 	}
@@ -346,7 +357,7 @@ func (p *Portal) SetCam(obj *camera.Cam) {
 }
 
 // return camera for portal
-func (p *Portal) GetCam() *camera.Cam {
+func (p *Portal) GetCam() pub_object.Camera {
 	if p == nil {
 		return nil
 	}
@@ -386,7 +397,7 @@ func (p *Portal) GetTransform() raylib.Matrix {
 }
 
 // prerender hook
-func (p *Portal) Prerender(cam *camera.Cam) []func() {
+func (p *Portal) Prerender(cam pub_object.Camera) []func() {
 	cmds := []func(){}
 	if p == nil {
 		return cmds
@@ -478,7 +489,7 @@ func (p *Portal) Prerender(cam *camera.Cam) []func() {
 }
 
 // render hook
-func (p *Portal) Render(cam *camera.Cam) []func() {
+func (p *Portal) Render(cam pub_object.Camera) []func() {
 	cmds := []func(){}
 	if p == nil {
 		return cmds
@@ -560,7 +571,7 @@ func (p *Portal) Render(cam *camera.Cam) []func() {
 }
 
 // postrender hook
-func (p *Portal) Postrender(cam *camera.Cam) []func() {
+func (p *Portal) Postrender(cam pub_object.Camera) []func() {
 	cmds := []func(){}
 	if p == nil {
 		return cmds
@@ -585,7 +596,7 @@ func (p *Portal) Update(dt float32) {
 		p.obj.Update(dt)
 	}
 
-	var exit_scene *cell.Cell
+	var exit_scene *world.Cell
 	if p.exit != nil {
 		exit_scene = p.exit.scene
 		p.exit.scene = nil
@@ -622,14 +633,11 @@ func (p *Portal) GetCollider() pub_object.Collider {
 }
 
 // handle add event
-func (p *Portal) OnAdd() {
+func (p *Portal) OnAdd(obj pub_object.Object) {
 	if p == nil {
 		return
 	}
-
-	if p.obj != nil {
-		p.obj.OnAdd()
-	}
+	p.parent = obj
 }
 
 // handle remove event
@@ -637,14 +645,7 @@ func (p *Portal) OnRemove() {
 	if p == nil {
 		return
 	}
-
-	if p.target != nil {
-		raylib.UnloadRenderTexture(*p.target)
-		p.target = nil
-	}
-	if p.obj != nil {
-		p.obj.OnRemove()
-	}
+	p.parent = nil
 }
 
 // handle resize event
@@ -661,6 +662,12 @@ func (p *Portal) OnResize(w int32, h int32) {
 	raylib.SetTextureFilter(text.Texture, raylib.FilterBilinear)
 	raylib.SetTextureWrap(text.Texture, raylib.WrapRepeat)
 	p.target = &text
+	if p.cleaner != nil {
+		p.cleaner.Stop()
+	}
+	p.cleaner = &runtime.AddCleanup(p, func(text raylib.RenderTexture2D) {
+		raylib.UnloadRenderTexture(text)
+	}, text)
 }
 
 // add child to object
@@ -696,4 +703,11 @@ func (p *Portal) GetChilds() []pub_object.Object {
 	} else {
 		return []pub_object.Object{}
 	}
+}
+
+func (p *Portal) GetParent() pub_object.Object {
+	if p == nil {
+		return nil
+	}
+	return p.parent
 }

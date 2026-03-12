@@ -1,8 +1,8 @@
 package character
 
 import (
-	"karalis/internal/camera"
 	"karalis/pkg/object"
+	pub_object "karalis/pkg/object"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
@@ -10,6 +10,7 @@ import (
 var ()
 
 type Character struct {
+	parent pub_object.Object
 }
 
 func NewCharacter() (c *Character, err error) {
@@ -23,10 +24,11 @@ func (c *Character) Init() error {
 	if c == nil {
 		return nil
 	}
+	c.parent = nil
 	return nil
 }
 
-func (c *Character) Prerender(cam *camera.Cam) []func() {
+func (c *Character) Prerender(cam pub_object.Camera) []func() {
 	if c == nil {
 		return []func(){}
 	}
@@ -34,7 +36,7 @@ func (c *Character) Prerender(cam *camera.Cam) []func() {
 	return []func(){}
 }
 
-func (c *Character) Render(cam *camera.Cam) []func() {
+func (c *Character) Render(cam pub_object.Camera) []func() {
 	if c == nil {
 		return []func(){}
 	}
@@ -42,7 +44,7 @@ func (c *Character) Render(cam *camera.Cam) []func() {
 	return []func(){}
 }
 
-func (c *Character) Postrender(cam *camera.Cam) []func() {
+func (c *Character) Postrender(cam pub_object.Camera) []func() {
 	if c == nil {
 		return []func(){}
 	}
@@ -70,16 +72,18 @@ func (c *Character) GetCollider() object.Collider {
 	return nil
 }
 
-func (c *Character) OnAdd() {
+func (c *Character) OnAdd(obj pub_object.Object) {
 	if c == nil {
 		return
 	}
+	c.parent = obj
 }
 
 func (c *Character) OnRemove() {
 	if c == nil {
 		return
 	}
+	c.parent = nil
 }
 
 func (c *Character) AddChild(obj object.Object) {
@@ -154,4 +158,11 @@ func (c *Character) GetModel() *raylib.Model {
 	}
 
 	return nil
+}
+
+func (c *Character) GetParent() pub_object.Object {
+	if c == nil {
+		return nil
+	}
+	return c.parent
 }

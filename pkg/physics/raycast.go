@@ -229,7 +229,14 @@ func RaycastPortal(inRay raylib.Ray, p pub_object.Portal, entryHit raylib.RayCol
 	}
 
 	// 6) Raycast into the exit portal scene.
-	childs := lmath.Filter(exit.GetScene().GetChilds(), func(i int, v pub_object.Object) bool { return v != exit })
+	childs := lmath.Filter(exit.GetScene().GetChilds(), func(i int, v pub_object.Object) bool {
+		switch t := v.(type) {
+		case pub_object.Portal:
+			return t != exit
+		default:
+			return true
+		}
+	})
 	col := RaycastCell(subRay, childs, depth)
 	col.Distance += entryHit.Distance
 

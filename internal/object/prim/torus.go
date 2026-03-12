@@ -1,6 +1,8 @@
 package prim
 
 import (
+	"runtime"
+
 	"karalis/internal/collider"
 	"karalis/pkg/app"
 
@@ -15,6 +17,13 @@ func NewTorus(r, z float32, n, s int) (p *Prim, err error) {
 
 	mesh := raylib.GenMeshTorus(r, z, n, s)
 	p.mdl = raylib.LoadModelFromMesh(mesh)
+	if p.cleaner != nil {
+		p.cleaner.Stop()
+	}
+	cleaner := runtime.AddCleanup(p, func(mdl raylib.Model) {
+		raylib.UnloadModel(mdl)
+	}, p.mdl)
+	p.cleaner = &cleaner
 
 	sh := app.CurApp.GetShader()
 	p.mdl.Materials.Shader = *sh.GetShader()

@@ -10,10 +10,10 @@ import (
 	"log"
 	"math/rand"
 	"reflect"
+	"runtime"
 	"strings"
 	"unsafe"
 
-	"karalis/internal/camera"
 	"karalis/pkg/app"
 	pub_object "karalis/pkg/object"
 	"karalis/pkg/rng"
@@ -32,9 +32,11 @@ type Terrain struct {
 	wtr  *Water
 	seed int64
 
-	pos   raylib.Vector3
-	rot   raylib.Vector3
-	scale raylib.Vector3
+	parent  pub_object.Object
+	cleaner *runtime.Cleanup
+	pos     raylib.Vector3
+	rot     raylib.Vector3
+	scale   raylib.Vector3
 }
 
 func RandTerrain(offx, offy float64, width, height int, seed int64) (t *Terrain, err error) {
@@ -66,7 +68,7 @@ func NewTerrain(m string, i interface{}, seed int64) (t *Terrain, err error) {
 	}
 	err = t.LoadImage(i)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Error loading image: %+v", err)
 	}
 	err = t.LoadMap(m)
 	return t, err
@@ -76,28 +78,28 @@ func (t *Terrain) Init() error {
 	if t == nil {
 		return fmt.Errorf("Invalid terrain")
 	}
-
+	t.parent = nil
 	t.pos = raylib.NewVector3(0, 0, 0)
 	t.rot = raylib.NewVector3(0, 0, 0)
 	t.scale = raylib.NewVector3(1, 1, 1)
 
 	err := t.LoadImage(nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error loading image: %+v", err)
 	}
 	err = t.LoadMap("")
 	if err != nil {
-		return err
+		return fmt.Errorf("Error loading map: %+v", err)
 	}
 
 	t.grs, err = NewGrass(t, uint32(t.seed))
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating grass: %+v", err)
 	}
 
 	t.wtr, err = NewWater(t, float32(rng.SeaLevel+rng.SandBand/2))
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating water: %+v", err)
 	}
 
 	return nil
@@ -165,9 +167,25 @@ func (t *Terrain) LoadImage(i interface{}) error {
 	}
 	tex := raylib.LoadTextureFromImage(img)
 	t.tex = &tex
+	if t.cleaner != nil {
+		t.cleaner.Stop()
+	}
+	cleaner := runtime.AddCleanup(t, func(in []interface{}) {
+		raylib.UnloadTexture(in[0].(raylib.Texture2D))
+	}, []interface{}{*t.tex})
+	t.cleaner = &cleaner
+
 	if t.mdl != nil {
 		raylib.SetMaterialTexture(t.mdl.Materials, raylib.MapDiffuse, *t.tex)
 		t.mdl.Materials.Shader = *app.CurApp.GetShader().GetShader()
+		if t.cleaner != nil {
+			t.cleaner.Stop()
+		}
+		cleaner := runtime.AddCleanup(t, func(in []interface{}) {
+			raylib.UnloadTexture(in[0].(raylib.Texture2D))
+			raylib.UnloadModel(in[1].(raylib.Model))
+		}, []interface{}{*t.tex, *t.mdl})
+		t.cleaner = &cleaner
 	}
 	t.wtr.Update(0.0)
 	return nil
@@ -188,7 +206,7 @@ func (t *Terrain) RandMap(offx, offy float64, width, height int) error {
 	t.LoadImage(hm)
 	t.GenTerrain(hm)
 
-	alb := rng.ColorizeHeightmapTiled(h, width, height, rand.Int63(), 0, 0, 10, width*8, height*8)
+	alb := rng.ColorizeHeightmapTiled(h, width, height, rand.Int63(), 0, 0, 10, width*8, height*8, false)
 	col := image.NewRGBA(image.Rect(0, 0, width*8, height*8))
 	for y := range height * 8 {
 		for x := range width * 8 {
@@ -265,9 +283,17 @@ func (t *Terrain) GenTerrain(img *image.RGBA) {
 
 	raylib.SetMaterialTexture(t.mdl.Materials, raylib.MapDiffuse, *t.tex)
 	t.mdl.Materials.Shader = *app.CurApp.GetShader().GetShader()
+	if t.cleaner != nil {
+		t.cleaner.Stop()
+	}
+	cleaner := runtime.AddCleanup(t, func(in []interface{}) {
+		raylib.UnloadTexture(in[0].(raylib.Texture2D))
+		raylib.UnloadModel(in[1].(raylib.Model))
+	}, []interface{}{*t.tex, *t.mdl})
+	t.cleaner = &cleaner
 }
 
-func (t *Terrain) Prerender(cam *camera.Cam) []func() {
+func (t *Terrain) Prerender(cam pub_object.Camera) []func() {
 	cmds := []func(){}
 	if t == nil {
 		return cmds
@@ -278,7 +304,7 @@ func (t *Terrain) Prerender(cam *camera.Cam) []func() {
 	return cmds
 }
 
-func (t *Terrain) Render(cam *camera.Cam) []func() {
+func (t *Terrain) Render(cam pub_object.Camera) []func() {
 	cmds := []func(){}
 	if t == nil {
 		return cmds
@@ -294,7 +320,7 @@ func (t *Terrain) Render(cam *camera.Cam) []func() {
 	return cmds
 }
 
-func (t *Terrain) Postrender(cam *camera.Cam) []func() {
+func (t *Terrain) Postrender(cam pub_object.Camera) []func() {
 	cmds := []func(){}
 	if t == nil {
 		return cmds
@@ -327,18 +353,18 @@ func (t *Terrain) GetCollider() pub_object.Collider {
 	return nil
 }
 
-func (t *Terrain) OnAdd() {
+func (t *Terrain) OnAdd(obj pub_object.Object) {
 	if t == nil {
 		return
 	}
-	t.grs.OnAdd()
+	t.parent = obj
 }
 
 func (t *Terrain) OnRemove() {
 	if t == nil {
 		return
 	}
-	t.grs.OnRemove()
+	t.parent = nil
 }
 
 func (t *Terrain) AddChild(obj pub_object.Object) {
@@ -571,6 +597,26 @@ func (t *Terrain) SetTexture(tex raylib.Texture2D) {
 	}
 
 	*t.tex = tex
+	if t.cleaner != nil {
+		t.cleaner.Stop()
+	}
+	cleaner := runtime.AddCleanup(t, func(in []interface{}) {
+		raylib.UnloadTexture(in[0].(raylib.Texture2D))
+	}, []interface{}{*t.tex})
+	t.cleaner = &cleaner
+
+	if t.mdl != nil {
+		raylib.SetMaterialTexture(t.mdl.Materials, raylib.MapDiffuse, *t.tex)
+		t.mdl.Materials.Shader = *app.CurApp.GetShader().GetShader()
+		if t.cleaner != nil {
+			t.cleaner.Stop()
+		}
+		cleaner := runtime.AddCleanup(t, func(in []interface{}) {
+			raylib.UnloadTexture(in[0].(raylib.Texture2D))
+			raylib.UnloadModel(in[1].(raylib.Model))
+		}, []interface{}{*t.tex, *t.mdl})
+		t.cleaner = &cleaner
+	}
 }
 
 func (t *Terrain) GetTexture() *raylib.Texture2D {
@@ -587,4 +633,11 @@ func (t *Terrain) GetHeightMap() *image.RGBA {
 	}
 
 	return t.hm
+}
+
+func (t *Terrain) GetParent() pub_object.Object {
+	if t == nil {
+		return nil
+	}
+	return t.parent
 }

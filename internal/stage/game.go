@@ -3,10 +3,10 @@ package stage
 import (
 	"fmt"
 
-	"karalis/internal/cell"
-	"karalis/internal/character"
+	"karalis/internal/object/character"
 	"karalis/internal/object/prim"
 	"karalis/internal/object/world"
+	"karalis/internal/scene"
 	pub_object "karalis/pkg/object"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
@@ -15,8 +15,10 @@ import (
 var ()
 
 type Game struct {
-	curcell *cell.Cell
-	player  *character.Player
+	scene  *scene.Scene
+	player *character.Player
+	rt     raylib.RenderTexture2D
+	resize bool
 }
 
 // initialize game object
@@ -24,32 +26,32 @@ func (g *Game) Init() error {
 	if g == nil {
 		return fmt.Errorf("Invalid stage")
 	}
+	g.rt = raylib.LoadRenderTexture(int32(raylib.GetRenderWidth()), int32(raylib.GetRenderHeight()))
 
-	g.curcell = &cell.Cell{}
-	err := g.curcell.Init()
+	g.scene = &scene.Scene{}
+	err := g.scene.Init()
 	if err != nil {
 		return err
 	}
+	g.scene.OnAdd(nil)
 
 	g.player, err = character.NewPlayer()
 	if err != nil {
 		return err
 	}
-	g.curcell.AddChild(g.player)
+	g.scene.AddChild(g.player)
 
 	grid, err := prim.NewGrid()
 	if err != nil {
 		return err
 	}
-	g.curcell.AddChild(grid)
+	g.scene.AddChild(grid)
 
-	ter, err := world.RandTerrain(0.0, 0.0, 256, 256, 1234567)
+	w, err := world.NewTerrainWorld()
 	if err != nil {
 		return err
 	}
-	ter.SetScale(raylib.NewVector3(10, 5, 10))
-	ter.SetPos(raylib.NewVector3(-5, 0, -5))
-	g.curcell.AddChild(ter)
+	g.scene.AddChild(w)
 
 	return nil
 }
@@ -60,8 +62,13 @@ func (g *Game) OnResize(w int32, h int32) {
 		return
 	}
 
-	g.player.GetCam().OnResize(w, h)
-	g.curcell.OnResize(w, h)
+	g.resize = true
+	if g.player != nil {
+		g.player.GetCam().OnResize(w, h)
+	}
+	if g.scene != nil {
+		g.scene.OnResize(w, h)
+	}
 }
 
 // render hook
@@ -73,38 +80,52 @@ func (g *Game) Render() {
 	if cam == nil {
 		return
 	}
+	if g.resize {
+		raylib.UnloadRenderTexture(g.rt)
+		g.rt = raylib.LoadRenderTexture(int32(raylib.GetRenderWidth()), int32(raylib.GetRenderHeight()))
+		g.resize = false
+	}
+	cam.UpdateCam()
 
 	cmds := []func(){}
 
-	cmds = append(cam.Prerender(), g.curcell.Prerender(cam)...)
+	cmds = append(cam.Prerender(), g.scene.Prerender(cam)...)
 	for _, cmd := range cmds {
 		cmd()
 	}
 
+	raylib.BeginTextureMode(g.rt)
+	raylib.ClearBackground(raylib.Black)
 	cmds = cam.Render()
-	cmds = append(g.curcell.Render(cam), cmds...)
+	cmds = append(g.scene.Render(cam), cmds...)
 	for _, cmd := range cmds {
 		cmd()
 	}
+	raylib.EndTextureMode()
 
-	cmds = append(cam.Postrender(), g.curcell.Postrender(cam)...)
+	cmds = append(cam.Postrender(), g.scene.Postrender(cam)...)
+	raylib.BeginTextureMode(g.rt)
 	for _, cmd := range cmds {
 		cmd()
 	}
+	raylib.EndTextureMode()
+	raylib.DrawTexturePro(g.rt.Texture, raylib.Rectangle{0, 0, float32(g.rt.Texture.Width), -float32(g.rt.Texture.Height)}, raylib.Rectangle{0, 0, float32(g.rt.Texture.Width), float32(g.rt.Texture.Height)}, raylib.Vector2{0, 0}, 0.0, raylib.RayWhite)
 
 	return
 }
 
 // handle update cycle
 func (g *Game) Update(dt float32) {
-	if g == nil {
+	if g == nil || g.scene == nil {
 		return
 	}
+
+	g.scene.Update(dt)
 }
 
 // handle player input
 func (g *Game) OnInput(dt float32) {
-	if g == nil {
+	if g == nil || g.scene == nil {
 		return
 	}
 
@@ -113,36 +134,32 @@ func (g *Game) OnInput(dt float32) {
 
 // handle add event
 func (g *Game) OnAdd() {
-	if g == nil {
+	if g == nil || g.scene == nil {
 		return
 	}
-
-	g.curcell.OnAdd()
 }
 
 // handle remove event
 func (g *Game) OnRemove() {
-	if g == nil {
+	if g == nil || g.scene == nil {
 		return
 	}
-
-	g.curcell.OnRemove()
 }
 
 // get the player object
 func (g *Game) GetPlayer() pub_object.Object {
-	if g == nil {
+	if g == nil || g.player == nil {
 		return nil
 	}
 
 	return g.player
 }
 
-// get currently active cell (where player is at)
-func (g *Game) GetCurrentCell() pub_object.Cell {
+// get currently active scene (where player is at)
+func (g *Game) GetCurrentScene() pub_object.Object {
 	if g == nil {
 		return nil
 	}
 
-	return g.curcell
+	return g.scene
 }

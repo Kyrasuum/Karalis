@@ -5,12 +5,13 @@ import (
 	"image/color"
 	"log"
 	"reflect"
+	"runtime"
 	"unsafe"
 
-	"karalis/internal/camera"
 	"karalis/internal/shader"
 	pub_object "karalis/pkg/object"
 	"karalis/pkg/rng"
+	pub_shader "karalis/pkg/shader"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
@@ -20,11 +21,13 @@ var (
 )
 
 type Water struct {
-	parent pub_object.Object
+	parent  pub_object.Object
+	cleaner *runtime.Cleanup
+
 	depth  float32
-	shader shader.Shader
-	volume shader.Shader
-	underw shader.Shader
+	shader pub_shader.Shader
+	volume pub_shader.Shader
+	underw pub_shader.Shader
 
 	resize bool
 
@@ -36,8 +39,9 @@ type Water struct {
 	specPow    float32
 	detailStr  float32
 
-	rt  raylib.RenderTexture2D
-	mdl raylib.Model
+	rt  *raylib.RenderTexture2D
+	vol *raylib.Model
+	sfc *raylib.Model
 }
 
 func NewWater(p pub_object.Object, d float32) (water *Water, err error) {
@@ -65,17 +69,24 @@ func (w *Water) Init() error {
 	w.specPow = float32(96.0)
 	w.detailStr = float32(0.1)
 
-	w.rt = raylib.LoadRenderTexture(800, 512)
+	rt := raylib.LoadRenderTexture(int32(raylib.GetRenderWidth()), int32(raylib.GetRenderHeight()))
+	if w.cleaner != nil {
+		w.cleaner.Stop()
+	}
+	w.rt = &rt
+	cleaner := runtime.AddCleanup(w, func(text raylib.RenderTexture2D) {
+		raylib.UnloadRenderTexture(text)
+	}, *w.rt)
+	w.cleaner = &cleaner
 
-	w.shader = shader.Shader{}
-	err := w.shader.Init("water")
+	var err error
+	w.shader, err = shader.NewShader("water")
 	if err != nil {
 		return err
 	}
-	w.volume = *(w.shader.Extend("watervolume").(*shader.Shader))
+	w.volume = w.shader.Extend("watervolume")
 
-	w.underw = shader.Shader{}
-	err = w.underw.Init("underwater")
+	w.underw, err = shader.NewShader("underwater")
 	if err != nil {
 		return err
 	}
@@ -84,128 +95,114 @@ func (w *Water) Init() error {
 	return nil
 }
 
-func (w *Water) Prerender(cam *camera.Cam) []func() {
-	if w == nil {
-		return []func(){}
+func (w *Water) DrawWater(cam pub_object.Camera, time float32) []func() {
+	//enables cutting into water
+	raylib.DisableDepthMask()
+
+	//update water shader uniforms
+	err := w.shader.SetUniform("uCameraPos", cam.GetPos())
+	if err != nil {
+		log.Printf("%+v\n", err)
 	}
+	err = w.shader.SetUniform("uTime", time)
+	if err != nil {
+		log.Printf("%+v\n", err)
+	}
+	err = w.shader.SetUniform("uWaterColor", w.waterColor)
+	if err != nil {
+		log.Printf("%+v\n", err)
+	}
+	err = w.shader.SetUniform("uWaveSpeed", w.waveSpeed)
+	if err != nil {
+		log.Printf("%+v\n", err)
+	}
+	err = w.shader.SetUniform("uFresnelPower", w.fresPow)
+	if err != nil {
+		log.Printf("%+v\n", err)
+	}
+	err = w.shader.SetUniform("uSpecPower", w.specPow)
+	if err != nil {
+		log.Printf("%+v\n", err)
+	}
+	err = w.shader.SetUniform("uDetailStrength", w.detailStr)
+	if err != nil {
+		log.Printf("%+v\n", err)
+	}
+	err = w.shader.SetUniform("uWaterHeight", w.depth+float32(rng.SandBand))
+	if err != nil {
+		log.Printf("%+v\n", err)
+	}
+	err = w.shader.SetUniform("uWaveAmp", w.waveAmp)
+	if err != nil {
+		log.Printf("%+v\n", err)
+	}
+	err = w.shader.SetUniform("uWaveFreq", w.waveFreq)
+	if err != nil {
+		log.Printf("%+v\n", err)
+	}
+
+	//render water
+	siz := w.GetScale()
+	pos := w.GetPos()
+	scl := raylib.MatrixScale(siz.X, siz.Y, siz.Z)
+	dwn := raylib.MatrixTranslate(pos.X, pos.Y+w.depth*siz.Y, pos.Z)
+	rot := raylib.MatrixRotate(raylib.Vector3{1, 0, 0}, 0)
+	mat := raylib.MatrixMultiply(raylib.MatrixMultiply(rot, scl), dwn)
+	w.sfc.Materials.Shader = *w.shader.GetShader()
+	raylib.DrawMesh(*w.sfc.Meshes, *w.sfc.Materials, mat)
+
+	//enables cutting into water
+	raylib.EnableDepthMask()
+	w.shader.End()
 
 	return []func(){}
 }
 
-func (w *Water) Render(cam *camera.Cam) []func() {
-	if w == nil {
-		return []func(){}
+func (w *Water) DrawUnderwater(cam pub_object.Camera, time float32) []func() {
+	//render to texture so we can sample for underwater effect
+	raylib.BeginTextureMode(*w.rt)
+	raylib.ClearBackground(raylib.Black)
+	cmds := cam.Render()
+
+	//update water shader uniforms
+	err := w.volume.SetUniform("uTime", time)
+	if err != nil {
+		log.Printf("%+v\n", err)
 	}
-	if w.resize {
-		raylib.UnloadRenderTexture(w.rt)
-		w.rt = raylib.LoadRenderTexture(int32(raylib.GetRenderWidth()), int32(raylib.GetRenderHeight()))
-		w.resize = false
+	err = w.volume.SetUniform("uWaveSpeed", w.waveSpeed)
+	if err != nil {
+		log.Printf("%+v\n", err)
 	}
+	err = w.volume.SetUniform("uWaterHeight", w.depth+float32(rng.SandBand))
+	if err != nil {
+		log.Printf("%+v\n", err)
+	}
+	err = w.volume.SetUniform("uWaveAmp", w.waveAmp)
+	if err != nil {
+		log.Printf("%+v\n", err)
+	}
+	err = w.volume.SetUniform("uWaveFreq", w.waveFreq)
+	if err != nil {
+		log.Printf("%+v\n", err)
+	}
+
+	//render water volume
+	siz := w.GetScale()
+	pos := w.GetPos()
+	scl := raylib.MatrixScale(siz.X, siz.Y, siz.Z)
+	dwn := raylib.MatrixTranslate(pos.X, pos.Y+w.depth*siz.Y, pos.Z)
+	rot := raylib.MatrixRotate(raylib.Vector3{1, 0, 0}, 0)
+	mat := raylib.MatrixMultiply(raylib.MatrixMultiply(rot, scl), dwn)
+	w.vol.Materials.Shader = *w.volume.GetShader()
+	raylib.DrawMesh(*w.vol.Meshes, *w.vol.Materials, mat)
+	w.volume.End()
+	for _, cmd := range cmds {
+		cmd()
+	}
+	raylib.EndTextureMode()
 
 	return []func(){
 		func() {
-			//enables cutting into water
-			raylib.DisableDepthMask()
-
-			//update water shader uniforms
-			err := w.shader.SetUniform("uCameraPos", cam.GetPos())
-			if err != nil {
-				log.Printf("%+v\n", err)
-			}
-			err = w.shader.SetUniform("uTime", float32(raylib.GetTime()))
-			if err != nil {
-				log.Printf("%+v\n", err)
-			}
-			err = w.shader.SetUniform("uWaterColor", w.waterColor)
-			if err != nil {
-				log.Printf("%+v\n", err)
-			}
-			err = w.shader.SetUniform("uWaveSpeed", w.waveSpeed)
-			if err != nil {
-				log.Printf("%+v\n", err)
-			}
-			err = w.shader.SetUniform("uFresnelPower", w.fresPow)
-			if err != nil {
-				log.Printf("%+v\n", err)
-			}
-			err = w.shader.SetUniform("uSpecPower", w.specPow)
-			if err != nil {
-				log.Printf("%+v\n", err)
-			}
-			err = w.shader.SetUniform("uDetailStrength", w.detailStr)
-			if err != nil {
-				log.Printf("%+v\n", err)
-			}
-			err = w.shader.SetUniform("uWaterHeight", w.depth+float32(rng.SandBand))
-			if err != nil {
-				log.Printf("%+v\n", err)
-			}
-			err = w.shader.SetUniform("uWaveAmp", w.waveAmp)
-			if err != nil {
-				log.Printf("%+v\n", err)
-			}
-			err = w.shader.SetUniform("uWaveFreq", w.waveFreq)
-			if err != nil {
-				log.Printf("%+v\n", err)
-			}
-
-			//render water
-			siz := w.GetScale()
-			pos := w.GetPos()
-			scl := raylib.MatrixScale(siz.X, siz.Y, siz.Z)
-			dwn := raylib.MatrixTranslate(pos.X, pos.Y+w.depth*siz.Y, pos.Z)
-			rot := raylib.MatrixRotate(raylib.Vector3{1, 0, 0}, 0)
-			mat := raylib.MatrixMultiply(raylib.MatrixMultiply(rot, scl), dwn)
-			w.mdl.Materials.Shader = *w.shader.GetShader()
-			raylib.DrawMesh(*w.mdl.Meshes, *w.mdl.Materials, mat)
-
-			//enables cutting into water
-			raylib.EnableDepthMask()
-			w.shader.End()
-		},
-		func() {
-			//render to texture so we can sample for underwater effect
-			raylib.BeginTextureMode(w.rt)
-			raylib.ClearBackground(raylib.Black)
-			cmds := cam.Render()
-
-			//update water shader uniforms
-			err := w.volume.SetUniform("uTime", float32(raylib.GetTime()))
-			if err != nil {
-				log.Printf("%+v\n", err)
-			}
-			err = w.volume.SetUniform("uWaveSpeed", w.waveSpeed)
-			if err != nil {
-				log.Printf("%+v\n", err)
-			}
-			err = w.volume.SetUniform("uWaterHeight", w.depth+float32(rng.SandBand))
-			if err != nil {
-				log.Printf("%+v\n", err)
-			}
-			err = w.volume.SetUniform("uWaveAmp", w.waveAmp)
-			if err != nil {
-				log.Printf("%+v\n", err)
-			}
-			err = w.volume.SetUniform("uWaveFreq", w.waveFreq)
-			if err != nil {
-				log.Printf("%+v\n", err)
-			}
-
-			//render water volume
-			siz := w.GetScale()
-			pos := w.GetPos()
-			scl := raylib.MatrixScale(siz.X, siz.Y, siz.Z)
-			dwn := raylib.MatrixTranslate(pos.X, pos.Y+w.depth*siz.Y, pos.Z)
-			rot := raylib.MatrixRotate(raylib.Vector3{1, 0, 0}, 0)
-			mat := raylib.MatrixMultiply(raylib.MatrixMultiply(rot, scl), dwn)
-			w.mdl.Materials.Shader = *w.volume.GetShader()
-			raylib.DrawMesh(*w.mdl.Meshes, *w.mdl.Materials, mat)
-			w.volume.End()
-			for _, cmd := range cmds {
-				cmd()
-			}
-			raylib.EndTextureMode()
-
 			//draw underwater texture
 			err = w.underw.SetUniform("uWaterColor", w.waterColor)
 			if err != nil {
@@ -222,11 +219,49 @@ func (w *Water) Render(cam *camera.Cam) []func() {
 	}
 }
 
-func (w *Water) Postrender(cam *camera.Cam) []func() {
+func (w *Water) Prerender(cam pub_object.Camera) []func() {
 	if w == nil {
 		return []func(){}
 	}
 
+	return []func(){}
+}
+
+func (w *Water) Render(cam pub_object.Camera) []func() {
+	if w == nil {
+		return []func(){}
+	}
+	if w.resize {
+		raylib.UnloadRenderTexture(*w.rt)
+		rt := raylib.LoadRenderTexture(int32(raylib.GetRenderWidth()), int32(raylib.GetRenderHeight()))
+		w.resize = false
+		w.rt = &rt
+		if w.cleaner != nil {
+			w.cleaner.Stop()
+		}
+		cleaner := runtime.AddCleanup(w, func(in []interface{}) {
+			raylib.UnloadRenderTexture(in[0].(raylib.RenderTexture2D))
+			raylib.UnloadModel(in[1].(raylib.Model))
+			raylib.UnloadModel(in[2].(raylib.Model))
+		}, []interface{}{*w.rt, *w.vol, *w.sfc})
+		w.cleaner = &cleaner
+	}
+
+	time := float32(raylib.GetTime())
+
+	return []func(){
+		func() {
+			w.DrawWater(cam, time)
+		},
+	}
+}
+
+func (w *Water) Postrender(cam pub_object.Camera) []func() {
+	if w == nil {
+		return []func(){}
+	}
+	// time := float32(raylib.GetTime())
+	// return w.DrawUnderwater(cam, time)
 	return []func(){}
 }
 
@@ -238,7 +273,12 @@ func (w *Water) Update(dt float32) {
 	size := w.GetScale()
 	w.waveFreq = float32(1 / (size.X + 0.1))
 	w.waveAmp = float32(rng.SandBand) / 2 * size.Y
-	raylib.UnloadModel(w.mdl)
+	if w.sfc != nil {
+		raylib.UnloadModel(*w.sfc)
+	}
+	if w.vol != nil {
+		raylib.UnloadModel(*w.vol)
+	}
 
 	top := raylib.GenMeshPlaneExData(raylib.Vector3{0.0, 0.0, 0.0}, raylib.Vector3{1.0, 0.0, 0.0}, raylib.Vector3{0.0, 0.0, 1.0}, int(WaterDetail), int(WaterDetail))
 	bottom := raylib.GenMeshPlaneExData(raylib.Vector3{0.0, -w.depth, 0.0}, raylib.Vector3{1.0, 0.0, 0.0}, raylib.Vector3{0.0, 0.0, 1.0}, int(WaterDetail), int(WaterDetail))
@@ -251,19 +291,33 @@ func (w *Water) Update(dt float32) {
 		raylib.MergeMeshes(top, bottom),
 		raylib.MergeMeshes(north, south)),
 		raylib.MergeMeshes(east, west))
-	raylib.UnloadMesh(&top)
 	raylib.UnloadMesh(&bottom)
 	raylib.UnloadMesh(&north)
 	raylib.UnloadMesh(&south)
 	raylib.UnloadMesh(&east)
 	raylib.UnloadMesh(&west)
+	raylib.UploadMesh(&top, false)
 	raylib.UploadMesh(&mesh, false)
-	w.mdl = raylib.LoadModelFromMesh(mesh)
+	vol := raylib.LoadModelFromMesh(mesh)
+	sfc := raylib.LoadModelFromMesh(top)
+	w.vol = &vol
+	w.sfc = &sfc
 
 	hm := w.parent.(*Terrain).GetHeightMap()
 	img := raylib.NewImageFromImage(hm)
 	tex := raylib.LoadTextureFromImage(img)
-	raylib.SetMaterialTexture(w.mdl.Materials, raylib.MapDiffuse, tex)
+	raylib.SetMaterialTexture(w.sfc.Materials, raylib.MapDiffuse, tex)
+	raylib.SetMaterialTexture(w.vol.Materials, raylib.MapDiffuse, tex)
+
+	if w.cleaner != nil {
+		w.cleaner.Stop()
+	}
+	cleaner := runtime.AddCleanup(w, func(in []interface{}) {
+		raylib.UnloadRenderTexture(in[0].(raylib.RenderTexture2D))
+		raylib.UnloadModel(in[1].(raylib.Model))
+		raylib.UnloadModel(in[2].(raylib.Model))
+	}, []interface{}{*w.rt, *w.vol, *w.sfc})
+	w.cleaner = &cleaner
 }
 
 func (w *Water) OnResize(width int32, height int32) {
@@ -286,7 +340,7 @@ func (w *Water) GetModel() *raylib.Model {
 		return nil
 	}
 
-	return &w.mdl
+	return w.vol
 }
 
 func (w *Water) SetColor(col color.Color) {
@@ -381,12 +435,12 @@ func (w *Water) GetVertices() []raylib.Vector3 {
 	}
 
 	verts := []raylib.Vector3{}
-	length := w.mdl.Meshes.VertexCount
+	length := w.vol.Meshes.VertexCount
 
 	var mdlverts []float32
 
 	header := (*reflect.SliceHeader)(unsafe.Pointer(&mdlverts))
-	header.Data = uintptr(unsafe.Pointer(w.mdl.Meshes.Vertices))
+	header.Data = uintptr(unsafe.Pointer(w.vol.Meshes.Vertices))
 	header.Len = int(length)
 	header.Cap = int(length)
 
@@ -402,11 +456,11 @@ func (w *Water) GetUVs() []raylib.Vector2 {
 	}
 
 	uvs := []raylib.Vector2{}
-	length := w.mdl.Meshes.VertexCount
+	length := w.vol.Meshes.VertexCount
 	var mdluvs []float32
 
 	header := (*reflect.SliceHeader)(unsafe.Pointer(&mdluvs))
-	header.Data = uintptr(unsafe.Pointer(w.mdl.Meshes.Texcoords))
+	header.Data = uintptr(unsafe.Pointer(w.vol.Meshes.Texcoords))
 	header.Len = int(length)
 	header.Cap = int(length)
 
@@ -421,11 +475,11 @@ func (w *Water) SetUVs(uvs []raylib.Vector2) {
 		return
 	}
 
-	length := int(w.mdl.Meshes.VertexCount)
+	length := int(w.vol.Meshes.VertexCount)
 	var mdluvs []float32
 
 	header := (*reflect.SliceHeader)(unsafe.Pointer(&mdluvs))
-	header.Data = uintptr(unsafe.Pointer(w.mdl.Meshes.Texcoords))
+	header.Data = uintptr(unsafe.Pointer(w.vol.Meshes.Texcoords))
 	header.Len = length * 2
 	header.Cap = length * 2
 
@@ -433,7 +487,7 @@ func (w *Water) SetUVs(uvs []raylib.Vector2) {
 		mdluvs[i*2] = uvs[i].X
 		mdluvs[i*2+1] = uvs[i].Y
 	}
-	pub_object.UpdateModelUVs(&w.mdl)
+	pub_object.UpdateModelUVs(w.vol)
 }
 
 func (w *Water) GetMaterials() *raylib.Material {
@@ -441,11 +495,11 @@ func (w *Water) GetMaterials() *raylib.Material {
 		return nil
 	}
 
-	return w.mdl.Materials
+	return w.sfc.Materials
 }
 
 func (w *Water) SetTexture(tex raylib.Texture2D) {
-	raylib.SetMaterialTexture(w.mdl.Materials, raylib.MapDiffuse, tex)
+	raylib.SetMaterialTexture(w.sfc.Materials, raylib.MapDiffuse, tex)
 }
 
 func (w *Water) GetTexture() *raylib.Texture2D {
@@ -453,7 +507,7 @@ func (w *Water) GetTexture() *raylib.Texture2D {
 		return nil
 	}
 
-	return &w.mdl.Materials.Maps.Texture
+	return &w.sfc.Materials.Maps.Texture
 }
 
 func (w *Water) GetCollider() pub_object.Collider {
@@ -464,16 +518,18 @@ func (w *Water) GetCollider() pub_object.Collider {
 	return nil
 }
 
-func (w *Water) OnAdd() {
+func (w *Water) OnAdd(obj pub_object.Object) {
 	if w == nil {
 		return
 	}
+	w.parent = obj
 }
 
 func (w *Water) OnRemove() {
 	if w == nil {
 		return
 	}
+	w.parent = nil
 }
 
 func (w *Water) AddChild(obj pub_object.Object) {
@@ -494,4 +550,11 @@ func (w *Water) GetChilds() []pub_object.Object {
 	}
 
 	return []pub_object.Object{}
+}
+
+func (w *Water) GetParent() pub_object.Object {
+	if w == nil {
+		return nil
+	}
+	return w.parent
 }

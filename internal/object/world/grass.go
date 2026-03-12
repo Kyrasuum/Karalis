@@ -5,12 +5,13 @@ import (
 	"image/color"
 	"log"
 	"math"
+	"runtime"
 	"unsafe"
 
-	"karalis/internal/camera"
 	"karalis/internal/shader"
 	pub_object "karalis/pkg/object"
 	"karalis/pkg/rng"
+	pub_shader "karalis/pkg/shader"
 	"karalis/res"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
@@ -22,8 +23,10 @@ var (
 
 type Grass struct {
 	parent  pub_object.Object
+	cleaner *runtime.Cleanup
+
 	compute shader.Compute
-	shader  shader.Shader
+	shader  pub_shader.Shader
 
 	inSSBO      uint32
 	visibleSSBO uint32
@@ -71,13 +74,12 @@ func (g *Grass) Init(parent *Terrain, seed uint32) error {
 	)
 
 	// Shaders
-	g.compute = shader.Compute{}
-	err := g.compute.Init("grass")
+	var err error
+	g.compute, err = shader.NewCompute("grass")
 	if err != nil {
 		return err
 	}
-	g.shader = shader.Shader{}
-	err = g.shader.Init("grass")
+	g.shader, err = shader.NewShader("grass")
 	if err != nil {
 		return err
 	}
@@ -90,10 +92,18 @@ func (g *Grass) Init(parent *Terrain, seed uint32) error {
 	g.mdl = mdl.(raylib.Model)
 	g.mdl.Materials.Shader = *g.shader.GetShader()
 
+	if g.cleaner != nil {
+		g.cleaner.Stop()
+	}
+	cleaner := runtime.AddCleanup(g, func(mdl raylib.Model) {
+		raylib.UnloadModel(mdl)
+	}, g.mdl)
+	g.cleaner = &cleaner
+
 	return nil
 }
 
-func (g *Grass) Prerender(cam *camera.Cam) []func() {
+func (g *Grass) Prerender(cam pub_object.Camera) []func() {
 	cmds := []func(){}
 	if g == nil {
 		return cmds
@@ -102,7 +112,7 @@ func (g *Grass) Prerender(cam *camera.Cam) []func() {
 	return cmds
 }
 
-func (g *Grass) Render(cam *camera.Cam) []func() {
+func (g *Grass) Render(cam pub_object.Camera) []func() {
 	cmds := []func(){}
 	if g == nil || g.parent == nil || g.inSSBO <= 0 {
 		return cmds
@@ -150,7 +160,7 @@ func (g *Grass) Render(cam *camera.Cam) []func() {
 	return cmds
 }
 
-func (g *Grass) Postrender(cam *camera.Cam) []func() {
+func (g *Grass) Postrender(cam pub_object.Camera) []func() {
 	cmds := []func(){}
 	if g == nil {
 		return cmds
@@ -260,16 +270,18 @@ func (g *Grass) GetCollider() pub_object.Collider {
 	return g.parent.GetCollider()
 }
 
-func (g *Grass) OnAdd() {
+func (g *Grass) OnAdd(obj pub_object.Object) {
 	if g == nil {
 		return
 	}
+	g.parent = obj
 }
 
 func (g *Grass) OnRemove() {
 	if g == nil {
 		return
 	}
+	g.parent = nil
 }
 
 func (g *Grass) AddChild(obj pub_object.Object) {
@@ -444,4 +456,11 @@ func (g *Grass) GetTexture() *raylib.Texture2D {
 	}
 
 	return &g.mdl.Materials.Maps.Texture
+}
+
+func (g *Grass) GetParent() pub_object.Object {
+	if g == nil {
+		return nil
+	}
+	return g.parent
 }

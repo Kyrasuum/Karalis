@@ -131,7 +131,7 @@ func (a *app) run(debug bool) error {
 		return err
 	}
 
-	err = a.curShader.Init("shader")
+	a.curShader, err = shader.NewShader("shader")
 	if err != nil {
 		return err
 	}
@@ -147,11 +147,11 @@ func (a *app) run(debug bool) error {
 	go func() {
 		for a.Running() {
 			dt := raylib.GetFrameTime()
+			a.onResize()
+			a.update(dt)
 			if raylib.IsCursorOnScreen() {
 				a.handleInput(dt)
 			}
-			a.update(dt)
-			a.onResize()
 			time.Sleep(time.Duration(a.logicInterval) * time.Millisecond)
 		}
 	}()

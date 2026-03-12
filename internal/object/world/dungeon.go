@@ -10,10 +10,10 @@ import (
 	"log"
 	"math/rand"
 	"reflect"
+	"runtime"
 	"strings"
 	"unsafe"
 
-	"karalis/internal/camera"
 	"karalis/pkg/app"
 	pub_object "karalis/pkg/object"
 	"karalis/pkg/rng"
@@ -30,9 +30,11 @@ type Dungeon struct {
 	hm   *image.RGBA
 	seed int64
 
-	pos   raylib.Vector3
-	rot   raylib.Vector3
-	scale raylib.Vector3
+	parent  pub_object.Object
+	cleaner *runtime.Cleanup
+	pos     raylib.Vector3
+	rot     raylib.Vector3
+	scale   raylib.Vector3
 }
 
 func RandDungeon(offx, offy, width, height int, seed int64) (d *Dungeon, err error) {
@@ -74,7 +76,7 @@ func (d *Dungeon) Init() error {
 	if d == nil {
 		return fmt.Errorf("Invalid Dungeon")
 	}
-
+	d.parent = nil
 	d.pos = raylib.NewVector3(0, 0, 0)
 	d.rot = raylib.NewVector3(0, 0, 0)
 	d.scale = raylib.NewVector3(1, 1, 1)
@@ -153,9 +155,25 @@ func (d *Dungeon) LoadImage(i interface{}) error {
 	}
 	tex := raylib.LoadTextureFromImage(img)
 	d.tex = &tex
+	if d.cleaner != nil {
+		d.cleaner.Stop()
+	}
+	cleaner := runtime.AddCleanup(d, func(in []interface{}) {
+		raylib.UnloadTexture(in[0].(raylib.Texture2D))
+	}, []interface{}{*d.tex})
+	d.cleaner = &cleaner
+
 	if d.mdl != nil {
 		raylib.SetMaterialTexture(d.mdl.Materials, raylib.MapDiffuse, *d.tex)
 		d.mdl.Materials.Shader = *app.CurApp.GetShader().GetShader()
+		if d.cleaner != nil {
+			d.cleaner.Stop()
+		}
+		cleaner := runtime.AddCleanup(d, func(in []interface{}) {
+			raylib.UnloadTexture(in[0].(raylib.Texture2D))
+			raylib.UnloadModel(in[1].(raylib.Model))
+		}, []interface{}{*d.tex, *d.mdl})
+		d.cleaner = &cleaner
 	}
 	return nil
 }
@@ -245,12 +263,20 @@ func (d *Dungeon) GenDungeon(img *image.RGBA) {
 	if d.tex == nil {
 		d.LoadImage(nil)
 	}
+	if d.cleaner != nil {
+		d.cleaner.Stop()
+	}
+	cleaner := runtime.AddCleanup(d, func(in []interface{}) {
+		raylib.UnloadTexture(in[0].(raylib.Texture2D))
+		raylib.UnloadModel(in[1].(raylib.Model))
+	}, []interface{}{*d.tex, *d.mdl})
+	d.cleaner = &cleaner
 
 	raylib.SetMaterialTexture(d.mdl.Materials, raylib.MapDiffuse, *d.tex)
 	d.mdl.Materials.Shader = *app.CurApp.GetShader().GetShader()
 }
 
-func (d *Dungeon) Prerender(cam *camera.Cam) []func() {
+func (d *Dungeon) Prerender(cam pub_object.Camera) []func() {
 	cmds := []func(){}
 	if d == nil {
 		return cmds
@@ -259,7 +285,7 @@ func (d *Dungeon) Prerender(cam *camera.Cam) []func() {
 	return cmds
 }
 
-func (d *Dungeon) Render(cam *camera.Cam) []func() {
+func (d *Dungeon) Render(cam pub_object.Camera) []func() {
 	cmds := []func(){}
 	if d == nil {
 		return cmds
@@ -272,7 +298,7 @@ func (d *Dungeon) Render(cam *camera.Cam) []func() {
 	return cmds
 }
 
-func (d *Dungeon) Postrender(cam *camera.Cam) []func() {
+func (d *Dungeon) Postrender(cam pub_object.Camera) []func() {
 	cmds := []func(){}
 	if d == nil {
 		return cmds
@@ -301,16 +327,18 @@ func (d *Dungeon) GetCollider() pub_object.Collider {
 	return nil
 }
 
-func (d *Dungeon) OnAdd() {
+func (d *Dungeon) OnAdd(obj pub_object.Object) {
 	if d == nil {
 		return
 	}
+	d.parent = obj
 }
 
 func (d *Dungeon) OnRemove() {
 	if d == nil {
 		return
 	}
+	d.parent = nil
 }
 
 func (d *Dungeon) AddChild(obj pub_object.Object) {
@@ -525,6 +553,26 @@ func (d *Dungeon) SetTexture(tex raylib.Texture2D) {
 	}
 
 	*d.tex = tex
+	if d.cleaner != nil {
+		d.cleaner.Stop()
+	}
+	cleaner := runtime.AddCleanup(d, func(in []interface{}) {
+		raylib.UnloadTexture(in[0].(raylib.Texture2D))
+	}, []interface{}{*d.tex})
+	d.cleaner = &cleaner
+
+	if d.mdl != nil {
+		raylib.SetMaterialTexture(d.mdl.Materials, raylib.MapDiffuse, *d.tex)
+		d.mdl.Materials.Shader = *app.CurApp.GetShader().GetShader()
+		if d.cleaner != nil {
+			d.cleaner.Stop()
+		}
+		cleaner := runtime.AddCleanup(d, func(in []interface{}) {
+			raylib.UnloadTexture(in[0].(raylib.Texture2D))
+			raylib.UnloadModel(in[1].(raylib.Model))
+		}, []interface{}{*d.tex, *d.mdl})
+		d.cleaner = &cleaner
+	}
 }
 
 func (d *Dungeon) GetTexture() *raylib.Texture2D {
@@ -541,4 +589,11 @@ func (d *Dungeon) GetHeightMap() *image.RGBA {
 	}
 
 	return d.hm
+}
+
+func (d *Dungeon) GetParent() pub_object.Object {
+	if d == nil {
+		return nil
+	}
+	return d.parent
 }

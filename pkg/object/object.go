@@ -2,9 +2,8 @@ package object
 
 import (
 	"image/color"
+	"karalis/pkg/lmath"
 	"unsafe"
-
-	"karalis/internal/camera"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
@@ -19,20 +18,6 @@ void UpdateModelUVs(Model* mdl) {
 import "C"
 
 var ()
-
-type Cell interface {
-	Init() error
-	Prerender(cam *camera.Cam) []func()
-	Render(cam *camera.Cam) []func()
-	Postrender(cam *camera.Cam) []func()
-	Update(dt float32)
-	OnResize(w int32, h int32)
-	OnAdd()
-	OnRemove()
-	AddChild(obj Object)
-	RemChild(obj Object)
-	GetChilds() []Object
-}
 
 type Object interface {
 	GetCollider() Collider
@@ -56,21 +41,22 @@ type Object interface {
 	GetMaterials() *raylib.Material
 	SetTexture(tex raylib.Texture2D)
 	GetTexture() *raylib.Texture2D
-	Prerender(cam *camera.Cam) []func()
-	Render(cam *camera.Cam) []func()
-	Postrender(cam *camera.Cam) []func()
+	Prerender(cam Camera) []func()
+	Render(cam Camera) []func()
+	Postrender(cam Camera) []func()
 	Update(dt float32)
-	OnAdd()
+	OnAdd(Object)
 	OnRemove()
 	OnResize(w int32, h int32)
 	AddChild(obj Object)
 	RemChild(obj Object)
 	GetChilds() []Object
+	GetParent() Object
 }
 
 type Portal interface {
-	Init(scene Cell, exit *Portal, cam *camera.Cam, obj Object) error
-	GetScene() Cell
+	Init(scene Object, exit *Portal, cam *Camera, obj Object) error
+	GetScene() Object
 	Pair(portal Portal)
 	GetPair() Portal
 	SetColor(c color.Color)
@@ -96,18 +82,49 @@ type Portal interface {
 	GetTexture() *raylib.Texture2D
 	SetPortal(obj Portal)
 	GetPortal() Portal
-	SetCam(cam *camera.Cam)
-	GetCam() *camera.Cam
-	Prerender(cam *camera.Cam) []func()
-	Render(cam *camera.Cam) []func()
-	Postrender(cam *camera.Cam) []func()
+	SetCam(cam *Camera)
+	GetCam() *Camera
+	Prerender(cam Camera) []func()
+	Render(cam Camera) []func()
+	Postrender(cam Camera) []func()
 	Update(dt float32)
-	OnAdd()
+	OnAdd(Object)
 	OnRemove()
 	OnResize(w int32, h int32)
 	AddChild(obj Object)
 	RemChild(obj Object)
 	GetChilds() []Object
+}
+
+type Camera interface {
+	Init() error
+	OnResize(w int32, h int32)
+	Prerender() []func()
+	Render() []func()
+	Postrender() []func()
+	Update(dt float32)
+	UpdateCam()
+	GetPitch() float32
+	SetPitch(p float32)
+	GetYaw() float32
+	SetYaw(y float32)
+	GetRoll() float32
+	SetRoll(r float32)
+	RotateCam(p, y float32)
+	SetPos(p raylib.Vector3)
+	GetPos() raylib.Vector3
+	MoveCam(m lmath.Vec3)
+	GetDist() float32
+	SetDist(d float32)
+	ZoomCam(z float32)
+	SetTar(p raylib.Vector3)
+	GetTar() raylib.Vector3
+	GetModelMatrix() raylib.Matrix
+	GetCameraMatrix() raylib.Matrix
+	GetWorldToScreen(pos raylib.Vector3) raylib.Vector2
+	OnAdd(Object)
+	OnRemove()
+	GetParent() Object
 }
 
 func UpdateModelUVs(mdl *raylib.Model) {

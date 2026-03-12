@@ -2,18 +2,37 @@ package shader
 
 import (
 	"fmt"
+	"runtime"
 
 	"karalis/res"
 
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
+var (
+	computes = map[string]Compute{}
+)
+
 type Compute struct {
 	name string
 	id   uint32
+
+	cleaner *runtime.Cleanup
 }
 
-func (c *Compute) Init(shader string) error {
+func NewCompute(shader string) (Compute, error) {
+	if c, ok := computes[shader]; ok {
+		return c, nil
+	}
+
+	c := Compute{}
+	err := c.init(shader)
+	computes[shader] = c
+
+	return c, err
+}
+
+func (c *Compute) init(shader string) error {
 	if c == nil {
 		return nil
 	}
@@ -49,6 +68,13 @@ func (c *Compute) genShader() error {
 	}
 
 	c.id = prog
+	if c.cleaner != nil {
+		c.cleaner.Stop()
+	}
+	cleaner := runtime.AddCleanup(c, func(shader raylib.Shader) {
+		raylib.UnloadShader(shader)
+	}, raylib.Shader{ID: c.id})
+	c.cleaner = &cleaner
 	return nil
 }
 

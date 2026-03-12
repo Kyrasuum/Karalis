@@ -7,9 +7,9 @@ import (
 	"image/color"
 	"image/jpeg"
 	"image/png"
+	"runtime"
 	"strings"
 
-	"karalis/internal/camera"
 	"karalis/internal/shader"
 	pub_object "karalis/pkg/object"
 	pub_shader "karalis/pkg/shader"
@@ -19,6 +19,9 @@ import (
 )
 
 type Skybox struct {
+	parent  pub_object.Object
+	cleaner *runtime.Cleanup
+
 	tex *raylib.Texture2D
 	shd pub_shader.Shader
 
@@ -41,11 +44,14 @@ func (s *Skybox) Init() error {
 	if s == nil {
 		return fmt.Errorf("Invalid skybox")
 	}
-
+	s.parent = nil
 	s.LoadImage(nil)
 
-	s.shd = &shader.Shader{}
-	s.shd.Init("skybox")
+	var err error
+	s.shd, err = shader.NewShader("skybox")
+	if err != nil {
+		return err
+	}
 
 	points := [][]float32{
 		[]float32{-1, -1, -1},
@@ -164,6 +170,13 @@ func (s *Skybox) LoadImage(i interface{}) {
 
 	tex := raylib.LoadTextureCubemap(img, raylib.CubemapLayoutAutoDetect)
 	s.tex = &tex
+	if s.cleaner != nil {
+		s.cleaner.Stop()
+	}
+	cleaner := runtime.AddCleanup(s, func(tex raylib.Texture2D) {
+		raylib.UnloadTexture(tex)
+	}, tex)
+	s.cleaner = &cleaner
 }
 
 func (s *Skybox) GetModelMatrix() raylib.Matrix {
@@ -314,7 +327,7 @@ func (s *Skybox) GetTexture() *raylib.Texture2D {
 	return s.tex
 }
 
-func (s *Skybox) Prerender(cam *camera.Cam) []func() {
+func (s *Skybox) Prerender(cam pub_object.Camera) []func() {
 	cmds := []func(){}
 	if s == nil {
 		return cmds
@@ -323,7 +336,7 @@ func (s *Skybox) Prerender(cam *camera.Cam) []func() {
 	return cmds
 }
 
-func (s *Skybox) Render(cam *camera.Cam) []func() {
+func (s *Skybox) Render(cam pub_object.Camera) []func() {
 	cmds := []func(){}
 	if s == nil {
 		return cmds
@@ -356,7 +369,7 @@ func (s *Skybox) Render(cam *camera.Cam) []func() {
 	return cmds
 }
 
-func (s *Skybox) Postrender(cam *camera.Cam) []func() {
+func (s *Skybox) Postrender(cam pub_object.Camera) []func() {
 	cmds := []func(){}
 	if s == nil {
 		return cmds
@@ -385,16 +398,18 @@ func (s *Skybox) GetCollider() pub_object.Collider {
 	return nil
 }
 
-func (s *Skybox) OnAdd() {
+func (s *Skybox) OnAdd(obj pub_object.Object) {
 	if s == nil {
 		return
 	}
+	s.parent = obj
 }
 
 func (s *Skybox) OnRemove() {
 	if s == nil {
 		return
 	}
+	s.parent = nil
 }
 
 func (s *Skybox) AddChild(obj pub_object.Object) {
@@ -415,4 +430,11 @@ func (s *Skybox) GetChilds() []pub_object.Object {
 	}
 
 	return []pub_object.Object{}
+}
+
+func (s *Skybox) GetParent() pub_object.Object {
+	if s == nil {
+		return nil
+	}
+	return s.parent
 }

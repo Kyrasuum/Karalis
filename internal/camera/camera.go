@@ -3,12 +3,15 @@ package camera
 import (
 	"karalis/pkg/lmath"
 
+	pub_object "karalis/pkg/object"
+
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
 var ()
 
 type Cam struct {
+	parent pub_object.Object
 	camera raylib.Camera
 
 	dist  float32
@@ -274,14 +277,23 @@ func (s *Cam) UpdateCam() {
 	s.camera.Position.Z = float32(view.Z) + s.camera.Target.Z
 }
 
-func (s *Cam) OnAdd() {
+func (s *Cam) OnAdd(obj pub_object.Object) {
 	if s == nil {
 		return
 	}
+	s.parent = obj
 }
 
 func (s *Cam) OnRemove() {
 	if s == nil {
 		return
 	}
+	s.parent = nil
+}
+
+func (c *Cam) GetParent() pub_object.Object {
+	if c == nil {
+		return nil
+	}
+	return c.parent
 }

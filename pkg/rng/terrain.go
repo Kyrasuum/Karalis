@@ -150,6 +150,7 @@ func ColorizeHeightmapTiled(
 	worldOriginX, worldOriginY float64,
 	worldWidth float64,
 	texW, texH int,
+	colorWater bool,
 ) []raylib.Color {
 	worldUnitsPerPixel := worldWidth / float64(hmW-1) // shared-edge convention
 	out := make([]raylib.Color, texW*texH)
@@ -276,10 +277,16 @@ func ColorizeHeightmapTiled(
 			if h <= SeaLevel {
 				t := smoothstep(0.0, SeaLevel, h)
 				c = lerpColor(deepWater, shallowWater, t)
+				if !colorWater {
+					c = sand
+				}
 			} else if h <= SeaLevel+SandBand {
 				// Beach blend water->sand
 				t := smoothstep(SeaLevel, SeaLevel+SandBand, h)
 				c = lerpColor(shallowWater, sand, t)
+				if !colorWater {
+					c = sand
+				}
 			} else if h < MountainStart {
 				// Grass zone
 				t := smoothstep(SeaLevel+SandBand, MountainStart, h)
@@ -309,8 +316,8 @@ func ColorizeHeightmapTiled(
 	return out
 }
 
-func ColorizeHeightmap(heights []raylib.Color, width, height int, seed int64) []raylib.Color {
-	return ColorizeHeightmapTiled(heights, height, width, seed, 0, 0, 1, height, width)
+func ColorizeHeightmap(heights []raylib.Color, width, height int, seed int64, colorWater bool) []raylib.Color {
+	return ColorizeHeightmapTiled(heights, height, width, seed, 0, 0, 1, height, width, colorWater)
 }
 
 /* ------------------------- Band-limited FBM/Ridged ------------------------- */

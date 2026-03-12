@@ -2,6 +2,7 @@ package prim
 
 import (
 	"fmt"
+	"runtime"
 
 	"karalis/internal/collider"
 	"karalis/pkg/app"
@@ -27,6 +28,13 @@ func NewSquareMdl() (p *Prim, err error) {
 	default:
 		return nil, fmt.Errorf("Invalid model object\n")
 	}
+	if p.cleaner != nil {
+		p.cleaner.Stop()
+	}
+	cleaner := runtime.AddCleanup(p, func(mdl raylib.Model) {
+		raylib.UnloadModel(mdl)
+	}, p.mdl)
+	p.cleaner = &cleaner
 
 	sh := app.CurApp.GetShader()
 	p.mdl.Materials.Shader = *sh.GetShader()
@@ -46,6 +54,13 @@ func NewSquare(l, w float32, dl, dw int) (p *Prim, err error) {
 
 	mesh := raylib.GenMeshPlane(l, w, dl, dw)
 	p.mdl = raylib.LoadModelFromMesh(mesh)
+	if p.cleaner != nil {
+		p.cleaner.Stop()
+	}
+	cleaner := runtime.AddCleanup(p, func(mdl raylib.Model) {
+		raylib.UnloadModel(mdl)
+	}, p.mdl)
+	p.cleaner = &cleaner
 
 	sh := app.CurApp.GetShader()
 	p.mdl.Materials.Shader = *sh.GetShader()

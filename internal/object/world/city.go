@@ -10,10 +10,10 @@ import (
 	"log"
 	"math/rand"
 	"reflect"
+	"runtime"
 	"strings"
 	"unsafe"
 
-	"karalis/internal/camera"
 	"karalis/pkg/app"
 	pub_object "karalis/pkg/object"
 	"karalis/pkg/rng"
@@ -30,9 +30,11 @@ type City struct {
 	hm   *image.RGBA
 	seed int64
 
-	pos   raylib.Vector3
-	rot   raylib.Vector3
-	scale raylib.Vector3
+	parent  pub_object.Object
+	cleaner *runtime.Cleanup
+	pos     raylib.Vector3
+	rot     raylib.Vector3
+	scale   raylib.Vector3
 }
 
 func RandCity(offx, offy, width, height int, seed int64) (c *City, err error) {
@@ -74,7 +76,7 @@ func (c *City) Init() error {
 	if c == nil {
 		return fmt.Errorf("Invalid City")
 	}
-
+	c.parent = nil
 	c.pos = raylib.NewVector3(0, 0, 0)
 	c.rot = raylib.NewVector3(0, 0, 0)
 	c.scale = raylib.NewVector3(1, 1, 1)
@@ -153,9 +155,24 @@ func (c *City) LoadImage(i interface{}) error {
 	}
 	tex := raylib.LoadTextureFromImage(img)
 	c.tex = &tex
+	if c.cleaner != nil {
+		c.cleaner.Stop()
+	}
+	cleaner := runtime.AddCleanup(c, func(in []interface{}) {
+		raylib.UnloadTexture(in[0].(raylib.Texture2D))
+	}, []interface{}{*c.tex})
+	c.cleaner = &cleaner
 	if c.mdl != nil {
 		raylib.SetMaterialTexture(c.mdl.Materials, raylib.MapDiffuse, *c.tex)
 		c.mdl.Materials.Shader = *app.CurApp.GetShader().GetShader()
+		if c.cleaner != nil {
+			c.cleaner.Stop()
+		}
+		cleaner := runtime.AddCleanup(c, func(in []interface{}) {
+			raylib.UnloadTexture(in[0].(raylib.Texture2D))
+			raylib.UnloadModel(in[1].(raylib.Model))
+		}, []interface{}{*c.tex, *c.mdl})
+		c.cleaner = &cleaner
 	}
 	return nil
 }
@@ -236,12 +253,20 @@ func (c *City) GenCity(img *image.RGBA) {
 	if c.tex == nil {
 		c.LoadImage(nil)
 	}
+	if c.cleaner != nil {
+		c.cleaner.Stop()
+	}
+	cleaner := runtime.AddCleanup(c, func(in []interface{}) {
+		raylib.UnloadTexture(in[0].(raylib.Texture2D))
+		raylib.UnloadModel(in[1].(raylib.Model))
+	}, []interface{}{*c.tex, *c.mdl})
+	c.cleaner = &cleaner
 
 	raylib.SetMaterialTexture(c.mdl.Materials, raylib.MapDiffuse, *c.tex)
 	c.mdl.Materials.Shader = *app.CurApp.GetShader().GetShader()
 }
 
-func (c *City) Prerender(cam *camera.Cam) []func() {
+func (c *City) Prerender(cam pub_object.Camera) []func() {
 	cmds := []func(){}
 	if c == nil {
 		return cmds
@@ -250,7 +275,7 @@ func (c *City) Prerender(cam *camera.Cam) []func() {
 	return cmds
 }
 
-func (c *City) Render(cam *camera.Cam) []func() {
+func (c *City) Render(cam pub_object.Camera) []func() {
 	cmds := []func(){}
 	if c == nil {
 		return cmds
@@ -263,7 +288,7 @@ func (c *City) Render(cam *camera.Cam) []func() {
 	return cmds
 }
 
-func (c *City) Postrender(cam *camera.Cam) []func() {
+func (c *City) Postrender(cam pub_object.Camera) []func() {
 	cmds := []func(){}
 	if c == nil {
 		return cmds
@@ -292,16 +317,18 @@ func (c *City) GetCollider() pub_object.Collider {
 	return nil
 }
 
-func (c *City) OnAdd() {
+func (c *City) OnAdd(obj pub_object.Object) {
 	if c == nil {
 		return
 	}
+	c.parent = obj
 }
 
 func (c *City) OnRemove() {
 	if c == nil {
 		return
 	}
+	c.parent = nil
 }
 
 func (c *City) AddChild(obj pub_object.Object) {
@@ -516,6 +543,26 @@ func (c *City) SetTexture(tex raylib.Texture2D) {
 	}
 
 	*c.tex = tex
+
+	if c.cleaner != nil {
+		c.cleaner.Stop()
+	}
+	cleaner := runtime.AddCleanup(c, func(in []interface{}) {
+		raylib.UnloadTexture(in[0].(raylib.Texture2D))
+	}, []interface{}{*c.tex})
+	c.cleaner = &cleaner
+	if c.mdl != nil {
+		raylib.SetMaterialTexture(c.mdl.Materials, raylib.MapDiffuse, *c.tex)
+		c.mdl.Materials.Shader = *app.CurApp.GetShader().GetShader()
+		if c.cleaner != nil {
+			c.cleaner.Stop()
+		}
+		cleaner := runtime.AddCleanup(c, func(in []interface{}) {
+			raylib.UnloadTexture(in[0].(raylib.Texture2D))
+			raylib.UnloadModel(in[1].(raylib.Model))
+		}, []interface{}{*c.tex, *c.mdl})
+		c.cleaner = &cleaner
+	}
 }
 
 func (c *City) GetTexture() *raylib.Texture2D {
@@ -532,4 +579,11 @@ func (c *City) GetHeightMap() *image.RGBA {
 	}
 
 	return c.hm
+}
+
+func (c *City) GetParent() pub_object.Object {
+	if c == nil {
+		return nil
+	}
+	return c.parent
 }

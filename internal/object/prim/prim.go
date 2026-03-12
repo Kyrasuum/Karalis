@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"image/color"
 	"reflect"
+	"runtime"
 	"slices"
 	"unsafe"
 
-	"karalis/internal/camera"
 	"karalis/internal/collider"
 	pub_object "karalis/pkg/object"
 
@@ -22,8 +22,10 @@ type Prim struct {
 	scale raylib.Vector3
 	color color.RGBA
 
-	childs []pub_object.Object
-	col    pub_object.Collider
+	parent  pub_object.Object
+	childs  []pub_object.Object
+	col     pub_object.Collider
+	cleaner *runtime.Cleanup
 }
 
 func (p *Prim) init() error {
@@ -36,7 +38,15 @@ func (p *Prim) init() error {
 	p.scale = raylib.NewVector3(1, 1, 1)
 	p.color = raylib.White
 	p.mdl = raylib.Model{}
+	if p.cleaner != nil {
+		p.cleaner.Stop()
+	}
+	cleaner := runtime.AddCleanup(p, func(mdl raylib.Model) {
+		raylib.UnloadModel(mdl)
+	}, p.mdl)
+	p.cleaner = &cleaner
 
+	p.parent = nil
 	p.childs = []pub_object.Object{}
 
 	col, err := collider.NewCollider(p)
@@ -48,7 +58,7 @@ func (p *Prim) init() error {
 	return nil
 }
 
-func (p *Prim) Prerender(cam *camera.Cam) []func() {
+func (p *Prim) Prerender(cam pub_object.Camera) []func() {
 	if p == nil {
 		return []func(){}
 	}
@@ -56,7 +66,7 @@ func (p *Prim) Prerender(cam *camera.Cam) []func() {
 	return []func(){}
 }
 
-func (p *Prim) Render(cam *camera.Cam) []func() {
+func (p *Prim) Render(cam pub_object.Camera) []func() {
 	if p == nil {
 		return []func(){}
 	}
@@ -67,7 +77,7 @@ func (p *Prim) Render(cam *camera.Cam) []func() {
 	return []func(){}
 }
 
-func (p *Prim) Postrender(cam *camera.Cam) []func() {
+func (p *Prim) Postrender(cam pub_object.Camera) []func() {
 	if p == nil {
 		return []func(){}
 	}
@@ -302,16 +312,18 @@ func (p *Prim) GetCollider() pub_object.Collider {
 	return p.col
 }
 
-func (p *Prim) OnAdd() {
+func (p *Prim) OnAdd(obj pub_object.Object) {
 	if p == nil {
 		return
 	}
+	p.parent = obj
 }
 
 func (p *Prim) OnRemove() {
 	if p == nil {
 		return
 	}
+	p.parent = nil
 }
 
 func (p *Prim) AddChild(obj pub_object.Object) {
@@ -338,4 +350,11 @@ func (p *Prim) GetChilds() []pub_object.Object {
 	}
 
 	return slices.Concat(grandchilds, childs)
+}
+
+func (p *Prim) GetParent() pub_object.Object {
+	if p == nil {
+		return nil
+	}
+	return p.parent
 }
