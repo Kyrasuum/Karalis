@@ -14,6 +14,7 @@ uniform mat4 mvp;
 uniform mat4 matModel;
 uniform sampler2D texture0;
 uniform float uTime;
+uniform float uTexSize;
 
 // Wave params (base)
 uniform float uWaveAmp;      // deep-water amplitude (e.g. 0.10)
@@ -56,7 +57,8 @@ float clamp01(float x){ return clamp(x, 0.0, 1.0); }
 
 void main() {
     vec4 world = matModel * vec4(vertexPosition, 1.0);
-    vUv = vertexTexCoord;
+    float texScale = (uTexSize-1.0)/uTexSize;
+    vUv = vec2(vertexTexCoord.x*texScale, vertexTexCoord.y*texScale);
 
     // Sample normalized depth in [0..1]
 

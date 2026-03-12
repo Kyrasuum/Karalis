@@ -10,7 +10,9 @@ import (
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
-var ()
+var (
+	TerrainDetail = 16
+)
 
 type Cell struct {
 	parent  pub_object.Object
@@ -18,56 +20,59 @@ type Cell struct {
 	childs  []pub_object.Object
 }
 
-func NewTerrainCell(pos, sc raylib.Vector3) (*Cell, error) {
+func NewTerrainCell(pos, sc raylib.Vector3, seed int64) (*Cell, error) {
 	c := &Cell{}
 	err := c.Init()
 	if err != nil {
 		return nil, err
 	}
 
-	ter, err := RandTerrain(float64(pos.X), float64(pos.Z), 256, 256, 1234567)
+	ter, err := RandTerrain(float64(pos.X), float64(pos.Z), TerrainDetail, TerrainDetail, seed)
 	if err != nil {
 		return nil, err
 	}
 	ter.SetScale(sc)
 	ter.SetPos(pos)
 	c.terrain = ter
+	ter.OnAdd(c)
 
 	return c, nil
 }
 
-func NewCityCell(pos, sc raylib.Vector3) (*Cell, error) {
+func NewCityCell(pos, sc raylib.Vector3, seed int64) (*Cell, error) {
 	c := &Cell{}
 	err := c.Init()
 	if err != nil {
 		return nil, err
 	}
 
-	ter, err := RandDungeon(int(pos.X), int(pos.Z), 256, 256, 1234567)
+	ter, err := RandDungeon(int(pos.X), int(pos.Z), TerrainDetail, TerrainDetail, seed)
 	if err != nil {
 		return nil, err
 	}
 	ter.SetScale(sc)
 	ter.SetPos(pos)
 	c.terrain = ter
+	ter.OnAdd(c)
 
 	return c, nil
 }
 
-func NewDungeonCell(pos, sc raylib.Vector3) (*Cell, error) {
+func NewDungeonCell(pos, sc raylib.Vector3, seed int64) (*Cell, error) {
 	c := &Cell{}
 	err := c.Init()
 	if err != nil {
 		return nil, err
 	}
 
-	ter, err := RandCity(int(pos.X), int(pos.Z), 256, 256, 1234567)
+	ter, err := RandCity(int(pos.X), int(pos.Z), TerrainDetail, TerrainDetail, seed)
 	if err != nil {
 		return nil, err
 	}
 	ter.SetScale(pos)
 	ter.SetPos(sc)
 	c.terrain = ter
+	ter.OnAdd(c)
 
 	return c, nil
 }

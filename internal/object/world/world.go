@@ -15,9 +15,10 @@ import (
 )
 
 var (
-	CellScale  = raylib.Vector3{10, 5, 10}
+	CellScale  = raylib.Vector3{10, 10, 10}
 	CellOffset = raylib.Vector3{-5, 0, -5}
 	CellRender = 1
+	Seed       = int64(1234567)
 )
 
 type World struct {
@@ -26,7 +27,7 @@ type World struct {
 	cells   map[string]*Cell
 	sky     *Skybox
 	pos     raylib.Vector2
-	creator func(raylib.Vector3, raylib.Vector3) (*Cell, error)
+	creator func(raylib.Vector3, raylib.Vector3, int64) (*Cell, error)
 }
 
 func NewTerrainWorld() (*World, error) {
@@ -132,6 +133,8 @@ func (w *World) Postrender(cam pub_object.Camera) []func() {
 	for _, child := range w.childs {
 		cmds = append(cmds, child.Postrender(cam)...)
 	}
+	cmds = append(cmds, DrawUnderwater(w)...)
+
 	return cmds
 }
 
@@ -206,7 +209,7 @@ func (w *World) GenCells() {
 			spos := fmt.Sprintf("%d %d", cpos.X, cpos.Y)
 			if _, ok := w.cells[spos]; !ok {
 				offset := raylib.Vector3{cpos.X*CellScale.X + CellOffset.X, CellOffset.Y, cpos.Y*CellScale.Z + CellOffset.Z}
-				cell, err := NewTerrainCell(offset, CellScale)
+				cell, err := w.creator(offset, CellScale, Seed)
 				if err != nil {
 					log.Printf("%+v\n", err)
 				}
