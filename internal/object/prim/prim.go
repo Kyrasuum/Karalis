@@ -9,17 +9,19 @@ import (
 	"unsafe"
 
 	"karalis/internal/collider"
+	"karalis/internal/rlx"
+	"karalis/pkg/lmath"
+
 	pub_object "karalis/pkg/object"
 
-	raylib "github.com/gen2brain/raylib-go/raylib"
-	lmath "karalis/pkg/lmath"
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 type Prim struct {
-	mdl   raylib.Model
-	pos   raylib.Vector3
-	rot   raylib.Vector3
-	scale raylib.Vector3
+	mdl   rl.Model
+	pos   rl.Vector3
+	rot   rl.Vector3
+	scale rl.Vector3
 	color color.RGBA
 
 	parent  pub_object.Object
@@ -33,16 +35,16 @@ func (p *Prim) init() error {
 		return fmt.Errorf("Invalid prim")
 	}
 
-	p.pos = raylib.NewVector3(0, 0, 0)
-	p.rot = raylib.NewVector3(0, 0, 0)
-	p.scale = raylib.NewVector3(1, 1, 1)
-	p.color = raylib.White
-	p.mdl = raylib.Model{}
+	p.pos = rl.NewVector3(0, 0, 0)
+	p.rot = rl.NewVector3(0, 0, 0)
+	p.scale = rl.NewVector3(1, 1, 1)
+	p.color = rl.White
+	p.mdl = rl.Model{}
 	if p.cleaner != nil {
 		p.cleaner.Stop()
 	}
-	cleaner := runtime.AddCleanup(p, func(mdl raylib.Model) {
-		raylib.UnloadModel(mdl)
+	cleaner := runtime.AddCleanup(p, func(mdl rl.Model) {
+		rlx.UnloadModel(mdl)
 	}, p.mdl)
 	p.cleaner = &cleaner
 
@@ -72,7 +74,7 @@ func (p *Prim) Render(cam pub_object.Camera) []func() {
 	}
 
 	matTransform := p.GetModelMatrix()
-	raylib.DrawMesh(*p.mdl.Meshes, *p.mdl.Materials, matTransform)
+	rlx.DrawMesh(*p.mdl.Meshes, *p.mdl.Materials, matTransform)
 
 	return []func(){}
 }
@@ -101,22 +103,22 @@ func (p *Prim) Update(dt float32) {
 	}
 }
 
-func (p *Prim) GetModelMatrix() raylib.Matrix {
+func (p *Prim) GetModelMatrix() rl.Matrix {
 	if p == nil {
-		return raylib.Matrix{}
+		return rl.Matrix{}
 	}
 
-	matScale := raylib.MatrixScale(p.scale.X, p.scale.Y, p.scale.Z)
+	matScale := rl.MatrixScale(p.scale.X, p.scale.Y, p.scale.Z)
 	Quat := lmath.Quat{}
 	Quat = *Quat.FromEuler(float64(p.GetPitch()), float64(p.GetYaw()), float64(p.GetRoll()))
-	matRotation := raylib.QuaternionToMatrix(raylib.NewQuaternion(float32(Quat.X), float32(Quat.Y), float32(Quat.Z), float32(Quat.W)))
-	matTranslation := raylib.MatrixTranslate(p.pos.X, p.pos.Y, p.pos.Z)
-	matTransform := raylib.MatrixMultiply(raylib.MatrixMultiply(matScale, matRotation), matTranslation)
-	matTransform = raylib.MatrixMultiply(p.mdl.Transform, matTransform)
+	matRotation := rl.QuaternionToMatrix(rl.NewQuaternion(float32(Quat.X), float32(Quat.Y), float32(Quat.Z), float32(Quat.W)))
+	matTranslation := rl.MatrixTranslate(p.pos.X, p.pos.Y, p.pos.Z)
+	matTransform := rl.MatrixMultiply(rl.MatrixMultiply(matScale, matRotation), matTranslation)
+	matTransform = rl.MatrixMultiply(p.mdl.Transform, matTransform)
 	return matTransform
 }
 
-func (p *Prim) GetModel() *raylib.Model {
+func (p *Prim) GetModel() *rl.Model {
 	if p == nil {
 		return nil
 	}
@@ -143,15 +145,15 @@ func (p *Prim) SetColor(col color.Color) {
 	}
 }
 
-func (p *Prim) GetScale() raylib.Vector3 {
+func (p *Prim) GetScale() rl.Vector3 {
 	if p == nil {
-		return raylib.Vector3{}
+		return rl.Vector3{}
 	}
 
 	return p.scale
 }
 
-func (p *Prim) SetScale(sc raylib.Vector3) {
+func (p *Prim) SetScale(sc rl.Vector3) {
 	if p == nil {
 		return
 	}
@@ -159,15 +161,15 @@ func (p *Prim) SetScale(sc raylib.Vector3) {
 	p.scale = sc
 }
 
-func (p *Prim) GetPos() raylib.Vector3 {
+func (p *Prim) GetPos() rl.Vector3 {
 	if p == nil {
-		return raylib.Vector3{}
+		return rl.Vector3{}
 	}
 
 	return p.pos
 }
 
-func (p *Prim) SetPos(pos raylib.Vector3) {
+func (p *Prim) SetPos(pos rl.Vector3) {
 	if p == nil {
 		return
 	}
@@ -223,12 +225,12 @@ func (p *Prim) SetRoll(roll float32) {
 	p.rot.Z = roll
 }
 
-func (p *Prim) GetVertices() []raylib.Vector3 {
+func (p *Prim) GetVertices() []rl.Vector3 {
 	if p == nil {
-		return []raylib.Vector3{}
+		return []rl.Vector3{}
 	}
 
-	verts := []raylib.Vector3{}
+	verts := []rl.Vector3{}
 	length := p.mdl.Meshes.VertexCount
 
 	var mdlverts []float32
@@ -239,17 +241,17 @@ func (p *Prim) GetVertices() []raylib.Vector3 {
 	header.Cap = int(length)
 
 	for i := 0; i < len(mdlverts); i++ {
-		verts = append(verts, raylib.NewVector3(mdlverts[3*i], mdlverts[3*i+1], mdlverts[3*i+2]))
+		verts = append(verts, rl.NewVector3(mdlverts[3*i], mdlverts[3*i+1], mdlverts[3*i+2]))
 	}
 	return verts
 }
 
-func (p *Prim) GetUVs() []raylib.Vector2 {
+func (p *Prim) GetUVs() []rl.Vector2 {
 	if p == nil {
-		return []raylib.Vector2{}
+		return []rl.Vector2{}
 	}
 
-	uvs := []raylib.Vector2{}
+	uvs := []rl.Vector2{}
 	length := p.mdl.Meshes.VertexCount
 	var mdluvs []float32
 
@@ -259,12 +261,12 @@ func (p *Prim) GetUVs() []raylib.Vector2 {
 	header.Cap = int(length)
 
 	for i := 0; i < len(mdluvs); i++ {
-		uvs = append(uvs, raylib.NewVector2(mdluvs[2*i], mdluvs[2*i+1]))
+		uvs = append(uvs, rl.NewVector2(mdluvs[2*i], mdluvs[2*i+1]))
 	}
 	return uvs
 }
 
-func (p *Prim) SetUVs(uvs []raylib.Vector2) {
+func (p *Prim) SetUVs(uvs []rl.Vector2) {
 	if p == nil {
 		return
 	}
@@ -284,7 +286,7 @@ func (p *Prim) SetUVs(uvs []raylib.Vector2) {
 	pub_object.UpdateModelUVs(&p.mdl)
 }
 
-func (p *Prim) GetMaterials() *raylib.Material {
+func (p *Prim) GetMaterials() *rl.Material {
 	if p == nil {
 		return nil
 	}
@@ -292,11 +294,11 @@ func (p *Prim) GetMaterials() *raylib.Material {
 	return p.mdl.Materials
 }
 
-func (p *Prim) SetTexture(tex raylib.Texture2D) {
-	raylib.SetMaterialTexture(p.mdl.Materials, raylib.MapDiffuse, tex)
+func (p *Prim) SetTexture(tex rl.Texture2D) {
+	rlx.SetMaterialTexture(p.mdl.Materials, rl.MapDiffuse, tex)
 }
 
-func (p *Prim) GetTexture() *raylib.Texture2D {
+func (p *Prim) GetTexture() *rl.Texture2D {
 	if p == nil {
 		return nil
 	}

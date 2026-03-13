@@ -7,12 +7,14 @@ import (
 	"slices"
 
 	"karalis/internal/object/prim"
+	"karalis/internal/rlx"
 	"karalis/internal/scene"
 	"karalis/pkg/app"
+	"karalis/pkg/lmath"
+
 	pub_object "karalis/pkg/object"
 
-	raylib "github.com/gen2brain/raylib-go/raylib"
-	lmath "karalis/pkg/lmath"
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 var ()
@@ -24,7 +26,7 @@ type Portal struct {
 	exit *Portal
 
 	cleaner *runtime.Cleanup
-	target  *raylib.RenderTexture2D
+	target  *rl.RenderTexture2D
 	obj     pub_object.Object
 	cam     pub_object.Camera
 
@@ -74,15 +76,15 @@ func (p *Portal) Init(scene pub_object.Cell, exit *Portal, cam pub_object.Camera
 		}
 	}
 
-	text := raylib.LoadRenderTexture(app.CurApp.GetWidth(), app.CurApp.GetHeight())
-	raylib.SetTextureFilter(text.Texture, raylib.FilterBilinear)
-	raylib.SetTextureWrap(text.Texture, raylib.WrapRepeat)
+	text := rlx.LoadRenderTexture(app.CurApp.GetWidth(), app.CurApp.GetHeight())
+	rlx.SetTextureFilter(text.Texture, rl.FilterBilinear)
+	rlx.SetTextureWrap(text.Texture, rl.WrapRepeat)
 	p.target = &text
 	if p.cleaner != nil {
 		p.cleaner.Stop()
 	}
-	cleaner := runtime.AddCleanup(p, func(text raylib.RenderTexture2D) {
-		raylib.UnloadRenderTexture(text)
+	cleaner := runtime.AddCleanup(p, func(text rl.RenderTexture2D) {
+		rlx.UnloadRenderTexture(text)
 	}, text)
 	p.cleaner = &cleaner
 
@@ -139,15 +141,15 @@ func (p *Portal) Pair(e pub_object.Portal) {
 }
 
 // retrieve the portal display objects vertices
-func (p *Portal) GetVertices() []raylib.Vector3 {
+func (p *Portal) GetVertices() []rl.Vector3 {
 	if p == nil {
-		return []raylib.Vector3{}
+		return []rl.Vector3{}
 	}
 
 	if p.obj != nil {
 		return p.obj.GetVertices()
 	} else {
-		return []raylib.Vector3{}
+		return []rl.Vector3{}
 	}
 }
 
@@ -167,7 +169,7 @@ func (p *Portal) GetColor() color.Color {
 	return p.obj.GetColor()
 }
 
-func (p *Portal) SetScale(sc raylib.Vector3) {
+func (p *Portal) SetScale(sc rl.Vector3) {
 	if p == nil || p.obj == nil {
 		return
 	}
@@ -175,15 +177,15 @@ func (p *Portal) SetScale(sc raylib.Vector3) {
 	p.obj.SetScale(sc)
 }
 
-func (p *Portal) GetScale() raylib.Vector3 {
+func (p *Portal) GetScale() rl.Vector3 {
 	if p == nil || p.obj == nil {
-		return raylib.Vector3{}
+		return rl.Vector3{}
 	}
 
 	return p.obj.GetScale()
 }
 
-func (p *Portal) SetPos(pos raylib.Vector3) {
+func (p *Portal) SetPos(pos rl.Vector3) {
 	if p == nil || p.obj == nil {
 		return
 	}
@@ -191,29 +193,29 @@ func (p *Portal) SetPos(pos raylib.Vector3) {
 	p.obj.SetPos(pos)
 }
 
-func (p *Portal) GetPos() raylib.Vector3 {
+func (p *Portal) GetPos() rl.Vector3 {
 	if p == nil || p.obj == nil {
-		return raylib.Vector3{}
+		return rl.Vector3{}
 	}
 
 	return p.obj.GetPos()
 }
 
 // retrieve the portal texture uvs for the display object
-func (p *Portal) GetUVs() []raylib.Vector2 {
+func (p *Portal) GetUVs() []rl.Vector2 {
 	if p == nil {
-		return []raylib.Vector2{}
+		return []rl.Vector2{}
 	}
 
 	if p.obj != nil {
 		return p.obj.GetUVs()
 	} else {
-		return []raylib.Vector2{}
+		return []rl.Vector2{}
 	}
 }
 
 // set the texture uvs for the portal display object
-func (p *Portal) SetUVs(uvs []raylib.Vector2) {
+func (p *Portal) SetUVs(uvs []rl.Vector2) {
 	if p == nil {
 		return
 	}
@@ -224,19 +226,19 @@ func (p *Portal) SetUVs(uvs []raylib.Vector2) {
 }
 
 // get the portal render objects model matrix
-func (p *Portal) GetModelMatrix() raylib.Matrix {
+func (p *Portal) GetModelMatrix() rl.Matrix {
 	if p == nil {
-		return raylib.Matrix{}
+		return rl.Matrix{}
 	}
 
 	if p.obj != nil {
 		return p.obj.GetModelMatrix()
 	} else {
-		return raylib.MatrixTranslate(0, 0, 0)
+		return rl.MatrixTranslate(0, 0, 0)
 	}
 }
 
-func (p *Portal) GetModel() *raylib.Model {
+func (p *Portal) GetModel() *rl.Model {
 	if p == nil || p.obj == nil {
 		return nil
 	}
@@ -293,7 +295,7 @@ func (p *Portal) SetRoll(r float32) {
 }
 
 // get portal render material
-func (p *Portal) GetMaterials() *raylib.Material {
+func (p *Portal) GetMaterials() *rl.Material {
 	if p == nil {
 		return nil
 	}
@@ -301,11 +303,11 @@ func (p *Portal) GetMaterials() *raylib.Material {
 	if p.obj != nil {
 		return p.obj.GetMaterials()
 	}
-	return &raylib.Material{}
+	return &rl.Material{}
 }
 
 // set portal render texture
-func (p *Portal) SetTexture(tex raylib.Texture2D) {
+func (p *Portal) SetTexture(tex rl.Texture2D) {
 	if p == nil {
 		return
 	}
@@ -314,7 +316,7 @@ func (p *Portal) SetTexture(tex raylib.Texture2D) {
 }
 
 // get portal render texture
-func (p *Portal) GetTexture() *raylib.Texture2D {
+func (p *Portal) GetTexture() *rl.Texture2D {
 	if p == nil {
 		return nil
 	}
@@ -334,8 +336,8 @@ func (p *Portal) SetPortal(obj pub_object.Portal) {
 	p.obj = obj
 	p.obj.OnAdd(p)
 	p.obj.SetTexture(p.GetTexture())
-	raylib.SetTextureFilter(p.target.Texture, raylib.FilterBilinear)
-	raylib.SetTextureWrap(p.target.Texture, raylib.WrapRepeat)
+	rlx.SetTextureFilter(p.target.Texture, rl.FilterBilinear)
+	rlx.SetTextureWrap(p.target.Texture, rl.WrapRepeat)
 }
 
 // get portal render object
@@ -366,34 +368,34 @@ func (p *Portal) GetCam() pub_object.Camera {
 }
 
 // return normal for portal plane
-func (p *Portal) GetNormal() raylib.Vector3 {
+func (p *Portal) GetNormal() rl.Vector3 {
 	if p == nil || p.obj == nil {
-		return raylib.Vector3{}
+		return rl.Vector3{}
 	}
 
-	norm := raylib.NewVector3(0, 0, 1)
+	norm := rl.NewVector3(0, 0, 1)
 	Quat := lmath.Quat{}
 	Quat = *Quat.FromEuler(float64(p.obj.GetPitch()), float64(p.obj.GetYaw()), float64(p.obj.GetRoll()))
-	matRot := raylib.QuaternionToMatrix(raylib.NewQuaternion(float32(Quat.X), float32(Quat.Y), float32(Quat.Z), float32(Quat.W)))
-	norm = raylib.Vector3Transform(norm, matRot)
+	matRot := rl.QuaternionToMatrix(rl.NewQuaternion(float32(Quat.X), float32(Quat.Y), float32(Quat.Z), float32(Quat.W)))
+	norm = rl.Vector3Transform(norm, matRot)
 	return norm
 }
 
 // calculate transform for exit portal to entry portal
-func (p *Portal) GetTransform() raylib.Matrix {
+func (p *Portal) GetTransform() rl.Matrix {
 	if p == nil {
-		return raylib.MatrixIdentity()
+		return rl.MatrixIdentity()
 	}
 
 	//calculate portal camera position based on calling render camera
-	wldToLcl := raylib.MatrixInvert(p.GetModelMatrix())
-	lclToWld := raylib.MatrixIdentity()
+	wldToLcl := rl.MatrixInvert(p.GetModelMatrix())
+	lclToWld := rl.MatrixIdentity()
 	if p.exit != nil {
 		//need to flip to place camera looking out not in
-		flip := raylib.MatrixRotateY(raylib.Pi)
-		lclToWld = raylib.MatrixMultiply(flip, p.exit.GetModelMatrix())
+		flip := rl.MatrixRotateY(rl.Pi)
+		lclToWld = rl.MatrixMultiply(flip, p.exit.GetModelMatrix())
 	}
-	return raylib.MatrixMultiply(lclToWld, wldToLcl)
+	return rl.MatrixMultiply(lclToWld, wldToLcl)
 }
 
 // prerender hook
@@ -415,12 +417,12 @@ func (p *Portal) Prerender(cam pub_object.Camera) []func() {
 		mat := p.GetTransform()
 		pos := cam.GetPos()
 		tar := cam.GetTar()
-		p.cam.SetPos(raylib.Vector3Transform(pos, mat))
-		p.cam.SetTar(raylib.Vector3Transform(tar, mat))
+		p.cam.SetPos(rl.Vector3Transform(pos, mat))
+		p.cam.SetTar(rl.Vector3Transform(tar, mat))
 
 		//render from portals perspective
-		raylib.BeginTextureMode(*p.target)
-		raylib.ClearBackground(color.RGBA{255, 255, 255, 255})
+		rlx.BeginTextureMode(*p.target)
+		rlx.ClearBackground(color.RGBA{255, 255, 255, 255})
 		sh := app.CurApp.GetShader()
 		err := sh.SetDefine("PORTAL_SCN", true)
 		if err != nil {
@@ -454,7 +456,7 @@ func (p *Portal) Prerender(cam pub_object.Camera) []func() {
 		for _, obj := range p.exit.touching {
 			cmds = append(cmds, obj.Render(p.cam)...)
 		}
-		err = sh.SetUniform("portalMat", raylib.MatrixIdentity())
+		err = sh.SetUniform("portalMat", rl.MatrixIdentity())
 		if err != nil {
 			log.Printf("%+v\n", err)
 			p.visible = false
@@ -476,7 +478,7 @@ func (p *Portal) Prerender(cam pub_object.Camera) []func() {
 			log.Printf("%+v\n", err)
 			p.visible = false
 		}
-		raylib.EndTextureMode()
+		rlx.EndTextureMode()
 
 		p.rendering = false
 		p.visible = true
@@ -539,7 +541,7 @@ func (p *Portal) Render(cam pub_object.Camera) []func() {
 				p.exit.visible = false
 			}
 
-			mat := raylib.MatrixInvert(p.GetTransform())
+			mat := rl.MatrixInvert(p.GetTransform())
 			err = sh.SetUniform("portalMat", mat)
 			if err != nil {
 				log.Printf("%+v\n", err)
@@ -548,7 +550,7 @@ func (p *Portal) Render(cam pub_object.Camera) []func() {
 			for _, obj := range p.touching {
 				obj.Render(cam)
 			}
-			err = sh.SetUniform("portalMat", raylib.MatrixIdentity())
+			err = sh.SetUniform("portalMat", rl.MatrixIdentity())
 			if err != nil {
 				log.Printf("%+v\n", err)
 				p.visible = false
@@ -612,11 +614,11 @@ func (p *Portal) Update(dt float32) {
 		p.touching = col.GetTouching()
 	}
 	for _, obj := range p.touching {
-		if raylib.Vector3DotProduct(raylib.Vector3Subtract(obj.GetPos(), p.GetPos()), p.GetNormal()) > 0 {
+		if rl.Vector3DotProduct(rl.Vector3Subtract(obj.GetPos(), p.GetPos()), p.GetNormal()) > 0 {
 			if slices.Contains(p.GetScene().GetChilds(), obj) {
 				p.GetScene().RemChild(obj)
 				p.exit.GetScene().AddChild(obj)
-				mat := raylib.MatrixInvert(p.GetTransform())
+				mat := rl.MatrixInvert(p.GetTransform())
 				obj.SetPos(obj.GetPos().Transform(mat))
 			}
 		}
@@ -655,18 +657,18 @@ func (p *Portal) OnResize(w int32, h int32) {
 	}
 
 	if p.target != nil {
-		raylib.UnloadRenderTexture(*p.target)
+		rlx.UnloadRenderTexture(*p.target)
 		p.target = nil
 	}
-	text := raylib.LoadRenderTexture(app.CurApp.GetWidth(), app.CurApp.GetHeight())
-	raylib.SetTextureFilter(text.Texture, raylib.FilterBilinear)
-	raylib.SetTextureWrap(text.Texture, raylib.WrapRepeat)
+	text := rlx.LoadRenderTexture(app.CurApp.GetWidth(), app.CurApp.GetHeight())
+	rlx.SetTextureFilter(text.Texture, rl.FilterBilinear)
+	rlx.SetTextureWrap(text.Texture, rl.WrapRepeat)
 	p.target = &text
 	if p.cleaner != nil {
 		p.cleaner.Stop()
 	}
-	p.cleaner = &runtime.AddCleanup(p, func(text raylib.RenderTexture2D) {
-		raylib.UnloadRenderTexture(text)
+	p.cleaner = &runtime.AddCleanup(p, func(text rl.RenderTexture2D) {
+		rlx.UnloadRenderTexture(text)
 	}, text)
 }
 

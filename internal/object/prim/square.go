@@ -5,10 +5,11 @@ import (
 	"runtime"
 
 	"karalis/internal/collider"
+	"karalis/internal/rlx"
 	"karalis/pkg/app"
 	"karalis/res"
 
-	raylib "github.com/gen2brain/raylib-go/raylib"
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 var ()
@@ -23,7 +24,7 @@ func NewSquareMdl() (p *Prim, err error) {
 	}
 
 	switch model := mdl.(type) {
-	case raylib.Model:
+	case rl.Model:
 		p.mdl = model
 	default:
 		return nil, fmt.Errorf("Invalid model object\n")
@@ -31,8 +32,8 @@ func NewSquareMdl() (p *Prim, err error) {
 	if p.cleaner != nil {
 		p.cleaner.Stop()
 	}
-	cleaner := runtime.AddCleanup(p, func(mdl raylib.Model) {
-		raylib.UnloadModel(mdl)
+	cleaner := runtime.AddCleanup(p, func(mdl rl.Model) {
+		rlx.UnloadModel(mdl)
 	}, p.mdl)
 	p.cleaner = &cleaner
 
@@ -52,13 +53,13 @@ func NewSquare(l, w float32, dl, dw int) (p *Prim, err error) {
 	p = &Prim{}
 	p.init()
 
-	mesh := raylib.GenMeshPlane(l, w, dl, dw)
-	p.mdl = raylib.LoadModelFromMesh(mesh)
+	mesh := rlx.GenMeshPlane(l, w, dl, dw)
+	p.mdl = rlx.LoadModelFromMesh(mesh)
 	if p.cleaner != nil {
 		p.cleaner.Stop()
 	}
-	cleaner := runtime.AddCleanup(p, func(mdl raylib.Model) {
-		raylib.UnloadModel(mdl)
+	cleaner := runtime.AddCleanup(p, func(mdl rl.Model) {
+		rl.UnloadModel(mdl)
 	}, p.mdl)
 	p.cleaner = &cleaner
 

@@ -7,7 +7,7 @@ import (
 
 	pub_object "karalis/pkg/object"
 
-	raylib "github.com/gen2brain/raylib-go/raylib"
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 var ()
@@ -158,14 +158,14 @@ func (s *Scene) GetCollider() pub_object.Collider {
 	return nil
 }
 
-func (s *Scene) GetModelMatrix() raylib.Matrix {
+func (s *Scene) GetModelMatrix() rl.Matrix {
 	if s == nil {
-		return raylib.Matrix{}
+		return rl.Matrix{}
 	}
-	return raylib.Matrix{}
+	return rl.Matrix{}
 }
 
-func (s *Scene) GetModel() *raylib.Model {
+func (s *Scene) GetModel() *rl.Model {
 	if s == nil {
 		return nil
 	}
@@ -187,32 +187,32 @@ func (s *Scene) GetColor() color.Color {
 	return nil
 }
 
-func (s *Scene) GetScale() raylib.Vector3 {
+func (s *Scene) GetScale() rl.Vector3 {
 	if s == nil {
-		return raylib.Vector3{}
+		return rl.Vector3{}
 	}
 
-	return raylib.Vector3{}
+	return rl.Vector3{}
 }
 
-func (s *Scene) SetScale(sc raylib.Vector3) {
+func (s *Scene) SetScale(sc rl.Vector3) {
 	if s == nil {
 		return
 	}
 }
 
-func (s *Scene) SetPos(pos raylib.Vector3) {
+func (s *Scene) SetPos(pos rl.Vector3) {
 	if s == nil {
 		return
 	}
 }
 
-func (s *Scene) GetPos() raylib.Vector3 {
+func (s *Scene) GetPos() rl.Vector3 {
 	if s == nil {
-		return raylib.Vector3{}
+		return rl.Vector3{}
 	}
 
-	return raylib.Vector3{}
+	return rl.Vector3{}
 }
 
 func (s *Scene) GetPitch() float32 {
@@ -257,27 +257,27 @@ func (s *Scene) SetRoll(roll float32) {
 	}
 }
 
-func (s *Scene) GetVertices() []raylib.Vector3 {
+func (s *Scene) GetVertices() []rl.Vector3 {
 	if s == nil {
-		return []raylib.Vector3{}
+		return []rl.Vector3{}
 	}
-	return []raylib.Vector3{}
+	return []rl.Vector3{}
 }
 
-func (s *Scene) GetUVs() []raylib.Vector2 {
+func (s *Scene) GetUVs() []rl.Vector2 {
 	if s == nil {
-		return []raylib.Vector2{}
+		return []rl.Vector2{}
 	}
-	return []raylib.Vector2{}
+	return []rl.Vector2{}
 }
 
-func (s *Scene) SetUVs(uvs []raylib.Vector2) {
+func (s *Scene) SetUVs(uvs []rl.Vector2) {
 	if s == nil {
 		return
 	}
 }
 
-func (s *Scene) GetMaterials() *raylib.Material {
+func (s *Scene) GetMaterials() *rl.Material {
 	if s == nil {
 		return nil
 	}
@@ -285,13 +285,13 @@ func (s *Scene) GetMaterials() *raylib.Material {
 	return nil
 }
 
-func (s *Scene) SetTexture(tex raylib.Texture2D) {
+func (s *Scene) SetTexture(tex rl.Texture2D) {
 	if s == nil {
 		return
 	}
 }
 
-func (s *Scene) GetTexture() *raylib.Texture2D {
+func (s *Scene) GetTexture() *rl.Texture2D {
 	if s == nil {
 		return nil
 	}

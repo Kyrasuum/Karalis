@@ -14,27 +14,29 @@ import (
 	"strings"
 	"unsafe"
 
+	"karalis/internal/rlx"
 	"karalis/pkg/app"
-	pub_object "karalis/pkg/object"
+	"karalis/pkg/lmath"
 	"karalis/pkg/rng"
 	"karalis/res"
 
-	raylib "github.com/gen2brain/raylib-go/raylib"
-	lmath "karalis/pkg/lmath"
+	pub_object "karalis/pkg/object"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 type Dungeon struct {
-	tex *raylib.Texture2D
-	mdl *raylib.Model
+	tex *rl.Texture2D
+	mdl *rl.Model
 
 	hm   *image.RGBA
 	seed int64
 
 	parent  pub_object.Object
 	cleaner *runtime.Cleanup
-	pos     raylib.Vector3
-	rot     raylib.Vector3
-	scale   raylib.Vector3
+	pos     rl.Vector3
+	rot     rl.Vector3
+	scale   rl.Vector3
 }
 
 func RandDungeon(offx, offy, width, height int, seed int64) (d *Dungeon, err error) {
@@ -77,9 +79,9 @@ func (d *Dungeon) Init() error {
 		return fmt.Errorf("Invalid Dungeon")
 	}
 	d.parent = nil
-	d.pos = raylib.NewVector3(0, 0, 0)
-	d.rot = raylib.NewVector3(0, 0, 0)
-	d.scale = raylib.NewVector3(1, 1, 1)
+	d.pos = rl.NewVector3(0, 0, 0)
+	d.rot = rl.NewVector3(0, 0, 0)
+	d.scale = rl.NewVector3(1, 1, 1)
 
 	err := d.LoadImage(nil)
 	if err != nil {
@@ -98,7 +100,7 @@ func (d *Dungeon) LoadImage(i interface{}) error {
 		return fmt.Errorf("Invalid Dungeon")
 	}
 
-	var img *raylib.Image
+	var img *rl.Image
 	switch data := i.(type) {
 	case string:
 		tex, err := res.GetRes(data)
@@ -135,9 +137,9 @@ func (d *Dungeon) LoadImage(i interface{}) error {
 		}
 		return d.LoadImage(pic)
 	case image.Image:
-		img = raylib.NewImageFromImage(data)
-	case raylib.Color:
-		img = raylib.GenImageColor(1536, 256, data)
+		img = rlx.NewImageFromImage(data)
+	case rl.Color:
+		img = rlx.GenImageColor(1536, 256, data)
 	default:
 		if d.tex != nil {
 			return nil
@@ -151,27 +153,27 @@ func (d *Dungeon) LoadImage(i interface{}) error {
 				cube.Set(i, j, color)
 			}
 		}
-		img = raylib.NewImageFromImage(cube)
+		img = rlx.NewImageFromImage(cube)
 	}
-	tex := raylib.LoadTextureFromImage(img)
+	tex := rlx.LoadTextureFromImage(img)
 	d.tex = &tex
 	if d.cleaner != nil {
 		d.cleaner.Stop()
 	}
 	cleaner := runtime.AddCleanup(d, func(in []interface{}) {
-		raylib.UnloadTexture(in[0].(raylib.Texture2D))
+		rlx.UnloadTexture(in[0].(rl.Texture2D))
 	}, []interface{}{*d.tex})
 	d.cleaner = &cleaner
 
 	if d.mdl != nil {
-		raylib.SetMaterialTexture(d.mdl.Materials, raylib.MapDiffuse, *d.tex)
+		rlx.SetMaterialTexture(d.mdl.Materials, rl.MapDiffuse, *d.tex)
 		d.mdl.Materials.Shader = *app.CurApp.GetShader().GetShader()
 		if d.cleaner != nil {
 			d.cleaner.Stop()
 		}
 		cleaner := runtime.AddCleanup(d, func(in []interface{}) {
-			raylib.UnloadTexture(in[0].(raylib.Texture2D))
-			raylib.UnloadModel(in[1].(raylib.Model))
+			rlx.UnloadTexture(in[0].(rl.Texture2D))
+			rlx.UnloadModel(in[1].(rl.Model))
 		}, []interface{}{*d.tex, *d.mdl})
 		d.cleaner = &cleaner
 	}
@@ -255,9 +257,9 @@ func (d *Dungeon) LoadMap(m string) error {
 
 func (d *Dungeon) GenDungeon(img *image.RGBA) {
 	d.hm = img
-	hm := raylib.NewImageFromImage(img)
-	mesh := raylib.GenMeshHeightmap(*hm, raylib.NewVector3(1, 1, 1))
-	mdl := raylib.LoadModelFromMesh(mesh)
+	hm := rlx.NewImageFromImage(img)
+	mesh := rlx.GenMeshHeightmap(*hm, rl.NewVector3(1, 1, 1))
+	mdl := rlx.LoadModelFromMesh(mesh)
 
 	d.mdl = &mdl
 	if d.tex == nil {
@@ -267,12 +269,12 @@ func (d *Dungeon) GenDungeon(img *image.RGBA) {
 		d.cleaner.Stop()
 	}
 	cleaner := runtime.AddCleanup(d, func(in []interface{}) {
-		raylib.UnloadTexture(in[0].(raylib.Texture2D))
-		raylib.UnloadModel(in[1].(raylib.Model))
+		rlx.UnloadTexture(in[0].(rl.Texture2D))
+		rlx.UnloadModel(in[1].(rl.Model))
 	}, []interface{}{*d.tex, *d.mdl})
 	d.cleaner = &cleaner
 
-	raylib.SetMaterialTexture(d.mdl.Materials, raylib.MapDiffuse, *d.tex)
+	rlx.SetMaterialTexture(d.mdl.Materials, rl.MapDiffuse, *d.tex)
 	d.mdl.Materials.Shader = *app.CurApp.GetShader().GetShader()
 }
 
@@ -291,9 +293,9 @@ func (d *Dungeon) Render(cam pub_object.Camera) []func() {
 		return cmds
 	}
 
-	raylib.Color4ub(255, 255, 255, 255)
+	rl.Color4ub(255, 255, 255, 255)
 	matTransform := d.GetModelMatrix()
-	raylib.DrawMesh(*d.mdl.Meshes, *d.mdl.Materials, matTransform)
+	rlx.DrawMesh(*d.mdl.Meshes, *d.mdl.Materials, matTransform)
 
 	return cmds
 }
@@ -361,22 +363,22 @@ func (d *Dungeon) GetChilds() []pub_object.Object {
 	return []pub_object.Object{}
 }
 
-func (d *Dungeon) GetModelMatrix() raylib.Matrix {
+func (d *Dungeon) GetModelMatrix() rl.Matrix {
 	if d == nil {
-		return raylib.Matrix{}
+		return rl.Matrix{}
 	}
 
-	matScale := raylib.MatrixScale(d.scale.X, d.scale.Y, d.scale.Z)
+	matScale := rl.MatrixScale(d.scale.X, d.scale.Y, d.scale.Z)
 	Quat := lmath.Quat{}
 	Quat = *Quat.FromEuler(float64(d.GetPitch()), float64(d.GetYaw()), float64(d.GetRoll()))
-	matRotation := raylib.QuaternionToMatrix(raylib.NewQuaternion(float32(Quat.X), float32(Quat.Y), float32(Quat.Z), float32(Quat.W)))
-	matTranslation := raylib.MatrixTranslate(d.pos.X, d.pos.Y, d.pos.Z)
-	matTransform := raylib.MatrixMultiply(raylib.MatrixMultiply(matScale, matRotation), matTranslation)
-	matTransform = raylib.MatrixMultiply(d.mdl.Transform, matTransform)
+	matRotation := rl.QuaternionToMatrix(rl.NewQuaternion(float32(Quat.X), float32(Quat.Y), float32(Quat.Z), float32(Quat.W)))
+	matTranslation := rl.MatrixTranslate(d.pos.X, d.pos.Y, d.pos.Z)
+	matTransform := rl.MatrixMultiply(rl.MatrixMultiply(matScale, matRotation), matTranslation)
+	matTransform = rl.MatrixMultiply(d.mdl.Transform, matTransform)
 	return matTransform
 }
 
-func (d *Dungeon) GetModel() *raylib.Model {
+func (d *Dungeon) GetModel() *rl.Model {
 	if d == nil {
 		return nil
 	}
@@ -395,18 +397,18 @@ func (d *Dungeon) GetColor() color.Color {
 		return nil
 	}
 
-	return raylib.White
+	return rl.White
 }
 
-func (d *Dungeon) GetScale() raylib.Vector3 {
+func (d *Dungeon) GetScale() rl.Vector3 {
 	if d == nil {
-		return raylib.Vector3{}
+		return rl.Vector3{}
 	}
 
 	return d.scale
 }
 
-func (d *Dungeon) SetScale(sc raylib.Vector3) {
+func (d *Dungeon) SetScale(sc rl.Vector3) {
 	if d == nil {
 		return
 	}
@@ -414,7 +416,7 @@ func (d *Dungeon) SetScale(sc raylib.Vector3) {
 	d.scale = sc
 }
 
-func (d *Dungeon) SetPos(pos raylib.Vector3) {
+func (d *Dungeon) SetPos(pos rl.Vector3) {
 	if d == nil {
 		return
 	}
@@ -422,9 +424,9 @@ func (d *Dungeon) SetPos(pos raylib.Vector3) {
 	d.pos = pos
 }
 
-func (d *Dungeon) GetPos() raylib.Vector3 {
+func (d *Dungeon) GetPos() rl.Vector3 {
 	if d == nil {
-		return raylib.Vector3{}
+		return rl.Vector3{}
 	}
 
 	return d.pos
@@ -478,12 +480,12 @@ func (d *Dungeon) SetRoll(roll float32) {
 	d.rot.Z = roll
 }
 
-func (d *Dungeon) GetVertices() []raylib.Vector3 {
+func (d *Dungeon) GetVertices() []rl.Vector3 {
 	if d == nil {
-		return []raylib.Vector3{}
+		return []rl.Vector3{}
 	}
 
-	verts := []raylib.Vector3{}
+	verts := []rl.Vector3{}
 	length := d.mdl.Meshes.VertexCount
 
 	var mdlverts []float32
@@ -494,17 +496,17 @@ func (d *Dungeon) GetVertices() []raylib.Vector3 {
 	header.Cap = int(length)
 
 	for i := 0; i < len(mdlverts); i++ {
-		verts = append(verts, raylib.NewVector3(mdlverts[3*i], mdlverts[3*i+1], mdlverts[3*i+2]))
+		verts = append(verts, rl.NewVector3(mdlverts[3*i], mdlverts[3*i+1], mdlverts[3*i+2]))
 	}
 	return verts
 }
 
-func (d *Dungeon) GetUVs() []raylib.Vector2 {
+func (d *Dungeon) GetUVs() []rl.Vector2 {
 	if d == nil {
-		return []raylib.Vector2{}
+		return []rl.Vector2{}
 	}
 
-	uvs := []raylib.Vector2{}
+	uvs := []rl.Vector2{}
 	length := d.mdl.Meshes.VertexCount
 	var mdluvs []float32
 
@@ -514,12 +516,12 @@ func (d *Dungeon) GetUVs() []raylib.Vector2 {
 	header.Cap = int(length)
 
 	for i := 0; i < len(mdluvs); i++ {
-		uvs = append(uvs, raylib.NewVector2(mdluvs[2*i], mdluvs[2*i+1]))
+		uvs = append(uvs, rl.NewVector2(mdluvs[2*i], mdluvs[2*i+1]))
 	}
 	return uvs
 }
 
-func (d *Dungeon) SetUVs(uvs []raylib.Vector2) {
+func (d *Dungeon) SetUVs(uvs []rl.Vector2) {
 	if d == nil {
 		return
 	}
@@ -539,7 +541,7 @@ func (d *Dungeon) SetUVs(uvs []raylib.Vector2) {
 	pub_object.UpdateModelUVs(d.mdl)
 }
 
-func (d *Dungeon) GetMaterials() *raylib.Material {
+func (d *Dungeon) GetMaterials() *rl.Material {
 	if d == nil {
 		return nil
 	}
@@ -547,7 +549,7 @@ func (d *Dungeon) GetMaterials() *raylib.Material {
 	return d.mdl.Materials
 }
 
-func (d *Dungeon) SetTexture(tex raylib.Texture2D) {
+func (d *Dungeon) SetTexture(tex rl.Texture2D) {
 	if d == nil {
 		return
 	}
@@ -557,25 +559,25 @@ func (d *Dungeon) SetTexture(tex raylib.Texture2D) {
 		d.cleaner.Stop()
 	}
 	cleaner := runtime.AddCleanup(d, func(in []interface{}) {
-		raylib.UnloadTexture(in[0].(raylib.Texture2D))
+		rlx.UnloadTexture(in[0].(rl.Texture2D))
 	}, []interface{}{*d.tex})
 	d.cleaner = &cleaner
 
 	if d.mdl != nil {
-		raylib.SetMaterialTexture(d.mdl.Materials, raylib.MapDiffuse, *d.tex)
+		rlx.SetMaterialTexture(d.mdl.Materials, rl.MapDiffuse, *d.tex)
 		d.mdl.Materials.Shader = *app.CurApp.GetShader().GetShader()
 		if d.cleaner != nil {
 			d.cleaner.Stop()
 		}
 		cleaner := runtime.AddCleanup(d, func(in []interface{}) {
-			raylib.UnloadTexture(in[0].(raylib.Texture2D))
-			raylib.UnloadModel(in[1].(raylib.Model))
+			rlx.UnloadTexture(in[0].(rl.Texture2D))
+			rlx.UnloadModel(in[1].(rl.Model))
 		}, []interface{}{*d.tex, *d.mdl})
 		d.cleaner = &cleaner
 	}
 }
 
-func (d *Dungeon) GetTexture() *raylib.Texture2D {
+func (d *Dungeon) GetTexture() *rl.Texture2D {
 	if d == nil {
 		return nil
 	}

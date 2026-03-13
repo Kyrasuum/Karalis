@@ -7,7 +7,7 @@ import (
 
 	pub_object "karalis/pkg/object"
 
-	raylib "github.com/gen2brain/raylib-go/raylib"
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 var (
@@ -20,7 +20,7 @@ type Cell struct {
 	childs  []pub_object.Object
 }
 
-func NewTerrainCell(pos, sc raylib.Vector3, seed int64) (*Cell, error) {
+func NewTerrainCell(pos, sc rl.Vector3, seed int64) (*Cell, error) {
 	c := &Cell{}
 	err := c.Init()
 	if err != nil {
@@ -39,7 +39,7 @@ func NewTerrainCell(pos, sc raylib.Vector3, seed int64) (*Cell, error) {
 	return c, nil
 }
 
-func NewCityCell(pos, sc raylib.Vector3, seed int64) (*Cell, error) {
+func NewCityCell(pos, sc rl.Vector3, seed int64) (*Cell, error) {
 	c := &Cell{}
 	err := c.Init()
 	if err != nil {
@@ -58,7 +58,7 @@ func NewCityCell(pos, sc raylib.Vector3, seed int64) (*Cell, error) {
 	return c, nil
 }
 
-func NewDungeonCell(pos, sc raylib.Vector3, seed int64) (*Cell, error) {
+func NewDungeonCell(pos, sc rl.Vector3, seed int64) (*Cell, error) {
 	c := &Cell{}
 	err := c.Init()
 	if err != nil {
@@ -236,14 +236,14 @@ func (c *Cell) GetCollider() pub_object.Collider {
 	return nil
 }
 
-func (c *Cell) GetModelMatrix() raylib.Matrix {
+func (c *Cell) GetModelMatrix() rl.Matrix {
 	if c == nil || c.terrain == nil {
-		return raylib.Matrix{}
+		return rl.Matrix{}
 	}
 	return c.terrain.GetModelMatrix()
 }
 
-func (c *Cell) GetModel() *raylib.Model {
+func (c *Cell) GetModel() *rl.Model {
 	if c == nil || c.terrain == nil {
 		return nil
 	}
@@ -266,31 +266,31 @@ func (c *Cell) GetColor() color.Color {
 	return c.terrain.GetColor()
 }
 
-func (c *Cell) GetScale() raylib.Vector3 {
+func (c *Cell) GetScale() rl.Vector3 {
 	if c == nil || c.terrain == nil {
-		return raylib.Vector3{}
+		return rl.Vector3{}
 	}
 
 	return c.terrain.GetScale()
 }
 
-func (c *Cell) SetScale(sc raylib.Vector3) {
+func (c *Cell) SetScale(sc rl.Vector3) {
 	if c == nil || c.terrain == nil {
 		return
 	}
 	c.terrain.SetScale(sc)
 }
 
-func (c *Cell) SetPos(pos raylib.Vector3) {
+func (c *Cell) SetPos(pos rl.Vector3) {
 	if c == nil || c.terrain == nil {
 		return
 	}
 	c.terrain.SetPos(pos)
 }
 
-func (c *Cell) GetPos() raylib.Vector3 {
+func (c *Cell) GetPos() rl.Vector3 {
 	if c == nil || c.terrain == nil {
-		return raylib.Vector3{}
+		return rl.Vector3{}
 	}
 
 	return c.terrain.GetPos()
@@ -341,28 +341,28 @@ func (c *Cell) SetRoll(roll float32) {
 	c.terrain.SetRoll(roll)
 }
 
-func (c *Cell) GetVertices() []raylib.Vector3 {
+func (c *Cell) GetVertices() []rl.Vector3 {
 	if c == nil || c.terrain == nil {
-		return []raylib.Vector3{}
+		return []rl.Vector3{}
 	}
 	return c.terrain.GetVertices()
 }
 
-func (c *Cell) GetUVs() []raylib.Vector2 {
+func (c *Cell) GetUVs() []rl.Vector2 {
 	if c == nil || c.terrain == nil {
-		return []raylib.Vector2{}
+		return []rl.Vector2{}
 	}
 	return c.terrain.GetUVs()
 }
 
-func (c *Cell) SetUVs(uvs []raylib.Vector2) {
+func (c *Cell) SetUVs(uvs []rl.Vector2) {
 	if c == nil || c.terrain == nil {
 		return
 	}
 	c.terrain.SetUVs(uvs)
 }
 
-func (c *Cell) GetMaterials() *raylib.Material {
+func (c *Cell) GetMaterials() *rl.Material {
 	if c == nil || c.terrain == nil {
 		return nil
 	}
@@ -370,14 +370,14 @@ func (c *Cell) GetMaterials() *raylib.Material {
 	return c.terrain.GetMaterials()
 }
 
-func (c *Cell) SetTexture(tex raylib.Texture2D) {
+func (c *Cell) SetTexture(tex rl.Texture2D) {
 	if c == nil || c.terrain == nil {
 		return
 	}
 	c.terrain.SetTexture(tex)
 }
 
-func (c *Cell) GetTexture() *raylib.Texture2D {
+func (c *Cell) GetTexture() *rl.Texture2D {
 	if c == nil || c.terrain == nil {
 		return nil
 	}

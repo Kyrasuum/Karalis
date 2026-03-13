@@ -6,16 +6,18 @@ import (
 	"os"
 	"time"
 
+	"karalis/internal/rlx"
 	"karalis/internal/shader"
 	"karalis/internal/stage"
-	App "karalis/pkg/app"
 	"karalis/pkg/config"
 	"karalis/pkg/input"
-	pub_shader "karalis/pkg/shader"
-	pub_stage "karalis/pkg/stage"
 	"karalis/res"
 
-	raylib "github.com/gen2brain/raylib-go/raylib"
+	App "karalis/pkg/app"
+	pub_shader "karalis/pkg/shader"
+	pub_stage "karalis/pkg/stage"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 var ()
@@ -64,18 +66,18 @@ func (a *app) handleInput(dt float32) {
 
 // render cycle
 func (a *app) render() {
-	raylib.BeginDrawing()
-	raylib.ClearBackground(color.RGBA{0, 0, 0, 255})
+	rlx.BeginDrawing()
+	rlx.ClearBackground(color.RGBA{0, 0, 0, 255})
 	if a.curStage != nil {
 		a.curStage.Render()
 	}
-	raylib.EndDrawing()
+	rlx.EndDrawing()
 }
 
 // handle resizing
 func (a *app) onResize() {
-	w := int32(raylib.GetScreenWidth())
-	h := int32(raylib.GetScreenHeight())
+	w := int32(rlx.GetScreenWidth())
+	h := int32(rlx.GetScreenHeight())
 
 	//check for resize event
 	if a.width != w || a.height != h {
@@ -106,14 +108,16 @@ func (a *app) GetHeight() int32 {
 
 // detect if app should continue running
 func (a *app) Running() bool {
-	return !raylib.WindowShouldClose()
+	return !rlx.WindowShouldClose()
 }
 
 // main run loop for the app while running
 func (a *app) run(debug bool) error {
-	raylib.SetConfigFlags(raylib.FlagWindowResizable)
-	raylib.InitWindow(a.width, a.height, config.AppName)
-	raylib.SetTargetFPS(int32(time.Second / (time.Duration(a.drawInterval) * time.Millisecond)))
+	rlx.EnterMainThread()
+	defer rlx.ExitMainThread()
+	rlx.SetConfigFlags(rl.FlagWindowResizable)
+	rlx.InitWindow(a.width, a.height, config.AppName)
+	rlx.SetTargetFPS(int32(time.Second / (time.Duration(a.drawInterval) * time.Millisecond)))
 
 	if debug {
 		file, err := os.OpenFile("info.log", os.O_CREATE|os.O_WRONLY, 0644)
@@ -146,19 +150,20 @@ func (a *app) run(debug bool) error {
 	//logic loop
 	go func() {
 		for a.Running() {
-			dt := raylib.GetFrameTime()
+			dt := rlx.GetFrameTime()
 			a.onResize()
 			a.update(dt)
-			if raylib.IsCursorOnScreen() {
+			if rlx.IsCursorOnScreen() {
 				a.handleInput(dt)
 			}
 			time.Sleep(time.Duration(a.logicInterval) * time.Millisecond)
 		}
 	}()
 
-	//render loop
+	//handle gpu calls
 	for a.Running() {
 		a.render()
+		rlx.Poll()
 		time.Sleep(time.Duration(a.drawInterval) * time.Millisecond)
 	}
 
@@ -194,7 +199,7 @@ func (a *app) Exit() {
 	if a.curShader != nil {
 		a.curShader.OnRemove()
 	}
-	raylib.CloseWindow()
+	rlx.CloseWindow()
 }
 
 // start the application

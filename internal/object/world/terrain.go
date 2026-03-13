@@ -14,18 +14,20 @@ import (
 	"strings"
 	"unsafe"
 
+	"karalis/internal/rlx"
 	"karalis/pkg/app"
-	pub_object "karalis/pkg/object"
+	"karalis/pkg/lmath"
 	"karalis/pkg/rng"
 	"karalis/res"
 
-	raylib "github.com/gen2brain/raylib-go/raylib"
-	lmath "karalis/pkg/lmath"
+	pub_object "karalis/pkg/object"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 type Terrain struct {
-	tex *raylib.Texture2D
-	mdl *raylib.Model
+	tex *rl.Texture2D
+	mdl *rl.Model
 
 	hm   *image.RGBA
 	grs  *Grass
@@ -34,9 +36,9 @@ type Terrain struct {
 
 	parent  pub_object.Object
 	cleaner *runtime.Cleanup
-	pos     raylib.Vector3
-	rot     raylib.Vector3
-	scale   raylib.Vector3
+	pos     rl.Vector3
+	rot     rl.Vector3
+	scale   rl.Vector3
 }
 
 func RandTerrain(offx, offy float64, width, height int, seed int64) (t *Terrain, err error) {
@@ -79,9 +81,9 @@ func (t *Terrain) Init() error {
 		return fmt.Errorf("Invalid terrain")
 	}
 	t.parent = nil
-	t.pos = raylib.NewVector3(0, 0, 0)
-	t.rot = raylib.NewVector3(0, 0, 0)
-	t.scale = raylib.NewVector3(1, 1, 1)
+	t.pos = rl.NewVector3(0, 0, 0)
+	t.rot = rl.NewVector3(0, 0, 0)
+	t.scale = rl.NewVector3(1, 1, 1)
 
 	err := t.LoadImage(nil)
 	if err != nil {
@@ -110,7 +112,7 @@ func (t *Terrain) LoadImage(i interface{}) error {
 		return fmt.Errorf("Invalid terrain")
 	}
 
-	var img *raylib.Image
+	var img *rl.Image
 	switch data := i.(type) {
 	case string:
 		tex, err := res.GetRes(data)
@@ -147,9 +149,9 @@ func (t *Terrain) LoadImage(i interface{}) error {
 		}
 		return t.LoadImage(pic)
 	case image.Image:
-		img = raylib.NewImageFromImage(data)
-	case raylib.Color:
-		img = raylib.GenImageColor(1536, 256, data)
+		img = rlx.NewImageFromImage(data)
+	case rl.Color:
+		img = rlx.GenImageColor(1536, 256, data)
 	default:
 		if t.tex != nil {
 			return nil
@@ -163,27 +165,27 @@ func (t *Terrain) LoadImage(i interface{}) error {
 				cube.Set(i, j, color)
 			}
 		}
-		img = raylib.NewImageFromImage(cube)
+		img = rlx.NewImageFromImage(cube)
 	}
-	tex := raylib.LoadTextureFromImage(img)
+	tex := rlx.LoadTextureFromImage(img)
 	t.tex = &tex
 	if t.cleaner != nil {
 		t.cleaner.Stop()
 	}
 	cleaner := runtime.AddCleanup(t, func(in []interface{}) {
-		raylib.UnloadTexture(in[0].(raylib.Texture2D))
+		rlx.UnloadTexture(in[0].(rl.Texture2D))
 	}, []interface{}{*t.tex})
 	t.cleaner = &cleaner
 
 	if t.mdl != nil {
-		raylib.SetMaterialTexture(t.mdl.Materials, raylib.MapDiffuse, *t.tex)
+		rlx.SetMaterialTexture(t.mdl.Materials, rl.MapDiffuse, *t.tex)
 		t.mdl.Materials.Shader = *app.CurApp.GetShader().GetShader()
 		if t.cleaner != nil {
 			t.cleaner.Stop()
 		}
 		cleaner := runtime.AddCleanup(t, func(in []interface{}) {
-			raylib.UnloadTexture(in[0].(raylib.Texture2D))
-			raylib.UnloadModel(in[1].(raylib.Model))
+			rlx.UnloadTexture(in[0].(rl.Texture2D))
+			rlx.UnloadModel(in[1].(rl.Model))
 		}, []interface{}{*t.tex, *t.mdl})
 		t.cleaner = &cleaner
 	}
@@ -268,9 +270,9 @@ func (t *Terrain) LoadMap(m string) error {
 
 func (t *Terrain) GenTerrain(img *image.RGBA) {
 	t.hm = img
-	hm := raylib.NewImageFromImage(img)
-	mesh := raylib.GenMeshHeightmap(*hm, raylib.NewVector3(1, 1, 1))
-	mdl := raylib.LoadModelFromMesh(mesh)
+	hm := rlx.NewImageFromImage(img)
+	mesh := rlx.GenMeshHeightmap(*hm, rl.NewVector3(1, 1, 1))
+	mdl := rlx.LoadModelFromMesh(mesh)
 
 	t.mdl = &mdl
 	if t.tex == nil {
@@ -281,14 +283,14 @@ func (t *Terrain) GenTerrain(img *image.RGBA) {
 		t.grs.Update(0.0)
 	}
 
-	raylib.SetMaterialTexture(t.mdl.Materials, raylib.MapDiffuse, *t.tex)
+	rlx.SetMaterialTexture(t.mdl.Materials, rl.MapDiffuse, *t.tex)
 	t.mdl.Materials.Shader = *app.CurApp.GetShader().GetShader()
 	if t.cleaner != nil {
 		t.cleaner.Stop()
 	}
 	cleaner := runtime.AddCleanup(t, func(in []interface{}) {
-		raylib.UnloadTexture(in[0].(raylib.Texture2D))
-		raylib.UnloadModel(in[1].(raylib.Model))
+		rlx.UnloadTexture(in[0].(rl.Texture2D))
+		rlx.UnloadModel(in[1].(rl.Model))
 	}, []interface{}{*t.tex, *t.mdl})
 	t.cleaner = &cleaner
 }
@@ -310,10 +312,10 @@ func (t *Terrain) Render(cam pub_object.Camera) []func() {
 		return cmds
 	}
 
-	raylib.Color4ub(255, 255, 255, 255)
+	rlx.Color4ub(255, 255, 255, 255)
 	matTransform := t.GetModelMatrix()
 
-	raylib.DrawMesh(*t.mdl.Meshes, *t.mdl.Materials, matTransform)
+	rlx.DrawMesh(*t.mdl.Meshes, *t.mdl.Materials, matTransform)
 	cmds = append(cmds, t.grs.Render(cam)...)
 	cmds = append(cmds, t.wtr.Render(cam)...)
 
@@ -387,22 +389,22 @@ func (t *Terrain) GetChilds() []pub_object.Object {
 	return []pub_object.Object{}
 }
 
-func (t *Terrain) GetModelMatrix() raylib.Matrix {
+func (t *Terrain) GetModelMatrix() rl.Matrix {
 	if t == nil {
-		return raylib.Matrix{}
+		return rl.Matrix{}
 	}
 
-	matScale := raylib.MatrixScale(t.scale.X, t.scale.Y, t.scale.Z)
+	matScale := rl.MatrixScale(t.scale.X, t.scale.Y, t.scale.Z)
 	Quat := lmath.Quat{}
 	Quat = *Quat.FromEuler(float64(t.GetPitch()), float64(t.GetYaw()), float64(t.GetRoll()))
-	matRotation := raylib.QuaternionToMatrix(raylib.NewQuaternion(float32(Quat.X), float32(Quat.Y), float32(Quat.Z), float32(Quat.W)))
-	matTranslation := raylib.MatrixTranslate(t.pos.X, t.pos.Y, t.pos.Z)
-	matTransform := raylib.MatrixMultiply(raylib.MatrixMultiply(matScale, matRotation), matTranslation)
-	matTransform = raylib.MatrixMultiply(t.mdl.Transform, matTransform)
+	matRotation := rl.QuaternionToMatrix(rl.NewQuaternion(float32(Quat.X), float32(Quat.Y), float32(Quat.Z), float32(Quat.W)))
+	matTranslation := rl.MatrixTranslate(t.pos.X, t.pos.Y, t.pos.Z)
+	matTransform := rl.MatrixMultiply(rl.MatrixMultiply(matScale, matRotation), matTranslation)
+	matTransform = rl.MatrixMultiply(t.mdl.Transform, matTransform)
 	return matTransform
 }
 
-func (t *Terrain) GetModel() *raylib.Model {
+func (t *Terrain) GetModel() *rl.Model {
 	if t == nil {
 		return nil
 	}
@@ -421,18 +423,18 @@ func (t *Terrain) GetColor() color.Color {
 		return nil
 	}
 
-	return raylib.White
+	return rl.White
 }
 
-func (t *Terrain) GetScale() raylib.Vector3 {
+func (t *Terrain) GetScale() rl.Vector3 {
 	if t == nil {
-		return raylib.Vector3{}
+		return rl.Vector3{}
 	}
 
 	return t.scale
 }
 
-func (t *Terrain) SetScale(sc raylib.Vector3) {
+func (t *Terrain) SetScale(sc rl.Vector3) {
 	if t == nil {
 		return
 	}
@@ -446,7 +448,7 @@ func (t *Terrain) SetScale(sc raylib.Vector3) {
 	}
 }
 
-func (t *Terrain) SetPos(pos raylib.Vector3) {
+func (t *Terrain) SetPos(pos rl.Vector3) {
 	if t == nil {
 		return
 	}
@@ -457,9 +459,9 @@ func (t *Terrain) SetPos(pos raylib.Vector3) {
 	}
 }
 
-func (t *Terrain) GetPos() raylib.Vector3 {
+func (t *Terrain) GetPos() rl.Vector3 {
 	if t == nil {
-		return raylib.Vector3{}
+		return rl.Vector3{}
 	}
 
 	return t.pos
@@ -522,12 +524,12 @@ func (t *Terrain) SetRoll(roll float32) {
 	}
 }
 
-func (t *Terrain) GetVertices() []raylib.Vector3 {
+func (t *Terrain) GetVertices() []rl.Vector3 {
 	if t == nil {
-		return []raylib.Vector3{}
+		return []rl.Vector3{}
 	}
 
-	verts := []raylib.Vector3{}
+	verts := []rl.Vector3{}
 	length := t.mdl.Meshes.VertexCount
 
 	var mdlverts []float32
@@ -538,17 +540,17 @@ func (t *Terrain) GetVertices() []raylib.Vector3 {
 	header.Cap = int(length)
 
 	for i := 0; i < len(mdlverts); i++ {
-		verts = append(verts, raylib.NewVector3(mdlverts[3*i], mdlverts[3*i+1], mdlverts[3*i+2]))
+		verts = append(verts, rl.NewVector3(mdlverts[3*i], mdlverts[3*i+1], mdlverts[3*i+2]))
 	}
 	return verts
 }
 
-func (t *Terrain) GetUVs() []raylib.Vector2 {
+func (t *Terrain) GetUVs() []rl.Vector2 {
 	if t == nil {
-		return []raylib.Vector2{}
+		return []rl.Vector2{}
 	}
 
-	uvs := []raylib.Vector2{}
+	uvs := []rl.Vector2{}
 	length := t.mdl.Meshes.VertexCount
 	var mdluvs []float32
 
@@ -558,12 +560,12 @@ func (t *Terrain) GetUVs() []raylib.Vector2 {
 	header.Cap = int(length)
 
 	for i := 0; i < len(mdluvs); i++ {
-		uvs = append(uvs, raylib.NewVector2(mdluvs[2*i], mdluvs[2*i+1]))
+		uvs = append(uvs, rl.NewVector2(mdluvs[2*i], mdluvs[2*i+1]))
 	}
 	return uvs
 }
 
-func (t *Terrain) SetUVs(uvs []raylib.Vector2) {
+func (t *Terrain) SetUVs(uvs []rl.Vector2) {
 	if t == nil {
 		return
 	}
@@ -583,7 +585,7 @@ func (t *Terrain) SetUVs(uvs []raylib.Vector2) {
 	pub_object.UpdateModelUVs(t.mdl)
 }
 
-func (t *Terrain) GetMaterials() *raylib.Material {
+func (t *Terrain) GetMaterials() *rl.Material {
 	if t == nil {
 		return nil
 	}
@@ -591,7 +593,7 @@ func (t *Terrain) GetMaterials() *raylib.Material {
 	return t.mdl.Materials
 }
 
-func (t *Terrain) SetTexture(tex raylib.Texture2D) {
+func (t *Terrain) SetTexture(tex rl.Texture2D) {
 	if t == nil {
 		return
 	}
@@ -601,25 +603,25 @@ func (t *Terrain) SetTexture(tex raylib.Texture2D) {
 		t.cleaner.Stop()
 	}
 	cleaner := runtime.AddCleanup(t, func(in []interface{}) {
-		raylib.UnloadTexture(in[0].(raylib.Texture2D))
+		rlx.UnloadTexture(in[0].(rl.Texture2D))
 	}, []interface{}{*t.tex})
 	t.cleaner = &cleaner
 
 	if t.mdl != nil {
-		raylib.SetMaterialTexture(t.mdl.Materials, raylib.MapDiffuse, *t.tex)
+		rlx.SetMaterialTexture(t.mdl.Materials, rl.MapDiffuse, *t.tex)
 		t.mdl.Materials.Shader = *app.CurApp.GetShader().GetShader()
 		if t.cleaner != nil {
 			t.cleaner.Stop()
 		}
 		cleaner := runtime.AddCleanup(t, func(in []interface{}) {
-			raylib.UnloadTexture(in[0].(raylib.Texture2D))
-			raylib.UnloadModel(in[1].(raylib.Model))
+			rlx.UnloadTexture(in[0].(rl.Texture2D))
+			rlx.UnloadModel(in[1].(rl.Model))
 		}, []interface{}{*t.tex, *t.mdl})
 		t.cleaner = &cleaner
 	}
 }
 
-func (t *Terrain) GetTexture() *raylib.Texture2D {
+func (t *Terrain) GetTexture() *rl.Texture2D {
 	if t == nil {
 		return nil
 	}

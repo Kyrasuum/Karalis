@@ -3,14 +3,14 @@ package ui
 import (
 	"image/color"
 
-	raylib "github.com/gen2brain/raylib-go/raylib"
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 var ()
 
 type Button struct {
-	pos    raylib.Rectangle
-	inset  raylib.Vector2
+	pos    rl.Rectangle
+	inset  rl.Vector2
 	border float32
 
 	hovered bool
@@ -18,7 +18,7 @@ type Button struct {
 
 	text    string
 	subtext string
-	font    raylib.Font
+	font    rl.Font
 
 	fontSize float32
 	spacing  float32
@@ -35,8 +35,8 @@ func (b *Button) defaults() {
 		return
 	}
 
-	b.pos = raylib.Rectangle{0, 0, 0, 0}
-	b.inset = raylib.Vector2{0, 0}
+	b.pos = rl.Rectangle{0, 0, 0, 0}
+	b.inset = rl.Vector2{0, 0}
 	b.border = float32(3)
 
 	b.hovered = false
@@ -44,7 +44,7 @@ func (b *Button) defaults() {
 
 	b.text = ""
 	b.subtext = ""
-	b.font = raylib.GetFontDefault()
+	b.font = rlx.GetFontDefault()
 
 	b.fontSize = 16
 	b.spacing = 1
@@ -74,7 +74,7 @@ func (b *Button) SetOnPress(f func()) {
 	b.onPress = f
 }
 
-func (b *Button) SetPosition(p raylib.Rectangle) {
+func (b *Button) SetPosition(p rl.Rectangle) {
 	if b == nil {
 		return
 	}
@@ -83,7 +83,7 @@ func (b *Button) SetPosition(p raylib.Rectangle) {
 	b.calcText()
 }
 
-func (b *Button) SetInset(i raylib.Vector2) {
+func (b *Button) SetInset(i rl.Vector2) {
 	if b == nil {
 		return
 	}
@@ -109,7 +109,7 @@ func (b *Button) SetText(t string) {
 	b.text = t
 }
 
-func (b *Button) SetFont(f raylib.Font) {
+func (b *Button) SetFont(f rl.Font) {
 	if b == nil {
 		return
 	}
@@ -156,7 +156,7 @@ func (b *Button) calcText() {
 
 	b.subtext = b.text[:0]
 	for i := 1; 1 < len(b.text); i++ {
-		w := raylib.MeasureTextEx(b.font, b.text[:i], b.fontSize, b.spacing)
+		w := rlx.MeasureTextEx(b.font, b.text[:i], b.fontSize, b.spacing)
 		if w.X > b.pos.Width-b.inset.X-b.border {
 			break
 		}
@@ -169,9 +169,9 @@ func (b *Button) Render() {
 		return
 	}
 
-	raylib.DrawRectangleLinesEx(b.pos, b.border, b.bordCol)
-	raylib.DrawRectangleRec(b.pos, b.bgCol)
-	raylib.DrawTextEx(b.font, b.subtext, raylib.Vector2{(b.pos.X + b.inset.X + b.border), (b.pos.Y + b.inset.Y + b.border)}, b.fontSize, b.spacing, b.textCol)
+	rlx.DrawRectangleLinesEx(b.pos, b.border, b.bordCol)
+	rlx.DrawRectangleRec(b.pos, b.bgCol)
+	rlx.DrawTextEx(b.font, b.subtext, rl.Vector2{(b.pos.X + b.inset.X + b.border), (b.pos.Y + b.inset.Y + b.border)}, b.fontSize, b.spacing, b.textCol)
 }
 
 func (b *Button) Update(dt float64) {
@@ -185,9 +185,9 @@ func (b *Button) OnInput() {
 		return
 	}
 
-	mp := raylib.GetMousePosition()
-	if raylib.CheckCollisionPointRec(mp, b.pos) {
-		if raylib.IsMouseButtonPressed(raylib.MouseLeftButton) {
+	mp := rlx.GetMousePosition()
+	if rlx.CheckCollisionPointRec(mp, b.pos) {
+		if rlx.IsMouseButtonPressed(rlx.MouseLeftButton) {
 			if !b.clicked {
 				b.onPress()
 			}

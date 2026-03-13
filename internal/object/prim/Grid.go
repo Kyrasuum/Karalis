@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"image/color"
 
+	"karalis/internal/rlx"
 	"karalis/pkg/app"
+
 	pub_object "karalis/pkg/object"
 
-	raylib "github.com/gen2brain/raylib-go/raylib"
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 var ()
@@ -38,15 +40,15 @@ func (g *Grid) Init() error {
 	return nil
 }
 
-func (g *Grid) GetModelMatrix() raylib.Matrix {
+func (g *Grid) GetModelMatrix() rl.Matrix {
 	if g == nil {
-		return raylib.Matrix{}
+		return rl.Matrix{}
 	}
 
-	return raylib.MatrixIdentity()
+	return rl.MatrixIdentity()
 }
 
-func (g *Grid) GetModel() *raylib.Model {
+func (g *Grid) GetModel() *rl.Model {
 	if g == nil {
 		return nil
 	}
@@ -65,35 +67,35 @@ func (g *Grid) GetColor() color.Color {
 		return nil
 	}
 
-	return raylib.White
+	return rl.White
 }
 
-func (g *Grid) SetScale(sc raylib.Vector3) {
+func (g *Grid) SetScale(sc rl.Vector3) {
 	if g == nil {
 		return
 	}
 }
 
-func (g *Grid) GetScale() raylib.Vector3 {
+func (g *Grid) GetScale() rl.Vector3 {
 	if g == nil {
-		return raylib.Vector3{}
+		return rl.Vector3{}
 	}
 
-	return raylib.NewVector3(1, 1, 1)
+	return rl.NewVector3(1, 1, 1)
 }
 
-func (g *Grid) SetPos(p raylib.Vector3) {
+func (g *Grid) SetPos(p rl.Vector3) {
 	if g == nil {
 		return
 	}
 }
 
-func (g *Grid) GetPos() raylib.Vector3 {
+func (g *Grid) GetPos() rl.Vector3 {
 	if g == nil {
-		return raylib.Vector3{}
+		return rl.Vector3{}
 	}
 
-	return raylib.NewVector3(0, 0, 0)
+	return rl.NewVector3(0, 0, 0)
 }
 
 func (g *Grid) GetPitch() float32 {
@@ -138,50 +140,50 @@ func (g *Grid) SetRoll(r float32) {
 	}
 }
 
-func (g *Grid) GetVertices() []raylib.Vector3 {
+func (g *Grid) GetVertices() []rl.Vector3 {
 	if g == nil {
-		return []raylib.Vector3{}
+		return []rl.Vector3{}
 	}
 
-	verts := []raylib.Vector3{}
+	verts := []rl.Vector3{}
 	return verts
 }
 
-func (g *Grid) GetUVs() []raylib.Vector2 {
+func (g *Grid) GetUVs() []rl.Vector2 {
 	if g == nil {
-		return []raylib.Vector2{}
+		return []rl.Vector2{}
 	}
 
-	uvs := []raylib.Vector2{}
+	uvs := []rl.Vector2{}
 	return uvs
 }
 
-func (g *Grid) SetUVs(uvs []raylib.Vector2) {
+func (g *Grid) SetUVs(uvs []rl.Vector2) {
 	if g == nil {
 		return
 	}
 }
 
-func (g *Grid) GetMaterials() *raylib.Material {
+func (g *Grid) GetMaterials() *rl.Material {
 	if g == nil {
 		return nil
 	}
 
-	return &raylib.Material{}
+	return &rl.Material{}
 }
 
-func (g *Grid) SetTexture(tex raylib.Texture2D) {
+func (g *Grid) SetTexture(tex rl.Texture2D) {
 	if g == nil {
 		return
 	}
 }
 
-func (g *Grid) GetTexture() *raylib.Texture2D {
+func (g *Grid) GetTexture() *rl.Texture2D {
 	if g == nil {
 		return nil
 	}
 
-	return &raylib.Texture2D{}
+	return &rl.Texture2D{}
 }
 
 func (g *Grid) Prerender(cam pub_object.Camera) []func() {
@@ -199,7 +201,7 @@ func (g *Grid) Render(cam pub_object.Camera) []func() {
 
 	sh := app.CurApp.GetShader()
 	sh.Begin()
-	raylib.DrawGrid(g.size, g.spacing)
+	rlx.DrawGrid(g.size, g.spacing)
 	sh.End()
 	return []func(){}
 }

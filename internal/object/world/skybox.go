@@ -10,23 +10,25 @@ import (
 	"runtime"
 	"strings"
 
+	"karalis/internal/rlx"
 	"karalis/internal/shader"
-	pub_object "karalis/pkg/object"
-	pub_shader "karalis/pkg/shader"
 	"karalis/res"
 
-	raylib "github.com/gen2brain/raylib-go/raylib"
+	pub_object "karalis/pkg/object"
+	pub_shader "karalis/pkg/shader"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 type Skybox struct {
 	parent  pub_object.Object
 	cleaner *runtime.Cleanup
 
-	tex *raylib.Texture2D
+	tex *rl.Texture2D
 	shd pub_shader.Shader
 
-	uvs   [][]raylib.Vector2
-	verts [][]raylib.Vector3
+	uvs   [][]rl.Vector2
+	verts [][]rl.Vector3
 }
 
 // constructor for skybox
@@ -81,15 +83,15 @@ func (s *Skybox) Init() error {
 	}
 
 	for _, face := range indices {
-		verts := []raylib.Vector3{}
-		uvs := []raylib.Vector2{}
+		verts := []rl.Vector3{}
+		uvs := []rl.Vector2{}
 		for i, indice := range face {
 			point := points[indice]
-			vert := raylib.NewVector3(point[0], point[1], point[2])
+			vert := rl.NewVector3(point[0], point[1], point[2])
 			verts = append(verts, vert)
 
 			coord := texCoords[i]
-			uv := raylib.NewVector2(coord[0], coord[1])
+			uv := rl.NewVector2(coord[0], coord[1])
 			uvs = append(uvs, uv)
 		}
 		s.verts = append(s.verts, verts)
@@ -104,7 +106,7 @@ func (s *Skybox) LoadImage(i interface{}) {
 		return
 	}
 
-	var img *raylib.Image
+	var img *rl.Image
 	switch data := i.(type) {
 	case string:
 		tex, err := res.GetRes(data)
@@ -143,9 +145,9 @@ func (s *Skybox) LoadImage(i interface{}) {
 		s.LoadImage(img)
 		return
 	case image.Image:
-		img = raylib.NewImageFromImage(data)
-	case raylib.Color:
-		img = raylib.GenImageColor(1536, 256, data)
+		img = rlx.NewImageFromImage(data)
+	case rl.Color:
+		img = rlx.GenImageColor(1536, 256, data)
 	default:
 		width := 1536
 		height := 256
@@ -165,29 +167,29 @@ func (s *Skybox) LoadImage(i interface{}) {
 				}
 			}
 		}
-		img = raylib.NewImageFromImage(cube)
+		img = rlx.NewImageFromImage(cube)
 	}
 
-	tex := raylib.LoadTextureCubemap(img, raylib.CubemapLayoutAutoDetect)
+	tex := rlx.LoadTextureCubemap(img, rl.CubemapLayoutAutoDetect)
 	s.tex = &tex
 	if s.cleaner != nil {
 		s.cleaner.Stop()
 	}
-	cleaner := runtime.AddCleanup(s, func(tex raylib.Texture2D) {
-		raylib.UnloadTexture(tex)
+	cleaner := runtime.AddCleanup(s, func(tex rl.Texture2D) {
+		rlx.UnloadTexture(tex)
 	}, tex)
 	s.cleaner = &cleaner
 }
 
-func (s *Skybox) GetModelMatrix() raylib.Matrix {
+func (s *Skybox) GetModelMatrix() rl.Matrix {
 	if s == nil {
-		return raylib.Matrix{}
+		return rl.Matrix{}
 	}
 
-	return raylib.MatrixIdentity()
+	return rl.MatrixIdentity()
 }
 
-func (s *Skybox) GetModel() *raylib.Model {
+func (s *Skybox) GetModel() *rl.Model {
 	if s == nil {
 		return nil
 	}
@@ -206,35 +208,35 @@ func (s *Skybox) GetColor() color.Color {
 		return nil
 	}
 
-	return raylib.White
+	return rl.White
 }
 
-func (s *Skybox) GetScale() raylib.Vector3 {
+func (s *Skybox) GetScale() rl.Vector3 {
 	if s == nil {
-		return raylib.Vector3{}
+		return rl.Vector3{}
 	}
 
-	return raylib.Vector3{1, 1, 1}
+	return rl.Vector3{1, 1, 1}
 }
 
-func (s *Skybox) SetScale(sc raylib.Vector3) {
-	if s == nil {
-		return
-	}
-}
-
-func (s *Skybox) SetPos(pos raylib.Vector3) {
+func (s *Skybox) SetScale(sc rl.Vector3) {
 	if s == nil {
 		return
 	}
 }
 
-func (s *Skybox) GetPos() raylib.Vector3 {
+func (s *Skybox) SetPos(pos rl.Vector3) {
 	if s == nil {
-		return raylib.Vector3{}
+		return
+	}
+}
+
+func (s *Skybox) GetPos() rl.Vector3 {
+	if s == nil {
+		return rl.Vector3{}
 	}
 
-	return raylib.Vector3{0, 0, 0}
+	return rl.Vector3{0, 0, 0}
 }
 
 func (s *Skybox) GetPitch() float32 {
@@ -279,31 +281,31 @@ func (s *Skybox) SetRoll(roll float32) {
 	}
 }
 
-func (s *Skybox) GetVertices() []raylib.Vector3 {
+func (s *Skybox) GetVertices() []rl.Vector3 {
 	if s == nil {
-		return []raylib.Vector3{}
+		return []rl.Vector3{}
 	}
 
-	verts := []raylib.Vector3{}
+	verts := []rl.Vector3{}
 	return verts
 }
 
-func (s *Skybox) GetUVs() []raylib.Vector2 {
+func (s *Skybox) GetUVs() []rl.Vector2 {
 	if s == nil {
-		return []raylib.Vector2{}
+		return []rl.Vector2{}
 	}
 
-	uvs := []raylib.Vector2{}
+	uvs := []rl.Vector2{}
 	return uvs
 }
 
-func (s *Skybox) SetUVs(uvs []raylib.Vector2) {
+func (s *Skybox) SetUVs(uvs []rl.Vector2) {
 	if s == nil {
 		return
 	}
 }
 
-func (s *Skybox) GetMaterials() *raylib.Material {
+func (s *Skybox) GetMaterials() *rl.Material {
 	if s == nil {
 		return nil
 	}
@@ -311,7 +313,7 @@ func (s *Skybox) GetMaterials() *raylib.Material {
 	return nil
 }
 
-func (s *Skybox) SetTexture(tex raylib.Texture2D) {
+func (s *Skybox) SetTexture(tex rl.Texture2D) {
 	if s == nil {
 		return
 	}
@@ -319,7 +321,7 @@ func (s *Skybox) SetTexture(tex raylib.Texture2D) {
 	*s.tex = tex
 }
 
-func (s *Skybox) GetTexture() *raylib.Texture2D {
+func (s *Skybox) GetTexture() *rl.Texture2D {
 	if s == nil {
 		return nil
 	}
@@ -342,29 +344,29 @@ func (s *Skybox) Render(cam pub_object.Camera) []func() {
 		return cmds
 	}
 
-	raylib.DisableDepthMask()
-	raylib.DisableDepthTest()
-	raylib.PushMatrix()
-	raylib.Begin(raylib.Quads)
-	raylib.EnableTextureCubemap(s.tex.ID)
+	rlx.DisableDepthMask()
+	rlx.DisableDepthTest()
+	rlx.PushMatrix()
+	rlx.Begin(rl.Quads)
+	rlx.EnableTextureCubemap(s.tex.ID)
 	s.shd.Begin()
-	s.shd.SetUniform("matView", raylib.GetMatrixModelview())
-	s.shd.SetUniform("matProjection", raylib.GetMatrixProjection())
+	s.shd.SetUniform("matView", rlx.GetMatrixModelview())
+	s.shd.SetUniform("matProjection", rlx.GetMatrixProjection())
 
-	raylib.Color4ub(255, 255, 255, 255)
+	rlx.Color4ub(255, 255, 255, 255)
 	for i, quad := range s.verts {
 		for j, vert := range quad {
-			raylib.TexCoord2f(s.uvs[i][j].X, s.uvs[i][j].Y)
-			raylib.Vertex3f(vert.X, vert.Y, vert.Z)
+			rlx.TexCoord2f(s.uvs[i][j].X, s.uvs[i][j].Y)
+			rlx.Vertex3f(vert.X, vert.Y, vert.Z)
 		}
 	}
 
 	s.shd.End()
-	raylib.DisableTextureCubemap()
-	raylib.End()
-	raylib.PopMatrix()
-	raylib.EnableDepthTest()
-	raylib.EnableDepthMask()
+	rlx.DisableTextureCubemap()
+	rlx.End()
+	rlx.PopMatrix()
+	rlx.EnableDepthTest()
+	rlx.EnableDepthMask()
 
 	return cmds
 }

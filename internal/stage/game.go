@@ -6,10 +6,12 @@ import (
 	"karalis/internal/object/character"
 	"karalis/internal/object/prim"
 	"karalis/internal/object/world"
+	"karalis/internal/rlx"
 	"karalis/internal/scene"
+
 	pub_object "karalis/pkg/object"
 
-	raylib "github.com/gen2brain/raylib-go/raylib"
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 var ()
@@ -17,7 +19,7 @@ var ()
 type Game struct {
 	scene  *scene.Scene
 	player *character.Player
-	rt     raylib.RenderTexture2D
+	rt     rl.RenderTexture2D
 	resize bool
 }
 
@@ -26,7 +28,7 @@ func (g *Game) Init() error {
 	if g == nil {
 		return fmt.Errorf("Invalid stage")
 	}
-	g.rt = raylib.LoadRenderTexture(int32(raylib.GetRenderWidth()), int32(raylib.GetRenderHeight()))
+	g.rt = rlx.LoadRenderTexture(int32(rlx.GetRenderWidth()), int32(rlx.GetRenderHeight()))
 
 	g.scene = &scene.Scene{}
 	err := g.scene.Init()
@@ -81,8 +83,8 @@ func (g *Game) Render() {
 		return
 	}
 	if g.resize {
-		raylib.UnloadRenderTexture(g.rt)
-		g.rt = raylib.LoadRenderTexture(int32(raylib.GetRenderWidth()), int32(raylib.GetRenderHeight()))
+		rlx.UnloadRenderTexture(g.rt)
+		g.rt = rlx.LoadRenderTexture(int32(rlx.GetRenderWidth()), int32(rlx.GetRenderHeight()))
 		g.resize = false
 	}
 	cam.UpdateCam()
@@ -94,22 +96,22 @@ func (g *Game) Render() {
 		cmd()
 	}
 
-	raylib.BeginTextureMode(g.rt)
-	raylib.ClearBackground(raylib.Black)
+	rlx.BeginTextureMode(g.rt)
+	rlx.ClearBackground(rl.Black)
 	cmds = cam.Render()
 	cmds = append(g.scene.Render(cam), cmds...)
 	for _, cmd := range cmds {
 		cmd()
 	}
-	raylib.EndTextureMode()
+	rlx.EndTextureMode()
 
 	cmds = append(cam.Postrender(), g.scene.Postrender(cam)...)
-	raylib.BeginTextureMode(g.rt)
+	rlx.BeginTextureMode(g.rt)
 	for _, cmd := range cmds {
 		cmd()
 	}
-	raylib.EndTextureMode()
-	raylib.DrawTexturePro(g.rt.Texture, raylib.Rectangle{0, 0, float32(g.rt.Texture.Width), -float32(g.rt.Texture.Height)}, raylib.Rectangle{0, 0, float32(g.rt.Texture.Width), float32(g.rt.Texture.Height)}, raylib.Vector2{0, 0}, 0.0, raylib.RayWhite)
+	rlx.EndTextureMode()
+	rlx.DrawTexturePro(g.rt.Texture, rl.Rectangle{0, 0, float32(g.rt.Texture.Width), -float32(g.rt.Texture.Height)}, rl.Rectangle{0, 0, float32(g.rt.Texture.Width), float32(g.rt.Texture.Height)}, rl.Vector2{0, 0}, 0.0, rl.RayWhite)
 
 	return
 }

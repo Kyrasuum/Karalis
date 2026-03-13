@@ -4,14 +4,15 @@ import (
 	"image/color"
 
 	"karalis/internal/camera"
+	"karalis/internal/rlx"
 	"karalis/pkg/app"
 	"karalis/pkg/input"
+	"karalis/pkg/lmath"
 	"karalis/pkg/object"
+
 	pub_object "karalis/pkg/object"
 
-	lmath "karalis/pkg/lmath"
-
-	raylib "github.com/gen2brain/raylib-go/raylib"
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 var ()
@@ -22,9 +23,9 @@ type Player struct {
 
 	parent pub_object.Object
 
-	pos   raylib.Vector3
-	rot   raylib.Vector3
-	scale raylib.Vector3
+	pos   rl.Vector3
+	rot   rl.Vector3
+	scale rl.Vector3
 
 	rchan chan (int)
 
@@ -45,9 +46,9 @@ func (p *Player) Init() (err error) {
 	}
 	p.parent = nil
 
-	p.pos = raylib.NewVector3(0, 0, 0)
-	p.rot = raylib.NewVector3(0, 0, 0)
-	p.scale = raylib.NewVector3(1, 1, 1)
+	p.pos = rl.NewVector3(0, 0, 0)
+	p.rot = rl.NewVector3(0, 0, 0)
+	p.scale = rl.NewVector3(1, 1, 1)
 
 	p.rchan = make(chan int)
 
@@ -100,7 +101,7 @@ func (p *Player) Render(cam pub_object.Camera) []func() {
 	//update cant directly set mouse positions
 	select {
 	case <-p.rchan:
-		raylib.SetMousePosition(int(float32(app.CurApp.GetWidth())/2), int(float32(app.CurApp.GetHeight())/2))
+		rlx.SetMousePosition(int(float32(app.CurApp.GetWidth())/2), int(float32(app.CurApp.GetHeight())/2))
 	default:
 	}
 
@@ -178,21 +179,21 @@ func (p *Player) GetChilds() []object.Object {
 	return p.char.GetChilds()
 }
 
-func (p *Player) GetModelMatrix() raylib.Matrix {
+func (p *Player) GetModelMatrix() rl.Matrix {
 	if p == nil {
-		return raylib.Matrix{}
+		return rl.Matrix{}
 	}
 
-	matScale := raylib.MatrixScale(p.scale.X, p.scale.Y, p.scale.Z)
+	matScale := rl.MatrixScale(p.scale.X, p.scale.Y, p.scale.Z)
 	Quat := lmath.Quat{}
 	Quat = *Quat.FromEuler(float64(p.GetPitch()), float64(p.GetYaw()), float64(p.GetRoll()))
-	matRotation := raylib.QuaternionToMatrix(raylib.NewQuaternion(float32(Quat.X), float32(Quat.Y), float32(Quat.Z), float32(Quat.W)))
-	matTranslation := raylib.MatrixTranslate(p.pos.X, p.pos.Y, p.pos.Z)
-	matTransform := raylib.MatrixMultiply(raylib.MatrixMultiply(matScale, matRotation), matTranslation)
+	matRotation := rl.QuaternionToMatrix(rl.NewQuaternion(float32(Quat.X), float32(Quat.Y), float32(Quat.Z), float32(Quat.W)))
+	matTranslation := rl.MatrixTranslate(p.pos.X, p.pos.Y, p.pos.Z)
+	matTransform := rl.MatrixMultiply(rl.MatrixMultiply(matScale, matRotation), matTranslation)
 	return matTransform
 }
 
-func (p *Player) GetModel() *raylib.Model {
+func (p *Player) GetModel() *rl.Model {
 	if p == nil {
 		return nil
 	}
@@ -211,24 +212,24 @@ func (p *Player) GetColor() color.Color {
 		return nil
 	}
 
-	return raylib.White
+	return rl.White
 }
 
-func (p *Player) SetScale(sc raylib.Vector3) {
+func (p *Player) SetScale(sc rl.Vector3) {
 	if p == nil {
 		return
 	}
 }
 
-func (p *Player) GetScale() raylib.Vector3 {
+func (p *Player) GetScale() rl.Vector3 {
 	if p == nil {
-		return raylib.Vector3{}
+		return rl.Vector3{}
 	}
 
-	return raylib.NewVector3(1, 1, 1)
+	return rl.NewVector3(1, 1, 1)
 }
 
-func (p *Player) SetPos(pos raylib.Vector3) {
+func (p *Player) SetPos(pos rl.Vector3) {
 	if p == nil {
 		return
 	}
@@ -236,9 +237,9 @@ func (p *Player) SetPos(pos raylib.Vector3) {
 	p.pos = pos
 }
 
-func (p *Player) GetPos() raylib.Vector3 {
+func (p *Player) GetPos() rl.Vector3 {
 	if p == nil {
-		return raylib.Vector3{}
+		return rl.Vector3{}
 	}
 
 	return p.pos
@@ -293,25 +294,25 @@ func (p *Player) SetRoll(r float32) {
 }
 
 // retrieve the portal display objects vertices
-func (p *Player) GetVertices() []raylib.Vector3 {
+func (p *Player) GetVertices() []rl.Vector3 {
 	if p == nil {
-		return []raylib.Vector3{}
+		return []rl.Vector3{}
 	}
 
 	return p.char.GetVertices()
 }
 
 // retrieve the portal texture uvs for the display object
-func (p *Player) GetUVs() []raylib.Vector2 {
+func (p *Player) GetUVs() []rl.Vector2 {
 	if p == nil {
-		return []raylib.Vector2{}
+		return []rl.Vector2{}
 	}
 
 	return p.char.GetUVs()
 }
 
 // set the texture uvs for the portal display object
-func (p *Player) SetUVs(uvs []raylib.Vector2) {
+func (p *Player) SetUVs(uvs []rl.Vector2) {
 	if p == nil {
 		return
 	}
@@ -319,7 +320,7 @@ func (p *Player) SetUVs(uvs []raylib.Vector2) {
 	p.char.SetUVs(uvs)
 }
 
-func (p *Player) GetMaterials() *raylib.Material {
+func (p *Player) GetMaterials() *rl.Material {
 	if p == nil {
 		return nil
 	}
@@ -327,7 +328,7 @@ func (p *Player) GetMaterials() *raylib.Material {
 	return p.char.GetMaterials()
 }
 
-func (p *Player) SetTexture(tex raylib.Texture2D) {
+func (p *Player) SetTexture(tex rl.Texture2D) {
 	if p == nil {
 		return
 	}
@@ -335,7 +336,7 @@ func (p *Player) SetTexture(tex raylib.Texture2D) {
 	p.char.SetTexture(tex)
 }
 
-func (p *Player) GetTexture() *raylib.Texture2D {
+func (p *Player) GetTexture() *rl.Texture2D {
 	if p == nil {
 		return nil
 	}
@@ -367,8 +368,8 @@ func (p *Player) ReleaseMouse() {
 	}
 
 	p.capture = false
-	raylib.EnableCursor()
-	raylib.ShowCursor()
+	rlx.EnableCursor()
+	rlx.ShowCursor()
 }
 
 func (p *Player) MouseCaptured() bool {
@@ -442,14 +443,14 @@ func (p *Player) OnInput(dt float32) {
 	}
 
 	if p.MouseCaptured() {
-		mpos := raylib.GetMousePosition()
-		raylib.DisableCursor()
-		raylib.HideCursor()
+		mpos := rlx.GetMousePosition()
+		rlx.DisableCursor()
+		rlx.HideCursor()
 
-		zoom = float32(raylib.GetMouseWheelMove()) * dt * 20
+		zoom = float32(rlx.GetMouseWheelMove()) * dt * 20
 
-		dx = dt * 200 * raylib.Deg2rad * (float32(app.CurApp.GetWidth())/2 - mpos.X)
-		dy = dt * 200 * raylib.Deg2rad * (float32(app.CurApp.GetHeight())/2 - mpos.Y)
+		dx = dt * 200 * rl.Deg2rad * (float32(app.CurApp.GetWidth())/2 - mpos.X)
+		dy = dt * 200 * rl.Deg2rad * (float32(app.CurApp.GetHeight())/2 - mpos.Y)
 
 		p.rchan <- 1
 	}
@@ -483,10 +484,10 @@ func (p *Player) updateCam(move lmath.Vec3, zoom, dx, dy float32) {
 
 	ql := lmath.Quat{}
 	if p.mode == 0 {
-		move = ql.FromEuler(float64(raylib.Deg2rad*p.cam.GetPitch()), raylib.Deg2rad*float64(p.cam.GetYaw()), float64(raylib.Deg2rad*p.cam.GetRoll())).RotateVec3(lmath.Vec3{float64(move.X), float64(move.Y), float64(move.Z)})
+		move = ql.FromEuler(float64(rl.Deg2rad*p.cam.GetPitch()), rl.Deg2rad*float64(p.cam.GetYaw()), float64(rl.Deg2rad*p.cam.GetRoll())).RotateVec3(lmath.Vec3{float64(move.X), float64(move.Y), float64(move.Z)})
 	}
 	if p.mode == 1 {
-		move = ql.FromEuler(0, float64(raylib.Deg2rad*p.cam.GetYaw()), 0).RotateVec3(lmath.Vec3{float64(move.X), float64(move.Y), float64(move.Z)})
+		move = ql.FromEuler(0, float64(rl.Deg2rad*p.cam.GetYaw()), 0).RotateVec3(lmath.Vec3{float64(move.X), float64(move.Y), float64(move.Z)})
 	}
 
 	p.cam.SetDist(dist)

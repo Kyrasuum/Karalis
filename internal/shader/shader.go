@@ -6,10 +6,11 @@ import (
 	"slices"
 	"strings"
 
+	"karalis/internal/rlx"
 	"karalis/pkg/shader"
 	"karalis/res"
 
-	raylib "github.com/gen2brain/raylib-go/raylib"
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 var (
@@ -18,9 +19,9 @@ var (
 
 type Shader struct {
 	cleaner  *runtime.Cleanup
-	shader   *raylib.Shader
+	shader   *rl.Shader
 	name     string
-	shaders  map[string]*raylib.Shader
+	shaders  map[string]*rl.Shader
 	defines  map[string]bool
 	uniforms map[string]interface{}
 
@@ -53,7 +54,7 @@ func (s *Shader) init(shader string) error {
 	s.esname = ""
 	s.vsname = ""
 	s.fsname = ""
-	s.shaders = map[string]*raylib.Shader{}
+	s.shaders = map[string]*rl.Shader{}
 	s.defines = map[string]bool{}
 	s.uniforms = map[string]interface{}{}
 	s.name = shader
@@ -75,7 +76,7 @@ func (s *Shader) Extend(shader string) shader.Shader {
 
 	ns := &Shader{}
 	ns.init(s.name)
-	ns.shaders = map[string]*raylib.Shader{}
+	ns.shaders = map[string]*rl.Shader{}
 	ns.name = shader
 	err := ns.genShader()
 	if err != nil {
@@ -176,17 +177,17 @@ func (s *Shader) genShader() error {
 			return s.SetDefine("EVAL_SHADER", true)
 		}
 
-		shader := raylib.LoadShaderFromMemory(strvs, strcs, stres, strgs, strfs)
+		shader := rlx.LoadShaderFromMemory(strvs, strcs, stres, strgs, strfs)
 		s.shader = &shader
 		s.shaders[key] = s.shader
 
 		if s.cleaner != nil {
 			s.cleaner.Stop()
 		}
-		cleaner := runtime.AddCleanup(s, func(shaders map[string]*raylib.Shader) {
+		cleaner := runtime.AddCleanup(s, func(shaders map[string]*rl.Shader) {
 			for _, shader := range shaders {
 				if shader != nil {
-					raylib.UnloadShader(*shader)
+					rlx.UnloadShader(*shader)
 				}
 			}
 		}, s.shaders)
@@ -200,7 +201,7 @@ func (s *Shader) genShader() error {
 	return nil
 }
 
-func (s *Shader) GetShader() *raylib.Shader {
+func (s *Shader) GetShader() *rl.Shader {
 	if s == nil {
 		return nil
 	}
@@ -229,7 +230,7 @@ func (s *Shader) GetLoc(uniform string) (loc int32, err error) {
 		return 0, fmt.Errorf("Invalid shader")
 	}
 
-	loc = raylib.GetShaderLocation(*s.shader, uniform)
+	loc = rlx.GetShaderLocation(*s.shader, uniform)
 	if loc == -1 {
 		return loc, fmt.Errorf("Invalid uniform")
 	}
@@ -270,7 +271,7 @@ func (s *Shader) SetUniform(uniform string, val interface{}) error {
 		return fmt.Errorf("Invalid shader")
 	}
 
-	raylib.BeginShaderMode(*s.shader)
+	rlx.BeginShaderMode(*s.shader)
 	return s.setUniform(uniform, val)
 }
 
@@ -279,39 +280,39 @@ func (s *Shader) setUniform(uniform string, val interface{}) error {
 		return fmt.Errorf("Invalid shader")
 	}
 
-	loc := raylib.GetShaderLocation(*s.shader, uniform)
+	loc := rlx.GetShaderLocation(*s.shader, uniform)
 	if loc == -1 {
 		return fmt.Errorf("(%s)Invalid uniform: %s", s.name, uniform)
 	}
 	switch tval := val.(type) {
 	case float64:
-		raylib.SetShaderValue(*s.shader, loc, []float32{float32(tval)}, raylib.ShaderUniformFloat)
+		rlx.SetShaderValue(*s.shader, loc, []float32{float32(tval)}, rl.ShaderUniformFloat)
 	case float32:
-		raylib.SetShaderValue(*s.shader, loc, []float32{float32(tval)}, raylib.ShaderUniformFloat)
+		rlx.SetShaderValue(*s.shader, loc, []float32{float32(tval)}, rl.ShaderUniformFloat)
 	case int32:
-		raylib.SetShaderValue(*s.shader, loc, []float32{float32(tval)}, raylib.ShaderUniformInt)
+		rlx.SetShaderValue(*s.shader, loc, []float32{float32(tval)}, rl.ShaderUniformInt)
 	case int:
-		raylib.SetShaderValue(*s.shader, loc, []float32{float32(tval)}, raylib.ShaderUniformInt)
+		rlx.SetShaderValue(*s.shader, loc, []float32{float32(tval)}, rl.ShaderUniformInt)
 	case uint32:
-		raylib.SetShaderValue(*s.shader, loc, []float32{float32(tval)}, raylib.ShaderUniformUint)
+		rlx.SetShaderValue(*s.shader, loc, []float32{float32(tval)}, rl.ShaderUniformUint)
 	case uint:
-		raylib.SetShaderValue(*s.shader, loc, []float32{float32(tval)}, raylib.ShaderUniformUint)
-	case raylib.Vector2:
-		raylib.SetShaderValue(*s.shader, loc, []float32{tval.X, tval.Y}, raylib.ShaderUniformVec2)
-	case *raylib.Vector2:
-		raylib.SetShaderValue(*s.shader, loc, []float32{tval.X, tval.Y}, raylib.ShaderUniformVec2)
-	case raylib.Vector3:
-		raylib.SetShaderValue(*s.shader, loc, []float32{tval.X, tval.Y, tval.Z}, raylib.ShaderUniformVec3)
-	case *raylib.Vector3:
-		raylib.SetShaderValue(*s.shader, loc, []float32{tval.X, tval.Y, tval.Z}, raylib.ShaderUniformVec3)
-	case raylib.Vector4:
-		raylib.SetShaderValue(*s.shader, loc, []float32{tval.X, tval.Y, tval.Z, tval.W}, raylib.ShaderUniformVec4)
-	case *raylib.Vector4:
-		raylib.SetShaderValue(*s.shader, loc, []float32{tval.X, tval.Y, tval.Z, tval.W}, raylib.ShaderUniformVec4)
-	case raylib.Matrix:
-		raylib.SetShaderValueMatrix(*s.shader, loc, tval)
-	case raylib.Texture2D:
-		raylib.SetShaderValueTexture(*s.shader, loc, tval)
+		rlx.SetShaderValue(*s.shader, loc, []float32{float32(tval)}, rl.ShaderUniformUint)
+	case rl.Vector2:
+		rlx.SetShaderValue(*s.shader, loc, []float32{tval.X, tval.Y}, rl.ShaderUniformVec2)
+	case *rl.Vector2:
+		rlx.SetShaderValue(*s.shader, loc, []float32{tval.X, tval.Y}, rl.ShaderUniformVec2)
+	case rl.Vector3:
+		rlx.SetShaderValue(*s.shader, loc, []float32{tval.X, tval.Y, tval.Z}, rl.ShaderUniformVec3)
+	case *rl.Vector3:
+		rlx.SetShaderValue(*s.shader, loc, []float32{tval.X, tval.Y, tval.Z}, rl.ShaderUniformVec3)
+	case rl.Vector4:
+		rlx.SetShaderValue(*s.shader, loc, []float32{tval.X, tval.Y, tval.Z, tval.W}, rl.ShaderUniformVec4)
+	case *rl.Vector4:
+		rlx.SetShaderValue(*s.shader, loc, []float32{tval.X, tval.Y, tval.Z, tval.W}, rl.ShaderUniformVec4)
+	case rl.Matrix:
+		rlx.SetShaderValueMatrix(*s.shader, loc, tval)
+	case rl.Texture2D:
+		rlx.SetShaderValueTexture(*s.shader, loc, tval)
 	default:
 		return fmt.Errorf("(%s)Invalid uniform type %t", s.name, val)
 	}
@@ -328,7 +329,7 @@ func (s *Shader) Begin() error {
 	if s.shader == nil {
 		return fmt.Errorf("Invalid shader")
 	}
-	raylib.BeginShaderMode(*s.shader)
+	rlx.BeginShaderMode(*s.shader)
 	return nil
 }
 
@@ -337,7 +338,7 @@ func (s *Shader) End() error {
 		return fmt.Errorf("Invalid shader")
 	}
 
-	raylib.EndShaderMode()
+	rlx.EndShaderMode()
 	return nil
 }
 
@@ -347,7 +348,7 @@ func (s *Shader) OnRemove() error {
 	}
 
 	if s.shader != nil {
-		raylib.UnloadShader(*s.shader)
+		rlx.UnloadShader(*s.shader)
 		s.shader = nil
 	}
 	return nil

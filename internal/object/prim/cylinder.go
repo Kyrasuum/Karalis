@@ -4,9 +4,10 @@ import (
 	"runtime"
 
 	"karalis/internal/collider"
+	"karalis/internal/rlx"
 	"karalis/pkg/app"
 
-	raylib "github.com/gen2brain/raylib-go/raylib"
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 var ()
@@ -15,13 +16,13 @@ func NewCylinder(r, h float32, n int) (p *Prim, err error) {
 	p = &Prim{}
 	p.init()
 
-	mesh := raylib.GenMeshCylinder(r, h, n)
-	p.mdl = raylib.LoadModelFromMesh(mesh)
+	mesh := rlx.GenMeshCylinder(r, h, n)
+	p.mdl = rlx.LoadModelFromMesh(mesh)
 	if p.cleaner != nil {
 		p.cleaner.Stop()
 	}
-	cleaner := runtime.AddCleanup(p, func(mdl raylib.Model) {
-		raylib.UnloadModel(mdl)
+	cleaner := runtime.AddCleanup(p, func(mdl rl.Model) {
+		rlx.UnloadModel(mdl)
 	}, p.mdl)
 	p.cleaner = &cleaner
 

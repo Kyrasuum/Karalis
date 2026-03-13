@@ -5,10 +5,12 @@ import (
 	"math"
 	"slices"
 
-	pub_object "karalis/pkg/object"
+	"karalis/internal/rlx"
 	_ "karalis/pkg/physics"
 
-	raylib "github.com/gen2brain/raylib-go/raylib"
+	pub_object "karalis/pkg/object"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 type Collider struct {
@@ -160,20 +162,20 @@ func (c *Collider) GetBoundingSphere() pub_object.Sphere {
 	}
 
 	box := c.GetAABB()
-	sp.Center = raylib.NewVector3((box.Min.X+box.Max.X)/2, (box.Min.Y+box.Max.Y)/2, (box.Min.Z+box.Max.Z)/2)
-	sp.Radius = raylib.Vector3Distance(box.Max, box.Min) / 2
+	sp.Center = rl.NewVector3((box.Min.X+box.Max.X)/2, (box.Min.Y+box.Max.Y)/2, (box.Min.Z+box.Max.Z)/2)
+	sp.Radius = rl.Vector3Distance(box.Max, box.Min) / 2
 	return sp
 }
 
-func (c *Collider) GetAABB() raylib.BoundingBox {
+func (c *Collider) GetAABB() rl.BoundingBox {
 	if c == nil {
-		return raylib.BoundingBox{}
+		return rl.BoundingBox{}
 	}
 
 	mat := c.obj.GetModelMatrix()
-	box := raylib.GetModelBoundingBox(*c.obj.GetModel())
+	box := rlx.GetModelBoundingBox(*c.obj.GetModel())
 
-	corners := [8]raylib.Vector3{
+	corners := [8]rl.Vector3{
 		{box.Min.X, box.Min.Y, box.Min.Z},
 		{box.Min.X, box.Min.Y, box.Max.Z},
 		{box.Min.X, box.Max.Y, box.Min.Z},
@@ -184,16 +186,16 @@ func (c *Collider) GetAABB() raylib.BoundingBox {
 		{box.Max.X, box.Max.Y, box.Max.Z},
 	}
 
-	min := raylib.Vector3Transform(corners[0], mat)
+	min := rl.Vector3Transform(corners[0], mat)
 	max := min
 	for i := 1; i < 8; i++ {
-		p := raylib.Vector3Transform(corners[i], mat)
-		min = raylib.NewVector3(
+		p := rl.Vector3Transform(corners[i], mat)
+		min = rl.NewVector3(
 			float32(math.Min(float64(min.X), float64(p.X))),
 			float32(math.Min(float64(min.Y), float64(p.Y))),
 			float32(math.Min(float64(min.Z), float64(p.Z))),
 		)
-		max = raylib.NewVector3(
+		max = rl.NewVector3(
 			float32(math.Max(float64(max.X), float64(p.X))),
 			float32(math.Max(float64(max.Y), float64(p.Y))),
 			float32(math.Max(float64(max.Z), float64(p.Z))),
@@ -209,32 +211,32 @@ func (c *Collider) GetOOBB() pub_object.OrientedBox {
 		return pub_object.OrientedBox{}
 	}
 
-	aabb := raylib.GetModelBoundingBox(*c.obj.GetModel())
+	aabb := rlx.GetModelBoundingBox(*c.obj.GetModel())
 	transform := c.obj.GetModelMatrix()
 
 	var obb pub_object.OrientedBox
 
-	obb.HalfExtents = raylib.Vector3{
+	obb.HalfExtents = rl.Vector3{
 		X: (aabb.Max.X - aabb.Min.X) * 0.5,
 		Y: (aabb.Max.Y - aabb.Min.Y) * 0.5,
 		Z: (aabb.Max.Z - aabb.Min.Z) * 0.5,
 	}
 
-	localCenter := raylib.Vector3{
+	localCenter := rl.Vector3{
 		X: (aabb.Min.X + aabb.Max.X) * 0.5,
 		Y: (aabb.Min.Y + aabb.Max.Y) * 0.5,
 		Z: (aabb.Min.Z + aabb.Max.Z) * 0.5,
 	}
 
-	obb.Center = raylib.Vector3{
+	obb.Center = rl.Vector3{
 		X: transform.M0*localCenter.X + transform.M4*localCenter.Y + transform.M8*localCenter.Z + transform.M12,
 		Y: transform.M1*localCenter.X + transform.M5*localCenter.Y + transform.M9*localCenter.Z + transform.M13,
 		Z: transform.M2*localCenter.X + transform.M6*localCenter.Y + transform.M10*localCenter.Z + transform.M14,
 	}
 
-	obb.AxisX = raylib.Vector3{X: transform.M0, Y: transform.M1, Z: transform.M2}
-	obb.AxisY = raylib.Vector3{X: transform.M4, Y: transform.M5, Z: transform.M6}
-	obb.AxisZ = raylib.Vector3{X: transform.M8, Y: transform.M9, Z: transform.M10}
+	obb.AxisX = rl.Vector3{X: transform.M0, Y: transform.M1, Z: transform.M2}
+	obb.AxisY = rl.Vector3{X: transform.M4, Y: transform.M5, Z: transform.M6}
+	obb.AxisZ = rl.Vector3{X: transform.M8, Y: transform.M9, Z: transform.M10}
 
 	return obb
 }

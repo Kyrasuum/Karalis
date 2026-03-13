@@ -8,13 +8,15 @@ import (
 	"runtime"
 	"unsafe"
 
+	"karalis/internal/rlx"
 	"karalis/internal/shader"
-	pub_object "karalis/pkg/object"
 	"karalis/pkg/rng"
-	pub_shader "karalis/pkg/shader"
 	"karalis/res"
 
-	raylib "github.com/gen2brain/raylib-go/raylib"
+	pub_object "karalis/pkg/object"
+	pub_shader "karalis/pkg/shader"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 var (
@@ -31,7 +33,7 @@ type Grass struct {
 	inSSBO      uint32
 	visibleSSBO uint32
 	counterSSBO uint32
-	transforms  []raylib.Matrix
+	transforms  []rl.Matrix
 
 	maxVisible uint32
 	blades     uint32
@@ -39,7 +41,7 @@ type Grass struct {
 	cellSize   float32
 	seed       uint32
 
-	mdl raylib.Model
+	mdl rl.Model
 }
 
 // BladeGPU is std430-friendly if we keep it simple.
@@ -67,10 +69,10 @@ func (g *Grass) Init(parent *Terrain, seed uint32) error {
 
 	// Counter buffer (binding=2): uint visibleCount
 	var zero uint32 = 0
-	g.counterSSBO = raylib.LoadShaderBuffer(
+	g.counterSSBO = rlx.LoadShaderBuffer(
 		uint32(unsafe.Sizeof(zero)),
 		unsafe.Pointer(&zero),
-		int32(raylib.DynamicDraw),
+		int32(rl.DynamicDraw),
 	)
 
 	// Shaders
@@ -89,14 +91,14 @@ func (g *Grass) Init(parent *Terrain, seed uint32) error {
 	if err != nil {
 		return err
 	}
-	g.mdl = mdl.(raylib.Model)
+	g.mdl = mdl.(rl.Model)
 	g.mdl.Materials.Shader = *g.shader.GetShader()
 
 	if g.cleaner != nil {
 		g.cleaner.Stop()
 	}
-	cleaner := runtime.AddCleanup(g, func(mdl raylib.Model) {
-		raylib.UnloadModel(mdl)
+	cleaner := runtime.AddCleanup(g, func(mdl rl.Model) {
+		rlx.UnloadModel(mdl)
 	}, g.mdl)
 	g.cleaner = &cleaner
 
@@ -118,12 +120,12 @@ func (g *Grass) Render(cam pub_object.Camera) []func() {
 		return cmds
 	}
 	zero := uint32(0)
-	raylib.UpdateShaderBuffer(g.counterSSBO, unsafe.Pointer(&zero), 4, 0)
+	rlx.UpdateShaderBuffer(g.counterSSBO, unsafe.Pointer(&zero), 4, 0)
 
 	g.compute.Begin()
-	raylib.BindShaderBuffer(g.inSSBO, 0)
-	raylib.BindShaderBuffer(g.visibleSSBO, 1)
-	raylib.BindShaderBuffer(g.counterSSBO, 2)
+	rlx.BindShaderBuffer(g.inSSBO, 0)
+	rlx.BindShaderBuffer(g.visibleSSBO, 1)
+	rlx.BindShaderBuffer(g.counterSSBO, 2)
 	// Upload uniforms to compute
 	err := g.compute.SetUniform("uCameraPos", cam.GetPos())
 	if err != nil {
@@ -142,19 +144,19 @@ func (g *Grass) Render(cam pub_object.Camera) []func() {
 		log.Printf("%+v\n", err)
 	}
 	groups := uint32((g.blades + 256 - 1) / 256)
-	raylib.ComputeShaderDispatch(groups, 1, 1)
+	rlx.ComputeShaderDispatch(groups, 1, 1)
 	g.compute.End()
 
 	var visibleCount uint32
-	raylib.ReadShaderBuffer(g.counterSSBO, unsafe.Pointer(&visibleCount), uint32(unsafe.Sizeof(visibleCount)), 0)
-	raylib.BindShaderBuffer(g.visibleSSBO, 1)
-	err = g.shader.SetUniform("uTime", float32(raylib.GetTime()))
+	rlx.ReadShaderBuffer(g.counterSSBO, unsafe.Pointer(&visibleCount), uint32(unsafe.Sizeof(visibleCount)), 0)
+	rlx.BindShaderBuffer(g.visibleSSBO, 1)
+	err = g.shader.SetUniform("uTime", float32(rlx.GetTime()))
 	if err != nil {
 		log.Printf("%+v\n", err)
 	}
 
 	instances := int(visibleCount)
-	raylib.DrawMeshInstanced(*g.mdl.Meshes, *g.mdl.Materials, g.transforms, instances)
+	rlx.DrawMeshInstanced(*g.mdl.Meshes, *g.mdl.Materials, g.transforms, instances)
 	g.shader.End()
 
 	return cmds
@@ -180,10 +182,10 @@ func (g *Grass) Update(dt float32) {
 		return
 	}
 	if g.inSSBO > 0 {
-		raylib.UnloadShaderBuffer(g.inSSBO)
+		rlx.UnloadShaderBuffer(g.inSSBO)
 	}
 	if g.visibleSSBO > 0 {
-		raylib.UnloadShaderBuffer(g.visibleSSBO)
+		rlx.UnloadShaderBuffer(g.visibleSSBO)
 	}
 	var blades []BladeGPU
 	hm := g.parent.(*Terrain).GetHeightMap()
@@ -243,22 +245,22 @@ func (g *Grass) Update(dt float32) {
 	}
 
 	// input blades buffer (binding=0 in compute)
-	g.inSSBO = raylib.LoadShaderBuffer(uint32(len(blades))*uint32(unsafe.Sizeof(BladeGPU{})),
+	g.inSSBO = rlx.LoadShaderBuffer(uint32(len(blades))*uint32(unsafe.Sizeof(BladeGPU{})),
 		unsafe.Pointer(&blades[0]),
-		int32(raylib.StaticDraw),
+		int32(rl.StaticDraw),
 	)
 
 	// Output visible blades buffer (binding=1 in compute; also binding=1 in vertex shader)
 	emptyVisible := make([]BladeGPU, g.maxVisible)
-	g.visibleSSBO = raylib.LoadShaderBuffer(
+	g.visibleSSBO = rlx.LoadShaderBuffer(
 		uint32(len(emptyVisible))*uint32(unsafe.Sizeof(emptyVisible[0])),
 		unsafe.Pointer(&emptyVisible[0]),
-		int32(raylib.DynamicDraw),
+		int32(rl.DynamicDraw),
 	)
 
-	g.transforms = make([]raylib.Matrix, g.blades)
+	g.transforms = make([]rl.Matrix, g.blades)
 	for i := range g.transforms {
-		g.transforms[i] = raylib.MatrixIdentity()
+		g.transforms[i] = rl.MatrixIdentity()
 	}
 }
 
@@ -306,15 +308,15 @@ func (g *Grass) GetChilds() []pub_object.Object {
 	return []pub_object.Object{}
 }
 
-func (g *Grass) GetModelMatrix() raylib.Matrix {
+func (g *Grass) GetModelMatrix() rl.Matrix {
 	if g == nil || g.parent == nil {
-		return raylib.Matrix{}
+		return rl.Matrix{}
 	}
 
 	return g.parent.GetModelMatrix()
 }
 
-func (g *Grass) GetModel() *raylib.Model {
+func (g *Grass) GetModel() *rl.Model {
 	if g == nil || g.parent == nil {
 		return nil
 	}
@@ -337,31 +339,31 @@ func (g *Grass) GetColor() color.Color {
 	return g.parent.GetColor()
 }
 
-func (g *Grass) GetScale() raylib.Vector3 {
+func (g *Grass) GetScale() rl.Vector3 {
 	if g == nil || g.parent == nil {
-		return raylib.Vector3{}
+		return rl.Vector3{}
 	}
 
 	return g.parent.GetScale()
 }
 
-func (g *Grass) SetScale(sc raylib.Vector3) {
+func (g *Grass) SetScale(sc rl.Vector3) {
 	if g == nil || g.parent == nil {
 		return
 	}
 	g.parent.SetScale(sc)
 }
 
-func (g *Grass) SetPos(pos raylib.Vector3) {
+func (g *Grass) SetPos(pos rl.Vector3) {
 	if g == nil || g.parent == nil {
 		return
 	}
 	g.parent.SetPos(pos)
 }
 
-func (g *Grass) GetPos() raylib.Vector3 {
+func (g *Grass) GetPos() rl.Vector3 {
 	if g == nil || g.parent == nil {
-		return raylib.Vector3{}
+		return rl.Vector3{}
 	}
 
 	return g.parent.GetPos()
@@ -412,30 +414,30 @@ func (g *Grass) SetRoll(roll float32) {
 	g.parent.SetRoll(roll)
 }
 
-func (g *Grass) GetVertices() []raylib.Vector3 {
+func (g *Grass) GetVertices() []rl.Vector3 {
 	if g == nil || g.parent == nil {
-		return []raylib.Vector3{}
+		return []rl.Vector3{}
 	}
 
 	return g.parent.GetVertices()
 }
 
-func (g *Grass) GetUVs() []raylib.Vector2 {
+func (g *Grass) GetUVs() []rl.Vector2 {
 	if g == nil || g.parent == nil {
-		return []raylib.Vector2{}
+		return []rl.Vector2{}
 	}
 
 	return g.parent.GetUVs()
 }
 
-func (g *Grass) SetUVs(uvs []raylib.Vector2) {
+func (g *Grass) SetUVs(uvs []rl.Vector2) {
 	if g == nil || g.parent == nil {
 		return
 	}
 	g.parent.SetUVs(uvs)
 }
 
-func (g *Grass) GetMaterials() *raylib.Material {
+func (g *Grass) GetMaterials() *rl.Material {
 	if g == nil {
 		return nil
 	}
@@ -443,14 +445,14 @@ func (g *Grass) GetMaterials() *raylib.Material {
 	return g.mdl.Materials
 }
 
-func (g *Grass) SetTexture(tex raylib.Texture2D) {
+func (g *Grass) SetTexture(tex rl.Texture2D) {
 	if g == nil {
 		return
 	}
-	raylib.SetMaterialTexture(g.mdl.Materials, raylib.MapDiffuse, tex)
+	rlx.SetMaterialTexture(g.mdl.Materials, rl.MapDiffuse, tex)
 }
 
-func (g *Grass) GetTexture() *raylib.Texture2D {
+func (g *Grass) GetTexture() *rl.Texture2D {
 	if g == nil {
 		return nil
 	}

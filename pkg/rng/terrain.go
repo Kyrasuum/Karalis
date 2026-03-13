@@ -179,7 +179,7 @@ func ColorizeHeightmapTiled(
 		}
 	}
 
-	// --- Palette (tweak as you like) ---
+	// --- Palette ---
 	deepWater := raylib.Color{R: 15, G: 40, B: 70, A: 255}
 	shallowWater := raylib.Color{R: 25, G: 70, B: 100, A: 255}
 	sand := raylib.Color{R: 194, G: 178, B: 128, A: 255}
@@ -375,7 +375,7 @@ func ridgedFbm2D_BandLimited(x, y float64, seed int64, octaves int, lacunarity, 
 	return sum
 }
 
-/* ------------------------- Noise implementation (unchanged) ------------------------- */
+/* ------------------------- Noise implementation ------------------------- */
 
 // 2D Perlin noise in range approximately [-1, 1]
 func perlin2D(x, y float64, seed int64) float64 {

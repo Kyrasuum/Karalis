@@ -1,18 +1,19 @@
 package camera
 
 import (
+	"karalis/internal/rlx"
 	"karalis/pkg/lmath"
 
 	pub_object "karalis/pkg/object"
 
-	raylib "github.com/gen2brain/raylib-go/raylib"
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 var ()
 
 type Cam struct {
 	parent pub_object.Object
-	camera raylib.Camera
+	camera rl.Camera
 
 	dist  float32
 	yaw   float32
@@ -32,12 +33,12 @@ func (s *Cam) Init() error {
 		return nil
 	}
 
-	s.camera = raylib.Camera3D{}
-	s.camera.Position = raylib.NewVector3(0.0, 0.0, 0.0)
-	s.camera.Target = raylib.NewVector3(0.0, 0.0, 0.0)
-	s.camera.Up = raylib.NewVector3(0.0, 1.0, 0.0)
+	s.camera = rl.Camera3D{}
+	s.camera.Position = rl.NewVector3(0.0, 0.0, 0.0)
+	s.camera.Target = rl.NewVector3(0.0, 0.0, 0.0)
+	s.camera.Up = rl.NewVector3(0.0, 1.0, 0.0)
 	s.camera.Fovy = 45.0
-	s.camera.Projection = raylib.CameraPerspective
+	s.camera.Projection = rl.CameraPerspective
 
 	s.dist = 4
 	s.roll = 0
@@ -67,8 +68,8 @@ func (s *Cam) Render() []func() {
 		return []func(){}
 	}
 
-	raylib.BeginMode3D(s.camera)
-	return []func(){raylib.EndMode3D}
+	rlx.BeginMode3D(s.camera)
+	return []func(){rlx.EndMode3D}
 }
 
 func (s *Cam) Postrender() []func() {
@@ -85,15 +86,15 @@ func (s *Cam) Update(dt float32) {
 	}
 }
 
-func (s *Cam) GetPos() raylib.Vector3 {
+func (s *Cam) GetPos() rl.Vector3 {
 	if s == nil {
-		return raylib.Vector3{}
+		return rl.Vector3{}
 	}
 
 	return s.camera.Position
 }
 
-func (s *Cam) SetPos(pos raylib.Vector3) {
+func (s *Cam) SetPos(pos rl.Vector3) {
 	if s == nil {
 		return
 	}
@@ -101,15 +102,15 @@ func (s *Cam) SetPos(pos raylib.Vector3) {
 	s.camera.Position = pos
 }
 
-func (s *Cam) GetTar() raylib.Vector3 {
+func (s *Cam) GetTar() rl.Vector3 {
 	if s == nil {
-		return raylib.Vector3{}
+		return rl.Vector3{}
 	}
 
 	return s.camera.Target
 }
 
-func (s *Cam) SetTar(tar raylib.Vector3) {
+func (s *Cam) SetTar(tar rl.Vector3) {
 	if s == nil {
 		return
 	}
@@ -117,9 +118,9 @@ func (s *Cam) SetTar(tar raylib.Vector3) {
 	s.camera.Target = tar
 }
 
-func (s *Cam) GetModelMatrix() raylib.Matrix {
+func (s *Cam) GetModelMatrix() rl.Matrix {
 	if s == nil {
-		return raylib.Matrix{}
+		return rl.Matrix{}
 	}
 
 	ql := lmath.Quat{}
@@ -130,45 +131,45 @@ func (s *Cam) GetModelMatrix() raylib.Matrix {
 	view.Y += float64(s.camera.Target.Y)
 	view.Z += float64(s.camera.Target.Z)
 
-	camMat := raylib.QuaternionToMatrix(raylib.NewQuaternion(float32(ql.X), float32(ql.Y), float32(ql.Z), float32(ql.W)))
-	camMat = raylib.MatrixMultiply(camMat, raylib.MatrixTranslate(float32(view.X), float32(view.Y), float32(view.Z)))
+	camMat := rl.QuaternionToMatrix(rl.NewQuaternion(float32(ql.X), float32(ql.Y), float32(ql.Z), float32(ql.W)))
+	camMat = rl.MatrixMultiply(camMat, rl.MatrixTranslate(float32(view.X), float32(view.Y), float32(view.Z)))
 
 	return camMat
 }
 
-func (s *Cam) GetCameraMatrix() raylib.Matrix {
+func (s *Cam) GetCameraMatrix() rl.Matrix {
 	if s == nil {
-		return raylib.Matrix{}
+		return rl.Matrix{}
 	}
 
-	return raylib.GetCameraMatrix(s.camera)
+	return rlx.GetCameraMatrix(s.camera)
 }
 
-func (s *Cam) GetWorldToScreen(pos raylib.Vector3) raylib.Vector2 {
+func (s *Cam) GetWorldToScreen(pos rl.Vector3) rl.Vector2 {
 	if s == nil {
-		return raylib.Vector2{}
+		return rl.Vector2{}
 	}
 
-	return raylib.GetWorldToScreen(pos, s.camera)
+	return rlx.GetWorldToScreen(pos, s.camera)
 }
 
-func (s *Cam) GetProjMatrix(width int32, height int32) raylib.Matrix {
+func (s *Cam) GetProjMatrix(width int32, height int32) rl.Matrix {
 	if s == nil {
-		return raylib.Matrix{}
+		return rl.Matrix{}
 	}
 
-	return raylib.GetCameraProjectionMatrix(&s.camera, float32(width)/float32(height))
+	return rlx.GetCameraProjectionMatrix(&s.camera, float32(width)/float32(height))
 }
 
-func (s *Cam) GetViewProjMatrix() raylib.Matrix {
+func (s *Cam) GetViewProjMatrix() rl.Matrix {
 	if s == nil {
-		return raylib.Matrix{}
+		return rl.Matrix{}
 	}
 
-	aspect := float32(raylib.GetScreenWidth()) / float32(raylib.GetScreenHeight())
-	view := raylib.GetCameraViewMatrix(&s.camera)
-	proj := raylib.GetCameraProjectionMatrix(&s.camera, aspect)
-	return raylib.MatrixMultiply(view, proj)
+	aspect := float32(rlx.GetScreenWidth()) / float32(rlx.GetScreenHeight())
+	view := rlx.GetCameraViewMatrix(&s.camera)
+	proj := rlx.GetCameraProjectionMatrix(&s.camera, aspect)
+	return rl.MatrixMultiply(view, proj)
 }
 
 func (s *Cam) GetDist() float32 {
@@ -268,7 +269,7 @@ func (s *Cam) UpdateCam() {
 	}
 
 	ql := lmath.Quat{}
-	ql = *ql.FromEuler(raylib.Deg2rad*float64(s.pitch), raylib.Deg2rad*float64(s.yaw), float64(s.roll))
+	ql = *ql.FromEuler(rl.Deg2rad*float64(s.pitch), rl.Deg2rad*float64(s.yaw), float64(s.roll))
 
 	view := ql.RotateVec3(lmath.Vec3{0, 0, float64(s.dist)})
 

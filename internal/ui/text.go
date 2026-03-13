@@ -3,16 +3,16 @@ package ui
 import (
 	"image/color"
 
-	raylib "github.com/gen2brain/raylib-go/raylib"
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 var ()
 
 type Text struct {
-	pos raylib.Vector2
+	pos rl.Vector2
 
 	text string
-	font raylib.Font
+	font rl.Font
 
 	fontSize float32
 	spacing  float32
@@ -25,10 +25,10 @@ func (t *Text) defaults() {
 		return
 	}
 
-	t.pos = raylib.Vector2{0, 0}
+	t.pos = rl.Vector2{0, 0}
 
 	t.text = ""
-	t.font = raylib.GetFontDefault()
+	t.font = rlx.GetFontDefault()
 
 	t.fontSize = 16
 	t.spacing = 1
@@ -45,7 +45,7 @@ func (t *Text) Init() error {
 	return nil
 }
 
-func (t *Text) SetPosition(p raylib.Vector2) {
+func (t *Text) SetPosition(p rl.Vector2) {
 	if t == nil {
 		return
 	}
@@ -61,7 +61,7 @@ func (t *Text) SetText(s string) {
 	t.text = s
 }
 
-func (t *Text) SetFont(f raylib.Font) {
+func (t *Text) SetFont(f rl.Font) {
 	if t == nil {
 		return
 	}
@@ -90,7 +90,7 @@ func (t *Text) Render() {
 		return
 	}
 
-	raylib.DrawTextEx(t.font, t.text, t.pos, t.fontSize, t.spacing, t.textCol)
+	rlx.DrawTextEx(t.font, t.text, t.pos, t.fontSize, t.spacing, t.textCol)
 }
 
 func (t *Text) Update(dt float64) {

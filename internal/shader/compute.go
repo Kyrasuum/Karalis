@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"runtime"
 
+	"karalis/internal/rlx"
 	"karalis/res"
 
-	raylib "github.com/gen2brain/raylib-go/raylib"
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 var (
@@ -57,12 +58,12 @@ func (c *Compute) genShader() error {
 		return fmt.Errorf("invalid source code")
 	}
 
-	shaderID := raylib.CompileShader(fmt.Sprintf("%s", code), raylib.ComputeShader)
+	shaderID := rlx.CompileShader(fmt.Sprintf("%s", code), rl.ComputeShader)
 	if shaderID == 0 {
 		return fmt.Errorf("compute shader compile failed")
 	}
 
-	prog := raylib.LoadComputeShaderProgram(shaderID)
+	prog := rlx.LoadComputeShaderProgram(shaderID)
 	if prog == 0 {
 		return fmt.Errorf("compute program link failed")
 	}
@@ -71,9 +72,9 @@ func (c *Compute) genShader() error {
 	if c.cleaner != nil {
 		c.cleaner.Stop()
 	}
-	cleaner := runtime.AddCleanup(c, func(shader raylib.Shader) {
-		raylib.UnloadShader(shader)
-	}, raylib.Shader{ID: c.id})
+	cleaner := runtime.AddCleanup(c, func(shader rl.Shader) {
+		rlx.UnloadShader(shader)
+	}, rl.Shader{ID: c.id})
 	c.cleaner = &cleaner
 	return nil
 }
@@ -91,7 +92,7 @@ func (c *Compute) SetUniform(uniform string, val interface{}) error {
 		return fmt.Errorf("Invalid shader")
 	}
 
-	raylib.EnableShader(c.id)
+	rlx.EnableShader(c.id)
 	return c.setUniform(uniform, val)
 }
 
@@ -100,49 +101,49 @@ func (c *Compute) setUniform(uniform string, val interface{}) error {
 		return fmt.Errorf("Invalid shader")
 	}
 
-	loc := raylib.GetLocationUniform(c.id, uniform)
+	loc := rlx.GetLocationUniform(c.id, uniform)
 	if loc == -1 {
 		return fmt.Errorf("(%s)Invalid uniform: %s", c.name, uniform)
 	}
 	switch tval := val.(type) {
 	case []float32:
-		raylib.SetUniform(loc, tval, int32(raylib.ShaderUniformFloat), int32(len(tval)))
+		rlx.SetUniform(loc, tval, int32(rl.ShaderUniformFloat), int32(len(tval)))
 	case []int32:
-		raylib.SetUniform(loc, tval, int32(raylib.ShaderUniformInt), int32(len(tval)))
+		rlx.SetUniform(loc, tval, int32(rl.ShaderUniformInt), int32(len(tval)))
 	case []int:
-		raylib.SetUniform(loc, tval, int32(raylib.ShaderUniformInt), int32(len(tval)))
+		rlx.SetUniform(loc, tval, int32(rl.ShaderUniformInt), int32(len(tval)))
 	case []uint32:
-		raylib.SetUniform(loc, tval, int32(raylib.ShaderUniformUint), int32(len(tval)))
+		rlx.SetUniform(loc, tval, int32(rl.ShaderUniformUint), int32(len(tval)))
 	case []uint:
-		raylib.SetUniform(loc, tval, int32(raylib.ShaderUniformUint), int32(len(tval)))
+		rlx.SetUniform(loc, tval, int32(rl.ShaderUniformUint), int32(len(tval)))
 	case float64:
-		raylib.SetUniform(loc, []float32{float32(tval)}, int32(raylib.ShaderUniformFloat), 1)
+		rlx.SetUniform(loc, []float32{float32(tval)}, int32(rl.ShaderUniformFloat), 1)
 	case float32:
-		raylib.SetUniform(loc, []float32{tval}, int32(raylib.ShaderUniformFloat), 1)
+		rlx.SetUniform(loc, []float32{tval}, int32(rl.ShaderUniformFloat), 1)
 	case int32:
-		raylib.SetUniform(loc, []int32{tval}, int32(raylib.ShaderUniformInt), 1)
+		rlx.SetUniform(loc, []int32{tval}, int32(rl.ShaderUniformInt), 1)
 	case int:
-		raylib.SetUniform(loc, []int32{int32(tval)}, int32(raylib.ShaderUniformInt), 1)
+		rlx.SetUniform(loc, []int32{int32(tval)}, int32(rl.ShaderUniformInt), 1)
 	case uint32:
-		raylib.SetUniform(loc, []uint32{tval}, int32(raylib.ShaderUniformUint), 1)
+		rlx.SetUniform(loc, []uint32{tval}, int32(rl.ShaderUniformUint), 1)
 	case uint:
-		raylib.SetUniform(loc, []uint32{uint32(tval)}, int32(raylib.ShaderUniformUint), 1)
-	case raylib.Vector2:
-		raylib.SetUniform(loc, []float32{tval.X, tval.Y}, int32(raylib.ShaderUniformVec2), 1)
-	case *raylib.Vector2:
-		raylib.SetUniform(loc, []float32{tval.X, tval.Y}, int32(raylib.ShaderUniformVec2), 1)
-	case raylib.Vector3:
-		raylib.SetUniform(loc, []float32{tval.X, tval.Y, tval.Z}, int32(raylib.ShaderUniformVec3), 1)
-	case *raylib.Vector3:
-		raylib.SetUniform(loc, []float32{tval.X, tval.Y, tval.Z}, int32(raylib.ShaderUniformVec3), 1)
-	case raylib.Vector4:
-		raylib.SetUniform(loc, []float32{tval.X, tval.Y, tval.Z, tval.W}, int32(raylib.ShaderUniformVec4), 1)
-	case *raylib.Vector4:
-		raylib.SetUniform(loc, []float32{tval.X, tval.Y, tval.Z, tval.W}, int32(raylib.ShaderUniformVec4), 1)
-	case raylib.Matrix:
-		raylib.SetUniformMatrix(loc, tval)
-	case raylib.Texture2D:
-		raylib.SetUniformSampler(loc, tval.ID)
+		rlx.SetUniform(loc, []uint32{uint32(tval)}, int32(rl.ShaderUniformUint), 1)
+	case rl.Vector2:
+		rlx.SetUniform(loc, []float32{tval.X, tval.Y}, int32(rl.ShaderUniformVec2), 1)
+	case *rl.Vector2:
+		rlx.SetUniform(loc, []float32{tval.X, tval.Y}, int32(rl.ShaderUniformVec2), 1)
+	case rl.Vector3:
+		rlx.SetUniform(loc, []float32{tval.X, tval.Y, tval.Z}, int32(rl.ShaderUniformVec3), 1)
+	case *rl.Vector3:
+		rlx.SetUniform(loc, []float32{tval.X, tval.Y, tval.Z}, int32(rl.ShaderUniformVec3), 1)
+	case rl.Vector4:
+		rlx.SetUniform(loc, []float32{tval.X, tval.Y, tval.Z, tval.W}, int32(rl.ShaderUniformVec4), 1)
+	case *rl.Vector4:
+		rlx.SetUniform(loc, []float32{tval.X, tval.Y, tval.Z, tval.W}, int32(rl.ShaderUniformVec4), 1)
+	case rl.Matrix:
+		rlx.SetUniformMatrix(loc, tval)
+	case rl.Texture2D:
+		rlx.SetUniformSampler(loc, tval.ID)
 	default:
 		return fmt.Errorf("(%s)Invalid uniform type: %t", c.name, val)
 	}
@@ -159,7 +160,7 @@ func (c *Compute) Begin() error {
 		return fmt.Errorf("Invalid shader")
 	}
 
-	raylib.EnableShader(c.id)
+	rlx.EnableShader(c.id)
 	return nil
 }
 
@@ -172,12 +173,12 @@ func (c *Compute) End() error {
 		return fmt.Errorf("Invalid shader")
 	}
 
-	raylib.DisableShader()
+	rlx.DisableShader()
 	return nil
 }
 
 func (c *Compute) Dispatch(gx, gy, gz uint32) {
-	raylib.ComputeShaderDispatch(gx, gy, gz)
+	rlx.ComputeShaderDispatch(gx, gy, gz)
 }
 
 func (c *Compute) OnRemove() error {
@@ -186,7 +187,7 @@ func (c *Compute) OnRemove() error {
 	}
 
 	if c.id != 0 {
-		raylib.UnloadShaderProgram(c.id)
+		rlx.UnloadShaderProgram(c.id)
 		c.id = 0
 	}
 	return nil

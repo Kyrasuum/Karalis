@@ -14,27 +14,29 @@ import (
 	"strings"
 	"unsafe"
 
+	"karalis/internal/rlx"
 	"karalis/pkg/app"
-	pub_object "karalis/pkg/object"
+	"karalis/pkg/lmath"
 	"karalis/pkg/rng"
 	"karalis/res"
 
-	raylib "github.com/gen2brain/raylib-go/raylib"
-	lmath "karalis/pkg/lmath"
+	pub_object "karalis/pkg/object"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 type City struct {
-	tex *raylib.Texture2D
-	mdl *raylib.Model
+	tex *rl.Texture2D
+	mdl *rl.Model
 
 	hm   *image.RGBA
 	seed int64
 
 	parent  pub_object.Object
 	cleaner *runtime.Cleanup
-	pos     raylib.Vector3
-	rot     raylib.Vector3
-	scale   raylib.Vector3
+	pos     rl.Vector3
+	rot     rl.Vector3
+	scale   rl.Vector3
 }
 
 func RandCity(offx, offy, width, height int, seed int64) (c *City, err error) {
@@ -77,9 +79,9 @@ func (c *City) Init() error {
 		return fmt.Errorf("Invalid City")
 	}
 	c.parent = nil
-	c.pos = raylib.NewVector3(0, 0, 0)
-	c.rot = raylib.NewVector3(0, 0, 0)
-	c.scale = raylib.NewVector3(1, 1, 1)
+	c.pos = rl.NewVector3(0, 0, 0)
+	c.rot = rl.NewVector3(0, 0, 0)
+	c.scale = rl.NewVector3(1, 1, 1)
 
 	err := c.LoadImage(nil)
 	if err != nil {
@@ -98,7 +100,7 @@ func (c *City) LoadImage(i interface{}) error {
 		return fmt.Errorf("Invalid City")
 	}
 
-	var img *raylib.Image
+	var img *rl.Image
 	switch data := i.(type) {
 	case string:
 		tex, err := res.GetRes(data)
@@ -135,9 +137,9 @@ func (c *City) LoadImage(i interface{}) error {
 		}
 		return c.LoadImage(pic)
 	case image.Image:
-		img = raylib.NewImageFromImage(data)
-	case raylib.Color:
-		img = raylib.GenImageColor(1536, 256, data)
+		img = rlx.NewImageFromImage(data)
+	case rl.Color:
+		img = rlx.GenImageColor(1536, 256, data)
 	default:
 		if c.tex != nil {
 			return nil
@@ -151,26 +153,26 @@ func (c *City) LoadImage(i interface{}) error {
 				cube.Set(i, j, color)
 			}
 		}
-		img = raylib.NewImageFromImage(cube)
+		img = rlx.NewImageFromImage(cube)
 	}
-	tex := raylib.LoadTextureFromImage(img)
+	tex := rlx.LoadTextureFromImage(img)
 	c.tex = &tex
 	if c.cleaner != nil {
 		c.cleaner.Stop()
 	}
 	cleaner := runtime.AddCleanup(c, func(in []interface{}) {
-		raylib.UnloadTexture(in[0].(raylib.Texture2D))
+		rlx.UnloadTexture(in[0].(rl.Texture2D))
 	}, []interface{}{*c.tex})
 	c.cleaner = &cleaner
 	if c.mdl != nil {
-		raylib.SetMaterialTexture(c.mdl.Materials, raylib.MapDiffuse, *c.tex)
+		rlx.SetMaterialTexture(c.mdl.Materials, rl.MapDiffuse, *c.tex)
 		c.mdl.Materials.Shader = *app.CurApp.GetShader().GetShader()
 		if c.cleaner != nil {
 			c.cleaner.Stop()
 		}
 		cleaner := runtime.AddCleanup(c, func(in []interface{}) {
-			raylib.UnloadTexture(in[0].(raylib.Texture2D))
-			raylib.UnloadModel(in[1].(raylib.Model))
+			rlx.UnloadTexture(in[0].(rl.Texture2D))
+			rlx.UnloadModel(in[1].(rl.Model))
 		}, []interface{}{*c.tex, *c.mdl})
 		c.cleaner = &cleaner
 	}
@@ -245,9 +247,9 @@ func (c *City) LoadMap(m string) error {
 
 func (c *City) GenCity(img *image.RGBA) {
 	c.hm = img
-	hm := raylib.NewImageFromImage(img)
-	mesh := raylib.GenMeshHeightmap(*hm, raylib.NewVector3(1, 1, 1))
-	mdl := raylib.LoadModelFromMesh(mesh)
+	hm := rlx.NewImageFromImage(img)
+	mesh := rlx.GenMeshHeightmap(*hm, rl.NewVector3(1, 1, 1))
+	mdl := rlx.LoadModelFromMesh(mesh)
 
 	c.mdl = &mdl
 	if c.tex == nil {
@@ -257,12 +259,12 @@ func (c *City) GenCity(img *image.RGBA) {
 		c.cleaner.Stop()
 	}
 	cleaner := runtime.AddCleanup(c, func(in []interface{}) {
-		raylib.UnloadTexture(in[0].(raylib.Texture2D))
-		raylib.UnloadModel(in[1].(raylib.Model))
+		rlx.UnloadTexture(in[0].(rl.Texture2D))
+		rlx.UnloadModel(in[1].(rl.Model))
 	}, []interface{}{*c.tex, *c.mdl})
 	c.cleaner = &cleaner
 
-	raylib.SetMaterialTexture(c.mdl.Materials, raylib.MapDiffuse, *c.tex)
+	rlx.SetMaterialTexture(c.mdl.Materials, rl.MapDiffuse, *c.tex)
 	c.mdl.Materials.Shader = *app.CurApp.GetShader().GetShader()
 }
 
@@ -281,9 +283,9 @@ func (c *City) Render(cam pub_object.Camera) []func() {
 		return cmds
 	}
 
-	raylib.Color4ub(255, 255, 255, 255)
+	rl.Color4ub(255, 255, 255, 255)
 	matTransform := c.GetModelMatrix()
-	raylib.DrawMesh(*c.mdl.Meshes, *c.mdl.Materials, matTransform)
+	rlx.DrawMesh(*c.mdl.Meshes, *c.mdl.Materials, matTransform)
 
 	return cmds
 }
@@ -351,22 +353,22 @@ func (c *City) GetChilds() []pub_object.Object {
 	return []pub_object.Object{}
 }
 
-func (c *City) GetModelMatrix() raylib.Matrix {
+func (c *City) GetModelMatrix() rl.Matrix {
 	if c == nil {
-		return raylib.Matrix{}
+		return rl.Matrix{}
 	}
 
-	matScale := raylib.MatrixScale(c.scale.X, c.scale.Y, c.scale.Z)
+	matScale := rl.MatrixScale(c.scale.X, c.scale.Y, c.scale.Z)
 	Quat := lmath.Quat{}
 	Quat = *Quat.FromEuler(float64(c.GetPitch()), float64(c.GetYaw()), float64(c.GetRoll()))
-	matRotation := raylib.QuaternionToMatrix(raylib.NewQuaternion(float32(Quat.X), float32(Quat.Y), float32(Quat.Z), float32(Quat.W)))
-	matTranslation := raylib.MatrixTranslate(c.pos.X, c.pos.Y, c.pos.Z)
-	matTransform := raylib.MatrixMultiply(raylib.MatrixMultiply(matScale, matRotation), matTranslation)
-	matTransform = raylib.MatrixMultiply(c.mdl.Transform, matTransform)
+	matRotation := rl.QuaternionToMatrix(rl.NewQuaternion(float32(Quat.X), float32(Quat.Y), float32(Quat.Z), float32(Quat.W)))
+	matTranslation := rl.MatrixTranslate(c.pos.X, c.pos.Y, c.pos.Z)
+	matTransform := rl.MatrixMultiply(rl.MatrixMultiply(matScale, matRotation), matTranslation)
+	matTransform = rl.MatrixMultiply(c.mdl.Transform, matTransform)
 	return matTransform
 }
 
-func (c *City) GetModel() *raylib.Model {
+func (c *City) GetModel() *rl.Model {
 	if c == nil {
 		return nil
 	}
@@ -385,18 +387,18 @@ func (c *City) GetColor() color.Color {
 		return nil
 	}
 
-	return raylib.White
+	return rl.White
 }
 
-func (c *City) GetScale() raylib.Vector3 {
+func (c *City) GetScale() rl.Vector3 {
 	if c == nil {
-		return raylib.Vector3{}
+		return rl.Vector3{}
 	}
 
 	return c.scale
 }
 
-func (c *City) SetScale(sc raylib.Vector3) {
+func (c *City) SetScale(sc rl.Vector3) {
 	if c == nil {
 		return
 	}
@@ -404,7 +406,7 @@ func (c *City) SetScale(sc raylib.Vector3) {
 	c.scale = sc
 }
 
-func (c *City) SetPos(pos raylib.Vector3) {
+func (c *City) SetPos(pos rl.Vector3) {
 	if c == nil {
 		return
 	}
@@ -412,9 +414,9 @@ func (c *City) SetPos(pos raylib.Vector3) {
 	c.pos = pos
 }
 
-func (c *City) GetPos() raylib.Vector3 {
+func (c *City) GetPos() rl.Vector3 {
 	if c == nil {
-		return raylib.Vector3{}
+		return rl.Vector3{}
 	}
 
 	return c.pos
@@ -468,12 +470,12 @@ func (c *City) SetRoll(roll float32) {
 	c.rot.Z = roll
 }
 
-func (c *City) GetVertices() []raylib.Vector3 {
+func (c *City) GetVertices() []rl.Vector3 {
 	if c == nil {
-		return []raylib.Vector3{}
+		return []rl.Vector3{}
 	}
 
-	verts := []raylib.Vector3{}
+	verts := []rl.Vector3{}
 	length := c.mdl.Meshes.VertexCount
 
 	var mdlverts []float32
@@ -484,17 +486,17 @@ func (c *City) GetVertices() []raylib.Vector3 {
 	header.Cap = int(length)
 
 	for i := 0; i < len(mdlverts); i++ {
-		verts = append(verts, raylib.NewVector3(mdlverts[3*i], mdlverts[3*i+1], mdlverts[3*i+2]))
+		verts = append(verts, rl.NewVector3(mdlverts[3*i], mdlverts[3*i+1], mdlverts[3*i+2]))
 	}
 	return verts
 }
 
-func (c *City) GetUVs() []raylib.Vector2 {
+func (c *City) GetUVs() []rl.Vector2 {
 	if c == nil {
-		return []raylib.Vector2{}
+		return []rl.Vector2{}
 	}
 
-	uvs := []raylib.Vector2{}
+	uvs := []rl.Vector2{}
 	length := c.mdl.Meshes.VertexCount
 	var mdluvs []float32
 
@@ -504,12 +506,12 @@ func (c *City) GetUVs() []raylib.Vector2 {
 	header.Cap = int(length)
 
 	for i := 0; i < len(mdluvs); i++ {
-		uvs = append(uvs, raylib.NewVector2(mdluvs[2*i], mdluvs[2*i+1]))
+		uvs = append(uvs, rl.NewVector2(mdluvs[2*i], mdluvs[2*i+1]))
 	}
 	return uvs
 }
 
-func (c *City) SetUVs(uvs []raylib.Vector2) {
+func (c *City) SetUVs(uvs []rl.Vector2) {
 	if c == nil {
 		return
 	}
@@ -529,7 +531,7 @@ func (c *City) SetUVs(uvs []raylib.Vector2) {
 	pub_object.UpdateModelUVs(c.mdl)
 }
 
-func (c *City) GetMaterials() *raylib.Material {
+func (c *City) GetMaterials() *rl.Material {
 	if c == nil {
 		return nil
 	}
@@ -537,7 +539,7 @@ func (c *City) GetMaterials() *raylib.Material {
 	return c.mdl.Materials
 }
 
-func (c *City) SetTexture(tex raylib.Texture2D) {
+func (c *City) SetTexture(tex rl.Texture2D) {
 	if c == nil {
 		return
 	}
@@ -548,24 +550,24 @@ func (c *City) SetTexture(tex raylib.Texture2D) {
 		c.cleaner.Stop()
 	}
 	cleaner := runtime.AddCleanup(c, func(in []interface{}) {
-		raylib.UnloadTexture(in[0].(raylib.Texture2D))
+		rlx.UnloadTexture(in[0].(rl.Texture2D))
 	}, []interface{}{*c.tex})
 	c.cleaner = &cleaner
 	if c.mdl != nil {
-		raylib.SetMaterialTexture(c.mdl.Materials, raylib.MapDiffuse, *c.tex)
+		rlx.SetMaterialTexture(c.mdl.Materials, rl.MapDiffuse, *c.tex)
 		c.mdl.Materials.Shader = *app.CurApp.GetShader().GetShader()
 		if c.cleaner != nil {
 			c.cleaner.Stop()
 		}
 		cleaner := runtime.AddCleanup(c, func(in []interface{}) {
-			raylib.UnloadTexture(in[0].(raylib.Texture2D))
-			raylib.UnloadModel(in[1].(raylib.Model))
+			rlx.UnloadTexture(in[0].(rl.Texture2D))
+			rlx.UnloadModel(in[1].(rl.Model))
 		}, []interface{}{*c.tex, *c.mdl})
 		c.cleaner = &cleaner
 	}
 }
 
-func (c *City) GetTexture() *raylib.Texture2D {
+func (c *City) GetTexture() *rl.Texture2D {
 	if c == nil {
 		return nil
 	}

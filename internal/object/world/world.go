@@ -9,14 +9,15 @@ import (
 
 	"karalis/pkg/app"
 	"karalis/pkg/lmath"
+
 	pub_object "karalis/pkg/object"
 
-	raylib "github.com/gen2brain/raylib-go/raylib"
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 var (
-	CellScale  = raylib.Vector3{10, 10, 10}
-	CellOffset = raylib.Vector3{-5, 0, -5}
+	CellScale  = rl.Vector3{10, 10, 10}
+	CellOffset = rl.Vector3{-5, 0, -5}
 	CellRender = 1
 	Seed       = int64(1234567)
 )
@@ -26,8 +27,8 @@ type World struct {
 	childs  []pub_object.Object
 	cells   map[string]*Cell
 	sky     *Skybox
-	pos     raylib.Vector2
-	creator func(raylib.Vector3, raylib.Vector3, int64) (*Cell, error)
+	pos     rl.Vector2
+	creator func(rl.Vector3, rl.Vector3, int64) (*Cell, error)
 }
 
 func NewTerrainWorld() (*World, error) {
@@ -165,7 +166,7 @@ func (w *World) Update(dt float32) {
 	if w.GetParent() == ply.GetParent() {
 		ply := app.CurApp.GetStage().GetPlayer()
 		pos := ply.GetPos()
-		w.pos = raylib.Vector2{pos.X, pos.Z}
+		w.pos = rl.Vector2{pos.X, pos.Z}
 	}
 
 	//perform update on objects
@@ -186,13 +187,13 @@ func (w *World) GenCells() {
 	}
 
 	ply := app.CurApp.GetStage().GetPlayer()
-	plypos := raylib.Vector2{float32(lmath.Round(ply.GetPos().X / CellScale.X)), float32(lmath.Round(ply.GetPos().Z / CellScale.Z))}
+	plypos := rl.Vector2{float32(lmath.Round(ply.GetPos().X / CellScale.X)), float32(lmath.Round(ply.GetPos().Z / CellScale.Z))}
 
 	//drop off cells
 	remove := []string{}
 	for _, cell := range w.cells {
-		cpos := raylib.Vector2{float32(lmath.Round((cell.GetPos().X + CellScale.X/2) / CellScale.X)), float32(lmath.Round((cell.GetPos().Z + CellScale.Z/2) / CellScale.Z))}
-		diff := raylib.Vector2{lmath.Abs(plypos.X - cpos.X), lmath.Abs(plypos.Y - cpos.Y)}
+		cpos := rl.Vector2{float32(lmath.Round((cell.GetPos().X + CellScale.X/2) / CellScale.X)), float32(lmath.Round((cell.GetPos().Z + CellScale.Z/2) / CellScale.Z))}
+		diff := rl.Vector2{lmath.Abs(plypos.X - cpos.X), lmath.Abs(plypos.Y - cpos.Y)}
 		if diff.X > float32(CellRender) || diff.Y > float32(CellRender) {
 			spos := fmt.Sprintf("%d %d", cpos.X, cpos.Y)
 			remove = append(remove, spos)
@@ -205,10 +206,10 @@ func (w *World) GenCells() {
 	//add cells as needed
 	for x := range CellRender*2 + 1 {
 		for y := range CellRender*2 + 1 {
-			cpos := raylib.Vector2{float32(x-CellRender) + plypos.X, float32(y-CellRender) + plypos.Y}
+			cpos := rl.Vector2{float32(x-CellRender) + plypos.X, float32(y-CellRender) + plypos.Y}
 			spos := fmt.Sprintf("%d %d", cpos.X, cpos.Y)
 			if _, ok := w.cells[spos]; !ok {
-				offset := raylib.Vector3{cpos.X*CellScale.X + CellOffset.X, CellOffset.Y, cpos.Y*CellScale.Z + CellOffset.Z}
+				offset := rl.Vector3{cpos.X*CellScale.X + CellOffset.X, CellOffset.Y, cpos.Y*CellScale.Z + CellOffset.Z}
 				cell, err := w.creator(offset, CellScale, Seed)
 				if err != nil {
 					log.Printf("%+v\n", err)
@@ -289,14 +290,14 @@ func (w *World) GetCollider() pub_object.Collider {
 	return nil
 }
 
-func (w *World) GetModelMatrix() raylib.Matrix {
+func (w *World) GetModelMatrix() rl.Matrix {
 	if w == nil {
-		return raylib.Matrix{}
+		return rl.Matrix{}
 	}
-	return raylib.Matrix{}
+	return rl.Matrix{}
 }
 
-func (w *World) GetModel() *raylib.Model {
+func (w *World) GetModel() *rl.Model {
 	if w == nil {
 		return nil
 	}
@@ -318,33 +319,33 @@ func (w *World) GetColor() color.Color {
 	return nil
 }
 
-func (w *World) GetScale() raylib.Vector3 {
+func (w *World) GetScale() rl.Vector3 {
 	if w == nil {
-		return raylib.Vector3{}
+		return rl.Vector3{}
 	}
 
-	return raylib.Vector3{}
+	return rl.Vector3{}
 }
 
-func (w *World) SetScale(sc raylib.Vector3) {
+func (w *World) SetScale(sc rl.Vector3) {
 	if w == nil {
 		return
 	}
 }
 
-func (w *World) SetPos(pos raylib.Vector3) {
+func (w *World) SetPos(pos rl.Vector3) {
 	if w == nil {
 		return
 	}
-	w.pos = raylib.Vector2{pos.X, pos.Z}
+	w.pos = rl.Vector2{pos.X, pos.Z}
 }
 
-func (w *World) GetPos() raylib.Vector3 {
+func (w *World) GetPos() rl.Vector3 {
 	if w == nil {
-		return raylib.Vector3{}
+		return rl.Vector3{}
 	}
 
-	return raylib.Vector3{w.pos.X, 0, w.pos.Y}
+	return rl.Vector3{w.pos.X, 0, w.pos.Y}
 }
 
 func (w *World) GetPitch() float32 {
@@ -389,27 +390,27 @@ func (w *World) SetRoll(roll float32) {
 	}
 }
 
-func (w *World) GetVertices() []raylib.Vector3 {
+func (w *World) GetVertices() []rl.Vector3 {
 	if w == nil {
-		return []raylib.Vector3{}
+		return []rl.Vector3{}
 	}
-	return []raylib.Vector3{}
+	return []rl.Vector3{}
 }
 
-func (w *World) GetUVs() []raylib.Vector2 {
+func (w *World) GetUVs() []rl.Vector2 {
 	if w == nil {
-		return []raylib.Vector2{}
+		return []rl.Vector2{}
 	}
-	return []raylib.Vector2{}
+	return []rl.Vector2{}
 }
 
-func (w *World) SetUVs(uvs []raylib.Vector2) {
+func (w *World) SetUVs(uvs []rl.Vector2) {
 	if w == nil {
 		return
 	}
 }
 
-func (w *World) GetMaterials() *raylib.Material {
+func (w *World) GetMaterials() *rl.Material {
 	if w == nil {
 		return nil
 	}
@@ -417,13 +418,13 @@ func (w *World) GetMaterials() *raylib.Material {
 	return nil
 }
 
-func (w *World) SetTexture(tex raylib.Texture2D) {
+func (w *World) SetTexture(tex rl.Texture2D) {
 	if w == nil {
 		return
 	}
 }
 
-func (w *World) GetTexture() *raylib.Texture2D {
+func (w *World) GetTexture() *rl.Texture2D {
 	if w == nil {
 		return nil
 	}

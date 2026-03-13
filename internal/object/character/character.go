@@ -2,9 +2,10 @@ package character
 
 import (
 	"karalis/pkg/object"
+
 	pub_object "karalis/pkg/object"
 
-	raylib "github.com/gen2brain/raylib-go/raylib"
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 var ()
@@ -106,53 +107,53 @@ func (c *Character) GetChilds() []object.Object {
 	return []object.Object{}
 }
 
-func (c *Character) GetVertices() []raylib.Vector3 {
+func (c *Character) GetVertices() []rl.Vector3 {
 	if c == nil {
-		return []raylib.Vector3{}
+		return []rl.Vector3{}
 	}
 
-	verts := []raylib.Vector3{}
+	verts := []rl.Vector3{}
 	return verts
 }
 
-func (c *Character) GetUVs() []raylib.Vector2 {
+func (c *Character) GetUVs() []rl.Vector2 {
 	if c == nil {
-		return []raylib.Vector2{}
+		return []rl.Vector2{}
 	}
 
-	uvs := []raylib.Vector2{}
+	uvs := []rl.Vector2{}
 	return uvs
 }
 
-func (c *Character) SetUVs(uvs []raylib.Vector2) {
+func (c *Character) SetUVs(uvs []rl.Vector2) {
 	if c == nil {
 		return
 	}
 }
 
-func (c *Character) GetMaterials() *raylib.Material {
+func (c *Character) GetMaterials() *rl.Material {
 	if c == nil {
-		return &raylib.Material{}
+		return &rl.Material{}
 	}
 
-	return &raylib.Material{}
+	return &rl.Material{}
 }
 
-func (c *Character) SetTexture(tex raylib.Texture2D) {
+func (c *Character) SetTexture(tex rl.Texture2D) {
 	if c == nil {
 		return
 	}
 }
 
-func (c *Character) GetTexture() *raylib.Texture2D {
+func (c *Character) GetTexture() *rl.Texture2D {
 	if c == nil {
 		return nil
 	}
 
-	return &raylib.Texture2D{}
+	return &rl.Texture2D{}
 }
 
-func (c *Character) GetModel() *raylib.Model {
+func (c *Character) GetModel() *rl.Model {
 	if c == nil {
 		return nil
 	}
